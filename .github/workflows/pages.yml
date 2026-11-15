@@ -1,0 +1,46 @@
+# 构建静态网站并部署到 GitHub Pages。
+# 前置：仓库 Settings -> Pages -> Source 选 "GitHub Actions"。
+# 站点资源均为相对路径，可部署在子路径下；本仓库地址为 https://mxqmxqmxq.github.io/virtual-cell-radar/ 。
+# 构建只依赖仓库内已提交的 data/、reports/、config/、resources 数据（site/ 与 local/ 已被 .gitignore 忽略）。
+# action 版本于 2026-11 核对：configure-pages v6、upload-pages-artifact v5、deploy-pages v5、checkout v7、setup-uv v10.3.3。
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  # daily.yml 用默认 GITHUB_TOKEN 推送，不会触发 push 事件，所以改为在它成功后显式触发部署。
+  workflow_run:
+    workflows: ["Daily update"]
+    types: [completed]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - uses: astral-sh/setup-uv@v10.3.3
+      - run: uv sync --locked
+      - name: Build site
+        run: uv run python -m aivc build-site
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v5

@@ -1,0 +1,401 @@
+# 知识资源 · 精选清单：数据门户与基准/竞赛（kind=data_portal、benchmark），人工维护
+# 字段：id（小写字母数字与连字符，全库唯一）、name、kind、url、description_zh（用自己的话写的可核实事实）、
+#       tags、related_tasks / related_paradigms（config/scope.yaml 里的 id）、status（accepted/candidate/archived）、
+#       added、source（manual/auto_discovered）、github（owner/repo，url 是仓库地址时可省略）、
+#       paper_ids（论文库 id）、dataset_names（对应的数据集名/别名）、discovered_from、note。
+# 本文件可能被命令重写（手写注释不会保留），说明请写在 note 字段。
+
+resources:
+  - id: cellxgene-discover
+    name: CZ CELLxGENE Discover
+    kind: data_portal
+    url: https://cellxgene.cziscience.com/
+    description_zh: Chan Zuckerberg 系列平台提供的单细胞数据集合与在线探索入口，可浏览、下载并在线可视化整理好的单细胞数据集，并附带 Census API 与细胞类型指南等入口。
+    tags:
+    - 单细胞图谱
+    - 数据门户
+    - 表达可视化
+    related_tasks:
+    - cell_state_representation
+    - dataset_resource
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    note: 数据许可按各数据集/合集分别标注，待核实。
+
+  - id: scperturb
+    name: scPerturb
+    kind: data_portal
+    url: https://projects.sanderlab.org/scperturb/
+    description_zh: 整理并统一格式的单细胞扰动数据集资源，收录带单细胞读数的靶向扰动实验，并提供数据集属性浏览器（扰动类型、扰动数等），原始论文为 bioRxiv 预印本。
+    tags:
+    - 扰动数据
+    - Perturb-seq
+    - 标准化数据集
+    related_tasks:
+    - perturbation_response_prediction
+    - benchmark_evaluation
+    - dataset_resource
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    dataset_names:
+    - scPerturb
+    note: 站点 scperturb.org 会跳转到该地址；各子数据集许可待核实。
+
+  - id: clue-cmap
+    name: CLUE（Connectivity Map / LINCS L1000）
+    kind: data_portal
+    url: https://clue.io/
+    description_zh: Connectivity Map 项目的在线平台，提供扰动特征谱的连接度分析与数据下载入口，其数据来自 LINCS L1000 等基因表达扰动实验。
+    tags:
+    - LINCS
+    - L1000
+    - 扰动特征谱
+    - 药物响应
+    related_tasks:
+    - drug_response
+    - perturbation_response_prediction
+    - dataset_resource
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    dataset_names:
+    - LINCS L1000
+    note: 部分功能与下载需注册登录；数据许可待核实。
+
+  - id: hca-data-portal
+    name: Human Cell Atlas Data Portal
+    kind: data_portal
+    url: https://data.humancellatlas.org/
+    description_zh: 人类细胞图谱（HCA）社区的数据门户，汇集由社区产出的多组学开放数据，按器官系统组织图谱并提供项目检索与数据贡献入口。
+    tags:
+    - 人类细胞图谱
+    - 多组学
+    - 单细胞图谱
+    related_tasks:
+    - cell_state_representation
+    - multi_omics_integration
+    - dataset_resource
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    note: 各项目数据的访问与许可条件不同，待核实。
+
+  - id: tahoe-100m
+    name: Tahoe-100M
+    kind: data_portal
+    url: https://huggingface.co/datasets/tahoebio/Tahoe-100M
+    description_zh: Tahoe 在 Hugging Face 发布的大规模药物扰动单细胞转录组数据集，含表达矩阵与细胞系、药物、基因等元数据子集，页面标注许可为 CC0-1.0。
+    tags:
+    - 药物扰动
+    - 单细胞转录组
+    - 大规模
+    related_tasks:
+    - drug_response
+    - perturbation_response_prediction
+    - dataset_resource
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    dataset_names:
+    - Tahoe-100M
+    - Tahoe
+
+  - id: replogle-genome-wide-perturb-seq
+    name: Replogle 全基因组 Perturb-seq 数据
+    kind: data_portal
+    url: https://gwps.wi.mit.edu/
+    description_zh: Genome-Wide Perturb-Seq 在线数据浏览站点，对应 Replogle 等人 2022 年基因组规模 Perturb-seq 研究；处理后的数据集另发布于 figshare，页面标注 CC BY 4.0。
+    tags:
+    - Perturb-seq
+    - CRISPRi
+    - K562
+    - RPE1
+    related_tasks:
+    - perturbation_response_prediction
+    - gene_regulatory_network
+    - dataset_resource
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    dataset_names:
+    - Replogle
+    - Replogle K562
+    - Replogle RPE1
+    - Replogle-K562
+    note: 浏览站点为动态页面，下载链接见 figshare 条目 20029387（plus.figshare.com，CC BY 4.0，经 figshare API 核实）。
+
+  - id: arc-virtual-cell-atlas
+    name: Arc Virtual Cell Atlas
+    kind: data_portal
+    url: https://github.com/ArcInstitute/arc-virtual-cell-atlas
+    description_zh: Arc Institute 面向虚拟细胞模型构建的开放数据集合，仓库说明含观测与扰动两类数据，以 Tahoe-100M 与 scBaseCount 为起点，数据托管于公开的 Google Cloud 存储桶。
+    tags:
+    - 虚拟细胞
+    - 扰动数据
+    - 数据集合
+    related_tasks:
+    - dataset_resource
+    - perturbation_response_prediction
+    - cell_state_representation
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: ArcInstitute/arc-virtual-cell-atlas
+    note: atlas 网页版 virtualcellatlas.arcinstitute.org 请求时无法连接，故以官方 GitHub 仓库说明作为入口；各数据许可待核实。
+
+  - id: tabula-sapiens
+    name: Tabula Sapiens
+    kind: data_portal
+    url: https://tabula-sapiens.sf.czbiohub.org/
+    description_zh: 人类多器官单细胞转录组参考图谱的数据门户，页面说明收录 28 个器官、24 位正常受试者的超过 110 万个细胞，并同时提供 v1 与 v2 两篇论文的数据。
+    tags:
+    - 人类细胞图谱
+    - 单细胞转录组
+    - 参考图谱
+    related_tasks:
+    - cell_state_representation
+    - dataset_resource
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    dataset_names:
+    - Tabula Sapiens
+    note: 页面描述的规模为该图谱整体说明；许可待核实。
+
+  - id: broad-single-cell-portal
+    name: Broad Single Cell Portal
+    kind: data_portal
+    url: https://singlecell.broadinstitute.org/single_cell
+    description_zh: Broad 研究所运营的单细胞研究数据共享与可视化门户，可浏览已公开的研究并创建自己的研究；创建研究需登录。
+    tags:
+    - 单细胞
+    - 数据共享
+    - 可视化
+    related_tasks:
+    - cell_state_representation
+    - dataset_resource
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    note: 浏览公开研究无需登录；上传需登录；各研究许可待核实。
+
+  - id: depmap-portal
+    name: DepMap Portal
+    kind: data_portal
+    url: https://depmap.org/portal/
+    description_zh: Broad 研究所的癌症依赖性图谱门户，开放提供癌细胞系的基因依赖性等数据、分析与可视化工具，数据每年定期发布新版本。
+    tags:
+    - 癌症细胞系
+    - CRISPR 筛选
+    - 基因依赖性
+    related_tasks:
+    - drug_response
+    - dataset_resource
+    related_paradigms:
+    - causal_mechanistic
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    note: 各数据版本的使用条款待核实。
+
+  - id: jump-cell-painting
+    name: JUMP Cell Painting 数据集
+    kind: data_portal
+    url: https://github.com/jump-cellpainting/datasets
+    description_zh: JUMP-Cell Painting 联盟产出的 Cell Painting 图像数据集的索引仓库，说明由多家药企与研究机构联合产出，存储由 AWS 开放数据计划资助。
+    tags:
+    - Cell Painting
+    - 形态学
+    - 表型筛选
+    related_tasks:
+    - perturbation_response_prediction
+    - drug_response
+    - dataset_resource
+    related_paradigms:
+    - contrastive_multimodal
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: jump-cellpainting/datasets
+    dataset_names:
+    - JUMP
+    note: 数据存放于 Cell Painting Gallery（registry.opendata.aws/cellpainting-gallery）；许可待核实。
+
+  - id: rxrx3
+    name: RxRx3（Recursion 表型图谱数据集）
+    kind: data_portal
+    url: https://www.rxrx.ai/rxrx3
+    description_zh: Recursion 公开的表型组学图谱数据集，页面说明含对人类基因组大部分基因的 CRISPR 敲除与已知化合物处理的 HUVEC 细胞图像及其深度学习嵌入，其中约 16000 个基因被匿名化。
+    tags:
+    - 细胞成像
+    - 表型筛选
+    - CRISPR 敲除
+    related_tasks:
+    - perturbation_response_prediction
+    - drug_response
+    - dataset_resource
+    related_paradigms:
+    - contrastive_multimodal
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    note: 许可见页面 License 栏目，具体条款待核实；另有精简版 RxRx3-core（https://www.rxrx.ai/rxrx3-core）。
+
+  - id: virtual-cell-challenge
+    name: Virtual Cell Challenge
+    kind: benchmark
+    url: https://virtualcellchallenge.org/
+    description_zh: 由 Arc Institute 主办的虚拟细胞挑战赛，任务是用 AI 模型预测单基因扰动对细胞的影响，页面写明赞助方为 NVIDIA、10x Genomics 与 Ultima Genomics。
+    tags:
+    - 竞赛
+    - 扰动预测
+    - 虚拟细胞
+    related_tasks:
+    - perturbation_response_prediction
+    - benchmark_evaluation
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    note: 页面为动态加载，仅核实标题与站点说明；赛制与时间线以官网为准。
+
+  - id: open-problems
+    name: Open Problems in Single-Cell Analysis
+    kind: benchmark
+    url: https://openproblems.bio/
+    description_zh: 面向单细胞分析的社区基准平台，把领域难题定义为可复现的形式化基准并对方法排名；站点列出的基准、方法与数据集数量随版本更新。
+    tags:
+    - 基准
+    - 单细胞分析
+    - 社区平台
+    related_tasks:
+    - benchmark_evaluation
+    - multi_omics_integration
+    related_paradigms:
+    - evaluation_interpretability
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: openproblems-bio/openproblems
+
+  - id: kaggle-open-problems-perturbations
+    name: Open Problems – Single-Cell Perturbations（Kaggle）
+    kind: benchmark
+    url: https://www.kaggle.com/competitions/open-problems-single-cell-perturbations
+    description_zh: Kaggle 上的单细胞扰动预测竞赛，页面简介为预测小分子在不同细胞类型中如何改变基因表达。
+    tags:
+    - 竞赛
+    - 小分子扰动
+    - Kaggle
+    related_tasks:
+    - perturbation_response_prediction
+    - drug_response
+    - benchmark_evaluation
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    note: 参赛数据下载需 Kaggle 账号并接受规则；竞赛年份与数据许可待核实。
+
+  - id: perturbench
+    name: PerturBench
+    kind: benchmark
+    url: https://github.com/altoslabs/perturbench
+    description_zh: Altos Labs 发布的细胞扰动效应预测基准框架，仓库说明包含平台、数据集与用于公平比较模型的指标，论文发表于 NeurIPS 2025 数据集与基准赛道。
+    tags:
+    - 基准
+    - 扰动预测
+    - 评测指标
+    related_tasks:
+    - perturbation_response_prediction
+    - benchmark_evaluation
+    related_paradigms:
+    - evaluation_interpretability
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: altoslabs/perturbench
+    note: 许可待核实。
+
+  - id: perteval-scfm
+    name: PertEval-scFM
+    kind: benchmark
+    url: https://github.com/aaronwtr/PertEval
+    description_zh: 用于评估单细胞基础模型扰动响应预测能力的评测框架，仓库说明强调以简单探针和统一协议比较各模型。
+    tags:
+    - 基准
+    - 单细胞基础模型
+    - 扰动响应
+    related_tasks:
+    - perturbation_response_prediction
+    - benchmark_evaluation
+    related_paradigms:
+    - foundation_model_pretraining
+    - evaluation_interpretability
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: aaronwtr/PertEval
+    note: 许可待核实。
+
+  - id: scperturbench
+    name: scPerturBench
+    kind: benchmark
+    url: https://github.com/bm2-lab/scPerturBench
+    description_zh: 单细胞扰动效应预测的基准仓库，仓库简介为 Single-cell perturbation effects prediction benchmark，由 bm2-lab 维护。
+    tags:
+    - 基准
+    - 扰动预测
+    related_tasks:
+    - perturbation_response_prediction
+    - benchmark_evaluation
+    related_paradigms:
+    - evaluation_interpretability
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: bm2-lab/scPerturBench
+    dataset_names:
+    - scPerturBench
+    note: 仓库简介之外的细节未逐项核实；许可待核实。
+
+  - id: biohub-virtual-cells-platform
+    name: Biohub Virtual Cells Platform
+    kind: data_portal
+    url: https://virtualcellmodels.cziscience.com/
+    description_zh: Biohub（Chan Zuckerberg）的虚拟细胞平台，汇集虚拟细胞模型、配套数据集与评测，提供模型说明与教程。
+    tags:
+    - virtual-cell
+    - models
+    - benchmark
+    related_tasks:
+    - perturbation_response_prediction
+    - cell_state_representation
+    - benchmark_evaluation
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: virtual-embryo
+    name: Virtual Embryo
+    kind: benchmark
+    url: https://virtualembryo.ai/
+    description_zh: 小鼠发育图谱网站，提供三维重建与切片注释，并配套 Virtual Embryo Challenge（NeurIPS 2026）。
+    tags:
+    - development
+    - challenge
+    - atlas
+    related_tasks:
+    - cell_fate_differentiation
+    - spatial
+    status: accepted
+    added: 2026-11-15
+    source: manual

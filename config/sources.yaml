@@ -1,0 +1,166 @@
+arxiv:
+  enabled: true
+  base_url: "https://export.arxiv.org/api/query"
+  bio_categories: ["q-bio.GN", "q-bio.QM", "q-bio.MN", "q-bio.CB", "q-bio.BM"]  # 全收，本地预筛
+  ml_categories: ["cs.LG", "cs.AI", "stat.ML"]  # 查询时必须带关键词
+  query_terms:
+    - "virtual cell"
+    - "perturbation prediction"
+    - "single-cell"
+    - "Perturb-seq"
+    - "gene expression"
+    - "cellular response"
+    - "drug response"
+    - "cell foundation model"
+    - "gene regulatory network"
+    - "CRISPR screen"
+    - "cell fate"
+    - "transcriptomic"
+  page_size: 100
+  delay_seconds: 3.0
+  max_results_per_window: 2000
+
+biorxiv:
+  enabled: true
+  base_url: "https://api.biorxiv.org"
+  server: "biorxiv"
+  categories: ["bioinformatics", "systems biology", "genomics", "synthetic biology"]
+  delay_seconds: 1.0
+  max_pages_per_category: 400
+
+medrxiv:
+  enabled: false
+  base_url: "https://api.biorxiv.org"
+  server: "medrxiv"
+  categories: ["health informatics", "genetic and genomic medicine"]
+  delay_seconds: 1.0
+  max_pages_per_category: 400
+
+# 以下为 Phase 2+ 占位，未启用。RSS URL 未核实的留空，待确认。
+journals_rss:
+  enabled: false
+  feeds:
+    - {name: "Nature", url: ""}              # 待确认
+    - {name: "Nature Methods", url: ""}      # 待确认
+    - {name: "Nature Biotechnology", url: ""}  # 待确认
+    - {name: "Cell", url: ""}                # 待确认
+    - {name: "Cell Systems", url: ""}        # 待确认
+    - {name: "Science", url: ""}             # 待确认
+    - {name: "Genome Biology", url: ""}      # 待确认
+    - {name: "Nature Machine Intelligence", url: ""}  # 待确认
+
+openreview:
+  enabled: false
+  venues: ["ICLR", "NeurIPS", "ICML", "MLCB", "RECOMB"]  # 具体 venue id 待确认
+  # refresh-openreview（核验并覆盖公开库里的 ICLR 条目）用的官方 API v2 地址与请求间隔（秒，最小按 1 秒）
+  api_base_url: "https://api2.openreview.net"
+  delay_seconds: 1.0
+
+# 商业新闻（Phase 3）。feed 由后续步骤联网验证后填写，未验证的不写入。
+news:
+  enabled: true
+  delay_seconds: 1.0   # 请求间隔（秒），实际不低于 1
+  user_agent: "virtual-cell-radar/0.1 (+https://github.com/mxqmxqmxq/virtual-cell-radar)"
+  respect_robots: true
+  # 以下 feed 均于 2026-11-15 实测：robots.txt 未禁止、HTTP 200、feedparser 可解析、条目带 title 与 link。
+  # 条款结论见 DATA_LICENSE.md 第 6 节；"待核实" 表示条款页未读到明确条文。
+  feeds:
+    - {name: "TechCrunch Biotech & Health", url: "https://techcrunch.com/category/biotech-health/feed/", kind: media, company: null, enabled: true}   # 2026-11-15 HTTP 200，20 条；RSS Terms of Use 允许展示 feed 内容并署名、链接回原文
+    - {name: "STAT", url: "https://www.statnews.com/feed/", kind: media, company: null, enabled: false}   # 2026-11-15 HTTP 200，20 条；条款把 RSS 列为站点访问方式，但同时限制抓取/缓存正文（只存标题+链接，见 DATA_LICENSE.md）
+    - {name: "GEN", url: "https://www.genengnews.com/feed/", kind: media, company: null, enabled: true}   # 2026-11-15 HTTP 200，10 条；条款未提 RSS，禁止镜像正文并保留文本数据挖掘权利（只存标题+链接）
+    - {name: "Labiotech", url: "https://www.labiotech.eu/feed/", kind: media, company: null, enabled: true}   # 2026-11-15 HTTP 200，12 条；未找到条款页，待核实
+    - {name: "Chan Zuckerberg Initiative", url: "https://chanzuckerberg.com/feed/", kind: company, company: "CZI", enabled: true}   # 2026-11-15 HTTP 200，10 条；条款页未读到，待核实
+    - {name: "Genentech Stories", url: "https://feeds.feedburner.com/Genentech-Stories", kind: company, company: "Genentech/Roche", enabled: false}   # 2026-11-15 HTTP 200，10 条；由 gene.com 首页 link rel=alternate 公布；条款页未读到，待核实
+    - {name: "Absci", url: "https://www.absci.com/feed/", kind: company, company: "Absci", enabled: true}   # 2026-11-15 HTTP 200，10 条；robots.txt 仅禁止 /wp-admin/、/wp-includes/；条款页未读到，待核实
+    - {name: "XtalPi", url: "https://www.xtalpi.com/feed/", kind: company, company: "晶泰科技 (XtalPi)", enabled: true}   # 2026-11-15 HTTP 200，10 条；由官网首页 link rel=alternate 公布；条款页未读到，待核实
+    # --- 2026-11-15 扩充（N1）：以下 feed 均用项目 UA 实测：HTTP 200、feedparser 可解析、条目带 title 与 link；robots.txt 对 * 未禁止该路径，且未见点名 AI 爬虫的全站禁止 ---
+    - {name: "BiopharmaTrend", url: "https://www.biopharmatrend.com/rss/", kind: media, company: null, enabled: true, require_date: true}   # 2026-11-15 HTTP 200，10 条（条目无 pubDate：require_date 丢弃无日期条目，实际等于暂不产出；日期不明的文章不进展示）；robots 仅禁 /admin/ 等；条款 https://wtmbgroup.com/terms-of-use 未提 RSS/自动访问，仅写未经许可不得复制内容（只存标题+链接），待核实
+    - {name: "Drug Discovery Trends", url: "https://www.drugdiscoverytrends.com/feed/", kind: media, company: null, enabled: false}   # 2026-11-15 HTTP 200，25 条；robots 仅禁 wp 后台；未找到独立条款页，页脚版权声明（Arrowfly LLC）称未经书面许可不得复制/传播/缓存，未提 RSS/自动访问（只存标题+链接），待核实
+    - {name: "MedCity News", url: "https://medcitynews.com/feed/", kind: media, company: null, enabled: false}   # 2026-11-15 HTTP 200，30 条；robots 无限制；条款 https://medcitynews.com/medcitizen-terms-of-service/ 限制未经同意下载/存储站内材料，未提 robot/RSS（只存标题+链接），待核实
+    - {name: "FDA Press Releases", url: "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/press-releases/rss.xml", kind: media, company: null, enabled: true}   # 2026-11-15 HTTP 200，20 条；robots 无限制；官方 RSS（Stay Informed 栏目）；网站声明页 https://www.fda.gov/about-fda/website-policies/website-disclaimer 未提 RSS/自动访问限制，美国联邦机构内容的再利用条件待核实
+    - {name: "EMBL News", url: "https://www.embl.org/news/feed/", kind: company, company: "EMBL", enabled: true}   # 2026-11-15 HTTP 200，10 条；robots 无限制；未找到条款页，待核实
+    - {name: "Wyss Institute", url: "https://wyss.harvard.edu/feed/", kind: company, company: "Wyss Institute", enabled: true}   # 2026-11-15 HTTP 200，10 条；robots 无限制；条款 https://wyss.harvard.edu/terms-of-use/ 仅有版权声明（未经许可不得复制），未提 RSS/自动访问（只存标题+链接），待核实
+    - {name: "Biohub", url: "https://biohub.org/feed/", kind: company, company: "CZI", enabled: true}   # 2026-11-15 HTTP 200，167 条（近 30 天约 2 条，响应较慢）；原 czbiohub.org/feed/ 为 0 条，改用 Biohub 新域名；robots 无限制；条款 https://biohub.org/terms-of-use/ 针对其 Services，未提 RSS/抓取，待核实
+    - {name: "MIT News: Biological engineering", url: "https://news.mit.edu/rss/topic/biological-engineering", kind: company, company: "MIT", enabled: true}   # 2026-11-15 HTTP 200，50 条；robots 无限制；条款 https://news.mit.edu/terms-of-use 写明 "offers RSS feeds for syndication purposes"，转载须署名并链接原文（本项目只存标题+链接）
+    - {name: "MIT News: Artificial intelligence", url: "https://news.mit.edu/rss/topic/artificial-intelligence2", kind: company, company: "MIT", enabled: true}   # 2026-11-15 HTTP 200，50 条；同上，MIT News 条款允许 RSS 聚合并要求署名
+    - {name: "Google Research Blog", url: "https://research.google/blog/rss/", kind: company, company: "Google Research", enabled: true}   # 2026-11-15 HTTP 200，100 条；robots 无限制；Google 服务条款 https://policies.google.com/terms 只禁止违反 robots.txt 的自动访问，本源 robots 未禁止；站点未找到独立条款页，待核实
+    - {name: "Google Health Blog", url: "https://blog.google/technology/health/rss/", kind: company, company: "Google Research", enabled: true}   # 2026-11-15 HTTP 200，20 条；robots 无限制；官方 RSS（页面 link 公布）；条款依据同上（Google 服务条款）
+    - {name: "Google DeepMind Blog", url: "https://deepmind.google/blog/rss.xml", kind: company, company: "Google DeepMind", enabled: true}   # 2026-11-15 HTTP 200，100 条；robots 无限制；未找到 deepmind.google 独立条款页，适用 Google 服务条款（只禁止违反 robots.txt 的自动访问），待核实
+    - {name: "Microsoft Research Blog", url: "https://www.microsoft.com/en-us/research/feed/", kind: company, company: "Microsoft Research", enabled: true}   # 2026-11-15 HTTP 200，10 条；robots 无限制；微软使用条款 https://www.microsoft.com/en-us/legal/terms-of-use 里的禁止抓取条文仅针对 AI 服务，站点本身未提 RSS/自动访问，待核实
+    # --- 2026-11-15 扩充（T2）：公司官方 RSS，项目 UA 实测，HTTP 200、feedparser 可解析、条目带 title 与 link；robots.txt 对 * 与 ClaudeBot/anthropic-ai 等均未禁止 ---
+    - {name: "Valence Labs", url: "https://www.valencelabs.com/feed/", kind: company, company: "Recursion", enabled: true}   # 2026-11-15 HTTP 200，5 条（最新 2025-05-22，近 30 天 0 条，属低频研究博客）；robots.txt 为 Yoast 默认（Disallow 为空）；站点页脚无条款页（privacy-policy 已读：运营方 Valence Discovery Inc.，未提抓取/RSS），待核实。注意：母公司 Recursion 的 https://www.recursion.com/terms-of-use 明文禁止 robot/spider 访问，但其适用范围限定为 www.recursion.com，不含本站，仍请作者确认
+    - {name: "Enveda", url: "https://enveda.com/feed/", kind: company, company: "Enveda", enabled: true}   # 2026-11-15 HTTP 200，9 条（最新 2026-10-27）；robots.txt 对 * 仅禁 /wp-admin/，并对 ClaudeBot、anthropic-ai、GPTBot、CCBot 等明确 Allow: /；https://enveda.com/terms-of-service/ 实为 SMS 短信服务条款，未涉及网站内容/抓取，网站使用条款未找到，待核实（只存标题+链接+日期）
+  # 未启用（2026-11-15 验证结果，不写成配置项）：
+  # - FierceBiotech https://www.fiercebiotech.com/rss/xml：robots 允许，但 feed 返回 HTTP 403（疑似反爬），不可用
+  # - Endpoints News https://endpts.com/feed/：robots.txt 与 feed 均 HTTP 403，不可用
+  # - Recursion IR https://ir.recursion.com/rss/news-releases.xml：robots.txt 与 feed 均 HTTP 403，不可用
+  # - BioPharma Dive https://www.biopharmadive.com/feeds/news/：HTTP 200、10 条，但 Industry Dive 条款第 2 条禁止用 robot/脚本等自动方式访问或复制内容，不启用
+  # - NVIDIA 博客 https://blogs.nvidia.com/feed/：HTTP 200、18 条，但 NVIDIA 服务条款 3.2(f) 禁止 robot/crawler/数据挖掘工具访问站点，不启用
+  # - PR Newswire 健康 https://www.prnewswire.com/rss/health-latest-news/health-latest-news-list.rss：HTTP 200、20 条，但使用条款禁止 robot/脚本访问、禁止转载与用于训练 AI，不启用
+  # - GlobeNewswire：无法确认官方 RSS 地址（rss/list 与条款页对本环境返回 403，rss.globenewswire.com 首页未公布 feed 链接），未验证，不启用
+  # - 其余公司官网（Arc、Recursion、Insitro、Isomorphic、Owkin、Bioptimus、Insilico、Xaira、Noetik、Tahoe、NVIDIA BioNeMo 页、EvolutionaryScale、Iambic 等）首页未发现 RSS 链接（2026-11-15 复查），只有 HTML 新闻页；要收录需逐站写解析器并核对条款，暂不做
+  # - Generate:Biomedicines https://generatebiomedicines.com/feed/：HTTP 200 但条目为 0，暂不启用
+  # - Insilico Medicine：robots.txt 对多家 AI 爬虫全站禁止并声明 ai-train=no，不抓取
+  # 2026-11-15 扩充（N1）新增核对结果，未启用（均用项目 UA 实测）：
+  # - Nature 系列（nature.rss、nbt.rss、nmeth.rss、natmachintell.rss、natcomputsci.rss）：HTTP 200、各 8 条（nature.rss 75 条），但 nature.com robots.txt 对 anthropic-ai、ClaudeBot、CCBot、GPTBot、Google-Extended 等全站 Disallow，且条款 https://www.nature.com/info/terms-and-conditions 禁止复制、下载或存储站点 feeds/数据来建库，不启用
+  # - Science 新闻 https://www.science.org/rss/news_current.xml 与 In the Pipeline 博客 https://www.science.org/blogs/pipeline/feed：HTTP 200，但 robots.txt 对 anthropic-ai、GPTBot 等全站 Disallow，条款页对本环境返回 403 未读到；新闻 feed 近 30 天 0 条，不启用
+  # - Substack 类 newsletter（Asimov Press、Decoding Bio、Century of Bio、Owlposting）：HTTP 200、各 20 条，但 Substack 服务条款 https://substack.com/tos 禁止以自动方式 crawl/scrape/spider 页面或数据并禁止存储大量内容；Owlposting robots 另对 ClaudeBot、anthropic-ai、GPTBot 全站 Disallow；Century of Bio 近 30 天 0 条，不启用
+  # - MIT Technology Review https://www.technologyreview.com/feed/：HTTP 200、10 条，但 robots.txt 对 anthropic-ai、CCBot、ClaudeBot 等 Disallow，不启用（条款未读）
+  # - Pharmaceutical Technology https://www.pharmaceutical-technology.com/feed/：HTTP 200、10 条，robots 对 GPTBot 全站 Disallow，GlobalData 条款 https://www.globaldata.com/terms-conditions/ 限制未经许可复制与商用，且偏制药工艺，保守不启用
+  # - OpenAI 新闻 https://openai.com/news/rss.xml：HTTP 200、1387 条，但内容与生物医药基本无关且条款页本环境未能读到，待核实，不启用
+  # - Hugging Face 博客 https://huggingface.co/blog/feed.xml、Amazon Science https://www.amazon.science/index.rss：HTTP 200，但与生物医药关联弱，条款未评估，不启用
+  # - Bioengineer.org https://bioengineer.org/feed/：HTTP 200、20 条，但属转载他人新闻稿的聚合站，版权来源不明，不启用
+  # - Sanger https://www.sanger.ac.uk/feed/：HTTP 200 但仅 1 条（2024-04 的测试稿）；/news/feed/、/news_item/feed/ 404，不可用
+  # - 404 或无 feed：Arc Institute（/news/feed、/feed/）、Broad Institute（/news/feed；robots 另对 claudebot 有 Disallow）、Allen Institute（/feed/、/news/feed/）、BioSpace（/rss/news、/feed）、Drug Target Review、SynBioBeta、Schrödinger IR、10x Genomics IR（investors.10xgenomics.com）、NIH 新闻、HHMI、Wellcome、EBI（/about/news/feed/）、Stanford Medicine、Illumina、Bio-IT World、Drug Discovery & Development（DDW）、ScienceDaily、BiopharmaTrend 旧地址 /feed/
+  # - 403/429/503：Absci IR（investors.absci.com robots 与 feed 均 403）、Technology Networks、Drug Discovery News、The Scientist（robots 与 feed 均 403）、10x Genomics 博客（HTTP 429）、NIH Director's Blog（HTTP 503）
+  # - MedicalXpress https://medicalxpress.com/rss-feed/biology-news/：HTTP 404，且 robots 对 ClaudeBot、GPTBot、CCBot Disallow，不启用
+
+  # --- 2026-11-15 HTML 新闻列表页（N3）：无 RSS 的机构/公司，由 fetchers/news_html.py 只取标题、链接、日期，不请求条目页、不存正文 ---
+  # 实测方法：项目 UA，请求间隔 >=1 秒，只请求 robots.txt、列表页与条款页；用 parse_list_page 对真实页面解析并人工核对标题与日期。
+  html_sources:
+    - {name: "Arc Institute News", list_url: "https://arcinstitute.org/news", kind: company, company: "Arc Institute", enabled: true, link_pattern: '^https://arcinstitute\.org/news/[^/?#]+$', max_items: 30}   # 2026-11-15 HTTP 200，服务端渲染，解析 5 条（页面本身只列 5 条），标题与日期（2026-10-05 至 2026-10-29）已核对；robots.txt 仅 Disallow /api/；条款页未找到（/terms、/legal/terms-of-use 均 404，页脚无条款链接），待核实
+    - {name: "Wellcome Sanger Institute News", list_url: "https://www.sanger.ac.uk/news/", kind: company, company: "Wellcome Sanger Institute", enabled: true, link_pattern: '/news_item/[^/]+/?$', max_items: 30}   # 2026-11-15 HTTP 200（页面约 5MB），解析 30 条，标题与日期核对无误（最新 2026-11-12）；robots.txt 对 * 无限制；条款 https://www.sanger.ac.uk/terms-of-use/ 未禁止自动访问，站内内容为 CC BY-NC-ND 4.0（只存标题+链接+日期，非商业使用，须署名）
+    - {name: "insitro News", list_url: "https://www.insitro.com/publications-press/", kind: company, company: "Insitro", enabled: true, link_pattern: '^https://www\.insitro\.com/news/[^/?#]+/?$', max_items: 30}   # 2026-11-15 /news/ 重定向到本页，HTTP 200，解析 6 条（日期取自摘要里的 "Oct. 6, 2026" 等文字，已逐条核对；摘要无日期的条目按规则丢弃，故少于页面总数）；robots.txt 允许全部；未找到条款页（只有隐私政策），待核实。日期依赖摘要文字，版式变化时可能漏条
+    - {name: "EMBL-EBI News", list_url: "https://www.ebi.ac.uk/about/news/", kind: company, company: "EMBL", enabled: true, link_pattern: '/about/news/[a-z-]+/[^/]+/?$', exclude_pattern: '/about/news/(category|archive)', max_items: 30}   # 2026-11-15 HTTP 200，服务端渲染，解析 15 条，标题与日期核对无误；robots.txt 对 * 无限制；条款 https://www.ebi.ac.uk/about/terms-of-use/ 仅禁止干扰服务的过量访问，未禁止自动读取新闻页，未写明新闻内容的再利用许可（只存标题+链接+日期）
+    # --- 2026-11-15 扩充（T2）：项目 UA 实测，请求间隔 >=1 秒，只请求 robots.txt、列表页与条款页 ---
+    - {name: "Dyno Therapeutics News", list_url: "https://www.dynotx.com/news", kind: company, company: "Dyno Therapeutics", enabled: false, link_pattern: '^https://www\.dynotx\.com/news/[^/?#]+$', max_items: 30}   # 2026-11-15 HTTP 200，服务端渲染（Webflow），解析 30 条，标题（h2）与日期（"October 27, 2026" 等）逐条核对无误；页面含 Announcements/Publications/Press 多类，外链（第三方媒体）被 same_host_only 滤掉，其余按页面原样收录，近 30 天内最新为 2026-10-27；robots.txt 允许全部；条款 https://www.dynotx.com/legal/terms-and-conditions 明文 "You must not: Republish material ... Reproduce, duplicate or copy material ... Redistribute content"，限制转载与再分发；本站为公开网站，故在作者书面确认前停用（enabled: false），与 Cradle 同样保守处理
+    - {name: "Noetik News", list_url: "https://www.noetik.ai/news", kind: company, company: "Noetik", enabled: false, link_pattern: '^https://www\.noetik\.ai/[A-Za-z0-9_-]+$', title_strip_patterns: ['^(?:News|Blog|Research)\s+', '\s+By\s+Noetik\b.*$'], max_items: 30}   # 2026-11-15 HTTP 200，服务端渲染，解析 5 条（最新 2026-06-15，近 30 天 0 条）；锚点文本形如 "News <标题> By Noetik Business Wire June 15, 2026"，用 title_strip_patterns 去掉前缀类别与 "By Noetik ..." 后缀，标题与日期已逐条核对；同域页面为 Noetik 自托管的新闻稿，指向 Business Wire/Endpoints 等第三方的链接被 same_host_only 滤掉（不放开）；robots.txt 为空（200，无限制）；条款 https://www.noetik.ai/terms-of-use 原文 "may not ... reproduce, display, ... distribute, or otherwise use the Content in any way for any public or commercial purpose"，明确限制出于公开目的展示；本站为公开网站，故在作者书面确认前停用（enabled: false），与 Cradle 同样保守处理
+  # 逐家排查结论（2026-11-15，项目 UA，间隔 >=1 秒，只请求 robots.txt、feed/列表页、条款页；robots 未写明的"无限制"指 200 且对 * 无 Disallow）。
+  # 已启用：Valence Labs（RSS）、Enveda（RSS）；已接入但默认停用（条款限制公开展示/转载，待作者确认）：Dyno Therapeutics（HTML）、Noetik（HTML）；Insitro、XtalPi、CZ Biohub（由 Biohub RSS 覆盖）见上。
+  # 因条款明文禁止自动访问/抓取而拒绝（不接）：
+  # - Recursion：https://www.recursion.com/terms-of-use 禁止 "any robot, spider, or other automatic device ... to access the Website"；且 /news 跳到 ir.recursion.com 返回 HTTP 403（robots 同为 403）；robots.txt https://www.recursion.com/robots.txt 仅 Disallow /?*
+  # - Genentech / Prescient Design：prescient.design 连接失败（无响应）；gene.com 条款 https://www.gene.com/terms-conditions 禁止 "data mining, robots, or similar data gathering or extraction methods"。注意：既有 "Genentech Stories" RSS 来自 gene.com，同样落在该条款覆盖的站点上（该 feed 是站点公布的订阅入口，仅存标题+链接），建议作者复核是否保留
+  # - Chai Discovery：https://www.chaidiscovery.com/terms-of-service 禁止 "automated systems (bots, scrapers) to access the Services without permission"；robots 允许全部，但条款优先，不接
+  # - Iambic：https://www.iambic.ai/terms 禁止 "data mining, data harvesting, data extracting"；不接
+  # - Owkin：https://www.owkin.com/policies/terms-of-use 写明 "Any extraction or use of all or part of the information and content of the Website ... is illegal"（仅允许私人复制）；robots 另 Disallow /content-hub/ 等；不接
+  # - BenevolentAI：https://www.benevolent.com/terms-and-conditions/ 明文禁止 "text or data mining or web scraping" 与 robot/bot/spider；且列表页最新条目为 2025-03，实质停更；不接
+  # - Cellarity：https://cellarity.com/terms-conditions/ 禁止 "robot, spider, crawlers ... scrapes"；robots.txt 声明 Crawl-delay: 10；另外列表页标题不在锚点内（"Read Article" 按钮）、日期为 mm.dd.yy，解析器无法得到干净标题；不接
+  # - Profluent：https://www.profluent.bio/terms 禁止 "scrape, harvest, or otherwise collect data" 与 robot/spider；不接
+  # - EvolutionaryScale：https://www.evolutionaryscale.ai/policies/terms-of-use 禁止 "crawls, scrapes, or spiders"；且 /blog 返回 404（首页仅两条旧博客链接）；不接
+  # - Cradle：https://www.cradle.bio/legal-terms 将 "Collecting information through deceptive means (e.g. phishing, scraping)" 列为禁止行为（措辞限定欺骗性手段，本项目 UA 公开，但保守起见不接；robots 允许全部）；cradle.bio/blog 本身可解析但与虚拟细胞关联弱
+  # - NewLimit：官方博客在 Substack（https://blog.newlimit.com/feed 可读，200），但 Substack 服务条款禁止自动 crawl/scrape（见上文 Substack 条目），不接
+  # 因技术原因未接（条款可接或未读到，但解析质量/来源性质不达标）：
+  # - Isomorphic Labs https://www.isomorphiclabs.com/news：服务端渲染，但卡片日期为 dd.mm.yy 且大量卡片共用同一日期 "18.02.25"（与已知发布时间不符，疑为模板占位），轮播区块无日期，日期不可信；条款 https://www.isomorphiclabs.com/terms-and-conditions 未提抓取；robots 为空。日期不可信故不接（未为此新增 dd.mm.yy 解析选项）
+  # - Bioptimus https://www.bioptimus.com/news：条款页未找到（/terms-of-use 404，页脚无条款链接），robots 为空；锚点文本是 "类别 - 日期 + 标题 + 摘要段落" 的整块，标题不在标题标签内，无法得到干净标题；不接
+  # - Deep Genomics https://www.deepgenomics.com/news：条款页未找到（只有 /privacy-policy），robots 为空；列表含 News/Media/Events 三个标签页，Media 页签条目是第三方媒体报道且标题后拖着外链，部分日期来自相邻条目（如 2025 年的获奖稿被标为 2026-08-01），日期不可信；不接
+  # - Lila Sciences https://www.lila.ai/news：条款 https://www.lila.ai/terms-of-use 未提抓取，robots 仅 Sitemap；但锚点标题混入日期、类别与摘要，且领域偏材料/能源，标题不干净；不接
+  # - Formation Bio https://www.formation.bio/blog：robots 仅禁 /api/；解析出的条目大多无日期（含分类/作者页链接），require_date 下几乎无产出；不接
+  # - Altos Labs https://www.altoslabs.com/featured：服务端渲染（Next.js），robots 允许全部，https://www.altoslabs.com/legal-notices 未提抓取；但锚点文本只有 "Read more"，标题在锚点之外，解析器取不到标题；不接
+  # - Genesis Molecular AI https://www.genesis.ml/news（genesistherapeutics.ai 跳转至此）：robots 仅 Sitemap，条款页未找到（只有 /privacy-policy）；锚点文本只有 "Read more"，标题在锚点之外；Press 条目为第三方媒体报道；不接
+  # - BioMap 百图生科 https://www.biomap.com/en/news：整站为前端渲染壳（robots.txt 请求返回的是同一份 SPA HTML，没有真实 robots 文件），HTML 中没有条目链接；不接
+  # - Xaira https://www.xaira.com/：robots.txt 仅 Sitemap；/news 返回 404，首页为前端渲染壳，无可抓取的新闻列表；不接
+  # - Tahoe Therapeutics：原官网 tahoebio.ai 跳转到 https://www.tahoelabs.ai/（疑似改名为 Tahoe Labs，companies.yaml 的 id 与 url 暂不改，待作者确认）；robots（https://www.tahoelabs.ai/robots.txt）允许 /，仅禁 /studio、/api/；但 /news、/blog、/feed、/rss.xml、/updates、/press 均 404，首页无新闻入口；不接
+  # - Allen Institute https://alleninstitute.org/news：HTML 中没有条目链接（前端渲染）；不接（此条沿用此前结论，未重测）
+  # - Shift Bioscience、Generate:Biomedicines：沿用此前结论（未找到可访问的新闻列表页/feed 无条目），未重测
+  # - Noetik 的第三方转载链接（Business Wire 等）不接（same_host_only 保持开启）；中文媒体与通用媒体按任务要求不接入
+  # - 2026-11-15 复核（虚拟细胞方向补源）：Noetik、Dyno 条款禁止公开展示/转载仍不得启用；Xaira /news 与 Tahoe（tahoelabs.ai）/news、/blog 重测仍为 HTTP 404，Bioptimus /terms-of-use 仍为 404 且标题不干净；Isomorphic 日期不可信；Recursion、Owkin、Chai、Iambic、Cellarity、Profluent、EvolutionaryScale 条款禁止抓取。结论：没有可新增的合规虚拟细胞新闻源，未改动已启用源。
+http:
+  timeout: 30
+  user_agent: "virtual-cell-radar/0.1 (+https://github.com/mxqmxqmxq/virtual-cell-radar)"
+  max_retries: 3
+
+seed:
+  source_dir: null   # 种子目录，可经 CLI 参数或 AIVC_SEED_DIR 传入
+  iclr_md: null
+  exclude_dirs: [".venv", "__pycache__", "node_modules", ".git", ".codex_extract"]
+  exclude_globs: ["*Agenda*.pdf", "mmc*.pdf"]

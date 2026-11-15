@@ -1,0 +1,36 @@
+# 预设课题（公开示例）。
+# 部署者可以在这里写公开的预设课题；访客在网页「我的课题」里自己设置，保存在自己的浏览器里。
+# default_enabled 为 true 的预设会出现在 Markdown 日报/周报的「主题追踪」里，
+# 并且在网站上默认启用；为 false 的只作为可选预设。
+# 词项规则见 src/aivc/termmatch.py（结尾 * 为前缀匹配，空格与连字符等价）。
+topics:
+  - id: spatial-omics
+    name: 空间组学
+    default_enabled: false
+    terms:
+      - spatial transcriptomics
+      - spatial omics
+      - Visium
+      - MERFISH
+      - Xenium
+      - spatial proteomics
+      - 空间转录组
+  - id: grn-inference
+    name: 基因调控网络推断
+    default_enabled: false
+    terms:
+      - gene regulatory network
+      - GRN inference
+      - transcription factor binding
+      - regulon
+      - SCENIC
+      - 基因调控网络
+  - id: cell-morphology
+    name: 细胞形态表型
+    default_enabled: false
+    terms:
+      - cell painting
+      - high-content imaging
+      - morphological profiling
+      - image-based profiling
+      - 细胞形态

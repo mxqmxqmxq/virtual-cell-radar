@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Example Bio Wire</title>
+    <link>https://wire.example.test/</link>
+    <description>Fictional feed for tests</description>
+    <item>
+      <title>Example Bio raises $120M Series B for virtual cell models</title>
+      <link>https://wire.example.test/news/2026/example-bio-series-b</link>
+      <pubDate>Wed, 11 Nov 2026 09:00:00 GMT</pubDate>
+      <description>Example Bio announced a fictional financing round led by Sample Ventures.</description>
+    </item>
+    <item>
+      <title>Demo Therapeutics and Sample Pharma sign a partnership</title>
+      <link>https://wire.example.test/news/2026/demo-sample-partnership</link>
+      <pubDate>Mon, 02 Nov 2026 12:30:00 GMT</pubDate>
+      <description>A fictional collaboration.</description>
+    </item>
+    <item>
+      <title>Old fictional item outside the window</title>
+      <link>https://wire.example.test/news/2025/old-item</link>
+      <pubDate>Tue, 01 Jul 2025 08:00:00 GMT</pubDate>
+      <description>Too old.</description>
+    </item>
+    <item>
+      <title>Item without a date stays</title>
+      <link>https://wire.example.test/news/2026/undated</link>
+      <description>No pubDate here.</description>
+    </item>
+    <item>
+      <title></title>
+      <link>https://wire.example.test/news/2026/no-title</link>
+      <pubDate>Wed, 11 Nov 2026 09:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Item with a broken link</title>
+      <link>not-a-url</link>
+      <pubDate>Wed, 11 Nov 2026 09:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Item with no link at all</title>
+      <pubDate>Wed, 11 Nov 2026 09:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>

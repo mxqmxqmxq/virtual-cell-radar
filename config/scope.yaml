@@ -1,0 +1,42 @@
+circles:
+  core:
+    weight: 1.0
+    description: "核心圈：虚拟细胞 / 扰动建模 / 细胞基础模型"
+    topics: ["虚拟细胞", "扰动建模", "细胞基础模型"]
+  peripheral:
+    weight: 0.6
+    description: "外围圈：表型药物发现 / 分子生成 / 蛋白设计"
+    topics: ["表型药物发现", "分子生成", "蛋白设计"]
+
+taxonomy:
+  tasks:
+    - {id: perturbation_response_prediction, label: "扰动响应预测"}
+    - {id: cell_state_representation, label: "细胞状态表征"}
+    - {id: cell_fate_differentiation, label: "细胞命运/分化"}
+    - {id: drug_response, label: "药物响应"}
+    - {id: gene_regulatory_network, label: "基因调控网络"}
+    - {id: multi_omics_integration, label: "多组学整合"}
+    - {id: spatial, label: "空间组学"}
+    - {id: generative_design, label: "生成式设计"}
+    - {id: benchmark_evaluation, label: "基准与评测"}
+    - {id: inverse_design, label: "逆向推断/干预设计（由响应反推扰动、选择实验）"}
+    - {id: dataset_resource, label: "数据集/实验资源构建"}
+    - {id: other, label: "其他"}
+  paradigms:
+    - {id: foundation_model_pretraining, label: "基础模型预训练"}
+    - {id: flow_matching_diffusion_ot, label: "流匹配/扩散/最优传输"}
+    - {id: graph_prior_knowledge, label: "图/先验知识"}
+    - {id: world_model_jepa, label: "世界模型/JEPA"}
+    - {id: llm_agent, label: "LLM/智能体"}
+    - {id: causal_mechanistic, label: "因果/机理"}
+    - {id: rl_post_training, label: "强化学习/后训练"}
+    - {id: vae_latent_variable, label: "VAE/隐变量"}
+    - {id: classical_ml_baseline, label: "经典 ML / 统计模型（线性、HMM、树模型等）"}
+    - {id: distributional_modeling, label: "分布建模（MMD、分布匹配、mixup 等群体层面目标）"}
+    - {id: transfer_few_shot, label: "迁移/少样本/域适应（跨细胞系、跨供体、跨数据集）"}
+    - {id: retrieval_in_context, label: "检索/记忆/上下文学习"}
+    - {id: contrastive_multimodal, label: "对比学习/多模态对齐"}
+    - {id: active_learning_design, label: "主动学习/贝叶斯优化/实验设计"}
+    - {id: evaluation_interpretability, label: "评测方法学/可解释性/诊断"}
+    - {id: wet_lab_assay, label: "实验技术/测序与筛选方法"}
+    - {id: other, label: "其他"}

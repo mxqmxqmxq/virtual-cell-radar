@@ -1,0 +1,5 @@
+{"messages":[{"status":"ok","interval":"2026-11-12:2026-11-13","cursor":3,"count":2,"count_new_papers":"2","total":"5"}],
+"collection":[
+{"title":"Graph methods for gene regulatory networks","authors":"Li, A.; Wang, B.","author_corresponding":"A Li","author_corresponding_institution":"Univ Y","doi":"10.1101/2026.11.10.600002","date":"2026-11-13","version":"3","type":"new results","license":"cc_no","category":"systems biology","jatsxml":"","abstract":"A GRN inference method, revised.","published":"NA","server":"bioRxiv"},
+{"title":"Transcriptomic atlas of something","authors":"Park, D.","author_corresponding":"D Park","author_corresponding_institution":"Lab Z","doi":"10.1101/2026.11.13.800004","date":"2026-11-13","version":"1","type":"new results","license":"cc_by","category":"systems biology","jatsxml":"","abstract":"An atlas.","published":"NA","server":"bioRxiv"}
+]}

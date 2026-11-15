@@ -1,0 +1,242 @@
+# 知识资源 · 精选清单：工具库与软件（kind=tool），人工维护
+# 字段：id（小写字母数字与连字符，全库唯一）、name、kind、url、description_zh（用自己的话写的可核实事实）、
+#       tags、related_tasks / related_paradigms（config/scope.yaml 里的 id）、status（accepted/candidate/archived）、
+#       added、source（manual/auto_discovered）、github（owner/repo，url 是仓库地址时可省略）、
+#       paper_ids（论文库 id）、dataset_names（对应的数据集名/别名）、discovered_from、note。
+# 本文件可能被命令重写（手写注释不会保留），说明请写在 note 字段。
+
+resources:
+  - id: scanpy
+    name: scanpy
+    kind: tool
+    url: https://github.com/scverse/scanpy
+    description_zh: 单细胞 RNA-seq 数据分析的 Python 工具包，基于 AnnData，覆盖预处理、降维、聚类与可视化，属于 scverse 生态。
+    tags:
+    - single-cell
+    - preprocessing
+    - scverse
+    related_tasks:
+    - cell_state_representation
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: scverse/scanpy
+
+  - id: anndata
+    name: anndata
+    kind: tool
+    url: https://github.com/scverse/anndata
+    description_zh: 单细胞数据的标准注释矩阵格式与 Python 库（.h5ad），是 scverse 工具与多数细胞模型的通用数据容器。
+    tags:
+    - data-format
+    - single-cell
+    - scverse
+    related_tasks:
+    - cell_state_representation
+    status: archived
+    added: 2026-11-15
+    source: manual
+    github: scverse/anndata
+    note: 2026-11-15 归档：通用单细胞基础设施，与虚拟细胞主题关系较远。
+
+  - id: scvi-tools
+    name: scvi-tools
+    kind: tool
+    url: https://github.com/scverse/scvi-tools
+    description_zh: 基于 PyTorch 的单细胞组学概率模型库（如 scVI、scANVI、totalVI 等），用于整合、批次校正与差异表达，属于 scverse 生态。
+    tags:
+    - single-cell
+    - probabilistic-model
+    - scverse
+    related_tasks:
+    - cell_state_representation
+    - multi_omics_integration
+    related_paradigms:
+    - vae_latent_variable
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: scverse/scvi-tools
+
+  - id: pertpy
+    name: pertpy
+    kind: tool
+    url: https://github.com/scverse/pertpy
+    description_zh: 面向单细胞扰动实验分析的 Python 框架，基于 AnnData，提供扰动数据的分析与可视化工具，属于 scverse 生态。
+    tags:
+    - perturbation
+    - single-cell
+    - scverse
+    related_tasks:
+    - perturbation_response_prediction
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: scverse/pertpy
+
+  - id: squidpy
+    name: squidpy
+    kind: tool
+    url: https://github.com/scverse/squidpy
+    description_zh: 空间分辨组学数据的分析与可视化 Python 工具包，基于 AnnData，属于 scverse 生态。
+    tags:
+    - spatial
+    - single-cell
+    - scverse
+    related_tasks:
+    - spatial
+    status: archived
+    added: 2026-11-15
+    source: manual
+    github: scverse/squidpy
+    note: 2026-11-15 归档：通用单细胞基础设施，与虚拟细胞主题关系较远。
+
+  - id: mudata
+    name: mudata
+    kind: tool
+    url: https://github.com/scverse/mudata
+    description_zh: 多模态注释数据的 Python 库，在 AnnData 基础上用于存放多组学数据，属于 scverse 生态。
+    tags:
+    - data-format
+    - multi-omics
+    - scverse
+    related_tasks:
+    - multi_omics_integration
+    status: archived
+    added: 2026-11-15
+    source: manual
+    github: scverse/mudata
+    note: 2026-11-15 归档：通用单细胞基础设施，与虚拟细胞主题关系较远。
+
+  - id: muon
+    name: muon
+    kind: tool
+    url: https://github.com/scverse/muon
+    description_zh: 多组学分析的 Python 框架，基于 MuData，用于处理与整合多模态单细胞数据，属于 scverse 生态。
+    tags:
+    - multi-omics
+    - single-cell
+    - scverse
+    related_tasks:
+    - multi_omics_integration
+    status: archived
+    added: 2026-11-15
+    source: manual
+    github: scverse/muon
+    note: 2026-11-15 归档：通用单细胞基础设施，与虚拟细胞主题关系较远。
+
+  - id: decoupler
+    name: decoupler
+    kind: tool
+    url: https://github.com/scverse/decoupler
+    description_zh: 在 Python 中从组学数据推断生物活性（如通路与转录因子活性）的工具包，可用于单细胞与伪批量数据，属于 scverse 生态。
+    tags:
+    - pathway-activity
+    - single-cell
+    - scverse
+    related_tasks:
+    - gene_regulatory_network
+    status: archived
+    added: 2026-11-15
+    source: manual
+    github: scverse/decoupler
+    note: 2026-11-15 归档：通用单细胞基础设施，与虚拟细胞主题关系较远。
+
+  - id: cellrank
+    name: CellRank
+    kind: tool
+    url: https://github.com/scverse/cellrank
+    description_zh: 基于细胞状态转移概率建模细胞命运与分化轨迹的 Python 工具包，属于 scverse 生态。
+    tags:
+    - cell-fate
+    - trajectory
+    - scverse
+    related_tasks:
+    - cell_fate_differentiation
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: scverse/cellrank
+
+  - id: spatialdata
+    name: SpatialData
+    kind: tool
+    url: https://github.com/scverse/spatialdata
+    description_zh: 空间组学数据的统一数据框架与 Python 库，用于存储与处理多种空间技术产生的数据，属于 scverse 生态。
+    tags:
+    - spatial
+    - data-format
+    - scverse
+    related_tasks:
+    - spatial
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: scverse/spatialdata
+
+  - id: cellxgene-census
+    name: CZ CELLxGENE Census
+    kind: tool
+    url: https://github.com/chanzuckerberg/cellxgene-census
+    description_zh: 用于访问 CZ CELLxGENE Discover 单细胞数据集合的开源库（Python 与 R），基于 TileDB-SOMA 提供按条件查询与读取，由 Chan Zuckerberg Initiative 维护。
+    tags:
+    - data-access
+    - single-cell
+    - cellxgene
+    related_tasks:
+    - dataset_resource
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: chanzuckerberg/cellxgene-census
+
+  - id: tiledb-soma
+    name: TileDB-SOMA
+    kind: tool
+    url: https://github.com/single-cell-data/TileDB-SOMA
+    description_zh: SOMA（单细胞数据的开放存储与访问接口）规范的 TileDB 实现，提供 Python 与 R 接口，是 CELLxGENE Census 的底层存储库。
+    tags:
+    - data-access
+    - single-cell
+    - storage
+    related_tasks:
+    - dataset_resource
+    status: archived
+    added: 2026-11-15
+    source: manual
+    github: single-cell-data/TileDB-SOMA
+    note: 2026-11-15 归档：通用单细胞基础设施，与虚拟细胞主题关系较远。
+
+  - id: cell-load
+    name: cell-load
+    kind: tool
+    url: https://github.com/ArcInstitute/cell-load
+    description_zh: Arc Institute 发布的单细胞扰动数据加载工具库，用于为扰动预测模型准备数据加载流程。
+    tags:
+    - perturbation
+    - data-loading
+    - arc-institute
+    related_tasks:
+    - perturbation_response_prediction
+    - dataset_resource
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: ArcInstitute/cell-load
+
+  - id: cell-eval
+    name: cell-eval
+    kind: tool
+    url: https://github.com/ArcInstitute/cell-eval
+    description_zh: Arc Institute 发布的单细胞扰动预测评估工具库，提供预测结果与真实扰动数据之间的评估指标。
+    tags:
+    - perturbation
+    - evaluation
+    - arc-institute
+    related_tasks:
+    - perturbation_response_prediction
+    - benchmark_evaluation
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: ArcInstitute/cell-eval

@@ -1,0 +1,75 @@
+update:
+  default_days: 3
+  backfill_chunk_days: 30
+dedup:
+  title_threshold: 93
+report:
+  max_items: 200
+# 周报（reports/weekly/）
+weekly:
+  top_n: 10             # Top 论文条数
+  max_unscored: 15      # 未打分一节最多列出的条数
+  max_per_topic: 10    # 「主题追踪」每个课题最多列出的论文数
+  llm_overview: false   # 是否用 LLM 写「本周综述」（默认关闭）
+  overview_model: null  # 综述所用模型；null 则用 llm.yaml 的 model
+  overview_max_tokens: 600
+# 本地静态网站（site/）
+site:
+  auto_build: true      # update / weekly 跑完后自动 build-site
+  port: 8000            # serve 默认端口
+  top_datasets_used: 30 # 「常用数据集」榜单长度
+# 公开发布约束（check-public 与脱敏脚本共用）
+public:
+  allowed_tags:         # 公开库记录允许保留的 tag 白名单；其余（含 seed、本地目录名）视为私有
+    - ICLR2027
+# 商业新闻（aivc news；update 可一并运行）
+news:
+  run_with_update: true        # aivc update 时一并抓取新闻（默认开）
+  default_days: 7              # 默认回看天数
+  keywords:                    # 关键词预筛（命中其一或命中公司名才进入后续处理）
+    - virtual cell
+    - foundation model
+    - AI drug discovery
+    - AI-driven
+    - machine learning
+    - generative AI
+    - perturbation
+    - single-cell
+    - protein design
+    - computational biology
+    - drug discovery platform
+    - AI-enabled
+    - biological foundation model
+    - in silico
+    - artificial intelligence
+    - deep learning
+    - AI-powered
+    - cell atlas                 # 以下三个细胞方向词：2026-11-15 诊断中分别捞回 GEN 的细胞图谱稿、Arc 的 Bolero（细胞状态条件化的基因调控模型）
+    - cell state
+    - gene regulat*
+  # 组合规则：每个子列表至少命中一个词才算命中（覆盖 "AI to drug development"、"automate wet labs" 这类写法）
+  # 不写则用代码内置默认（ai+bio、funding+ai、roundup 三组）
+  company_feed_requires_match: true   # 公司官方 feed 也必须命中关键词/组合规则才入库
+  max_per_company_per_week: 3         # 展示时同一公司每周最多几条
+  max_per_company_per_30d: 4          # 展示时同一公司在任意连续 30 天内最多几条（滚动上限，防止单一公司占比过高；<=0 不限）
+  title_threshold: 90          # 标题模糊去重阈值
+  merge_window_days: 5         # 同一事件跨媒体合并的日期窗
+  max_llm_calls_per_run: 60    # 单次运行最多 LLM 调用数
+  rescore_stale_max_calls: 40  # aivc news --rescore-stale 的独立预算：重打库内旧提示词版本条目的最多调用数
+  prompt_version: news-v5        # v5：以虚拟细胞/细胞层面 AI 建模为核心，一般 AI 药物发现（分子设计、临床进展、无细胞成分的融资合作）≤4（v4：观点/访谈/盘点稿 ≤4，融资口径收紧）
+  model: null                  # null 则用 llm.yaml 的 model
+  cache_file: cache/news_llm.jsonl
+  site_min_relevance: 6        # 网站与周报展示的最低相关度（6 起为有明确细胞/组学/表型成分的新闻；5 及以下的一般 AI 药物发现不展示）
+  weekly_top_n: 8              # 周报「行业动态」最多条数
+  major:                       # 重大事件规则（命中任一条即置顶标注）
+    - {id: big_funding, label: "融资 ≥ 1 亿美元", event_types: [funding], min_amount_usd: 100000000}
+    - {id: top_model_release, label: "头部公司模型/数据发布", event_types: [model_or_data_release], company_tier: top}
+# 知识资源板块（aivc resources；数据在 data/resources/）
+resources:
+  maintained_within_days: 365   # 未归档且最近推送在此天数内，算「仍在维护」（不落盘，展示时按今天计算）
+  refresh_min_interval_days: 25 # 距上次抓取不足此天数的仓库，refresh 时跳过（--force 忽略）
+  max_requests_per_run: 100     # 单次 refresh 最多发出的 GitHub API 请求数（匿名 60 次/小时，设 GITHUB_TOKEN 后 5000 次/小时）
+  request_delay_seconds: 1.0    # 请求间隔（秒）
+  run_with_update: false        # aivc update 时是否一并刷新（也可用 aivc update --refresh-resources 单次开启）
+  github_api_base: https://api.github.com
+  discover_min_dataset_mentions: 3  # aivc resources discover：datasets_used 里被不少于此篇数的论文提到的数据集名才成为候选（新发布的数据集名不受此限）

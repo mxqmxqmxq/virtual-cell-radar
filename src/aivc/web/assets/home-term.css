@@ -1,0 +1,109 @@
+/* 首页「命令行四步」深色终端（tm-）与「常见问题」手风琴（fq-）。
+ * 隐藏初态由 motion.css 的 html.motion 规则承担；本文件的循环/过渡在 reduced 下关闭。 */
+
+/* ---------- 深色终端区块 ---------- */
+.tm-section {
+  position: relative; box-sizing: border-box;
+  width: 100vw; margin: 64px 0 0 calc(50% - 50vw);
+  background: var(--hero-bg, #0b0c10); color: var(--hero-text, #f3f4f7);
+  padding: 88px var(--gutter, 24px);
+}
+.tm-in { max-width: var(--max, 1200px); margin: 0 auto; min-width: 0; }
+.tm-head { margin-bottom: 32px; }
+.tm-eyebrow { font-family: var(--mono, ui-monospace, monospace); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--hero-text-2, #a4a8b3); margin-bottom: 12px; }
+.tm-h { margin: 0; font-size: clamp(28px, 4.2vw, 44px); line-height: 1.12; font-weight: 400; letter-spacing: -.025em; color: var(--hero-text, #f3f4f7); text-wrap: balance; }
+.tm-lede { margin: 14px 0 0; max-width: 62ch; color: var(--hero-text-2, #a4a8b3); font-size: 16px; line-height: 1.6; }
+
+.tm-win { background: #0f1117; border: 1px solid rgba(255, 255, 255, .14); min-width: 0; }
+.tm-chrome { display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 16px; border-bottom: 1px solid rgba(255, 255, 255, .1); }
+.tm-dots { display: inline-flex; gap: 6px; flex: none; }
+.tm-dots i { width: 9px; height: 9px; border-radius: 50%; background: rgba(255, 255, 255, .18); }
+.tm-title { flex: 1; min-width: 0; font-size: 12px; color: var(--hero-text-2, #a4a8b3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* 深色次按钮：R-HOVER-03，150ms，按下 .98 */
+.tm-copy {
+  flex: none; font-family: var(--mono, ui-monospace, monospace); font-size: 12px; letter-spacing: .04em;
+  padding: 7px 12px; border-radius: 0; cursor: pointer;
+  background: #1e1e1e; color: var(--hero-text, #f3f4f7); border: 1px solid rgba(255, 255, 255, .2);
+  transition: background-color .15s var(--mo-ease-std, cubic-bezier(.4, 0, .2, 1)), border-color .15s var(--mo-ease-std, cubic-bezier(.4, 0, .2, 1)), scale .15s var(--mo-ease-std, cubic-bezier(.4, 0, .2, 1));
+}
+.tm-copy:hover { background: #2a2a2a; border-color: rgba(255, 255, 255, .35); }
+.tm-copy:active { scale: .98; }
+.tm-copy:focus-visible, .tm-tab:focus-visible, .tm-panel:focus-visible { outline: 2px solid var(--accent, #7b9bff); outline-offset: 2px; }
+
+.tm-tabs { display: flex; border-bottom: 1px solid rgba(255, 255, 255, .1); overflow-x: auto; scrollbar-width: none; }
+.tm-tabs::-webkit-scrollbar { display: none; }
+.tm-tab {
+  position: relative; flex: 1 1 0; min-width: max-content; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 14px 18px; background: transparent; border: 0; border-radius: 0; cursor: pointer;
+  font-family: var(--mono, ui-monospace, monospace); font-size: 13px; color: var(--hero-text, #f3f4f7);
+  opacity: .6; transition: opacity .15s var(--mo-ease-std, cubic-bezier(.4, 0, .2, 1)), background-color .15s var(--mo-ease-std, cubic-bezier(.4, 0, .2, 1));
+}
+.tm-tab:hover { opacity: 1; }
+.tm-tab[aria-selected="true"] { opacity: 1; background: rgba(255, 255, 255, .1); }
+.tm-tab-n { color: var(--hero-text-2, #a4a8b3); font-size: 11px; }
+.tm-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--accent, #7b9bff); transform: scaleX(0); transform-origin: left center; pointer-events: none; }
+.tm-tab[aria-selected="true"] .tm-bar { transform: scaleX(1); }
+html.motion .tm-tab[aria-selected="true"] .tm-bar { transform: scaleX(0); }
+html.motion .tm-tab .tm-bar.is-run { animation: mo-bar linear both; animation-duration: 5s; }
+html.motion .tm-tab[aria-selected="true"] .tm-bar:not(.is-run) { transform: scaleX(0); }
+
+.tm-panel { padding: 22px 20px 26px; min-height: 196px; font-family: var(--mono, ui-monospace, monospace); font-size: 14px; line-height: 1.7; min-width: 0; }
+.tm-panel[hidden] { display: none; }
+.tm-cmd { display: flex; gap: 10px; align-items: baseline; min-width: 0; }
+.tm-prompt { color: var(--hero-text-2, #a4a8b3); flex: none; user-select: none; }
+.tm-cmd-t { color: var(--hero-text, #f3f4f7); min-width: 0; overflow-x: auto; scrollbar-width: none; white-space: nowrap; }
+.tm-cmd-t::-webkit-scrollbar { display: none; }
+.tm-outs { margin: 10px 0 8px 20px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.tm-out { color: var(--hero-text-2, #a4a8b3); overflow-wrap: anywhere; }
+.tm-out::before { content: "✓ "; color: var(--accent, #7b9bff); }
+.tm-prompt-line { display: flex; gap: 10px; align-items: center; }
+.tm-cursor { display: inline-block; width: 7px; height: 15px; background: var(--hero-text, #f3f4f7); opacity: .7; }
+
+@media (max-width: 640px) {
+  .tm-section { padding: 56px var(--gutter, 24px); }
+  .tm-panel { padding: 18px 14px 22px; font-size: 13px; }
+  .tm-outs { margin-left: 0; }
+  .tm-tab { padding: 12px 14px; }
+}
+
+/* ---------- 浅色常见问题 ---------- */
+.fq-section { margin-top: 88px; margin-bottom: 24px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; }
+@media (min-width: 900px) { .fq-section { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 48px; } }
+.fq-eyebrow { font-family: var(--mono, ui-monospace, monospace); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3, #8a8d95); margin-bottom: 10px; }
+.fq-h { margin: 0; font-size: clamp(26px, 3.6vw, 40px); line-height: 1.12; font-weight: 400; letter-spacing: -.025em; color: var(--text, #111214); }
+.fq-list { border-top: 1px solid var(--border, #e3e3e6); min-width: 0; }
+.fq-item { border-bottom: 1px solid var(--border, #e3e3e6); }
+.fq-sum {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; cursor: pointer; list-style: none;
+  color: var(--text, #111214); font-size: 17px; line-height: 1.4; /* R-FAQ-04：hover 无变化 */
+}
+.fq-sum::-webkit-details-marker { display: none; }
+.fq-sum:focus-visible { outline: 2px solid var(--accent, #1f4fff); outline-offset: 2px; }
+.fq-q { min-width: 0; color: color-mix(in srgb, var(--text, #111214) 85%, transparent); transition: color .3s var(--mo-ease-std, cubic-bezier(.4, 0, .2, 1)); }
+.fq-item[open] .fq-q { color: var(--text, #111214); }
+.fq-sign { flex: none; font-family: var(--mono, ui-monospace, monospace); font-size: 20px; line-height: 1; color: color-mix(in srgb, var(--text, #111214) 60%, transparent); transition: color .3s var(--mo-ease-std, cubic-bezier(.4, 0, .2, 1)); }
+.fq-item[open] .fq-sign { color: var(--text, #111214); }
+.fq-sign i { font-style: normal; }
+.fq-minus { display: none; }
+.fq-item[open] .fq-plus { display: none; }
+.fq-item[open] .fq-minus { display: inline; }
+.fq-body-in { padding: 0 40px 22px 0; max-width: 62ch; }
+.fq-a { margin: 0; color: var(--text-2, #55585f); font-size: 15px; line-height: 1.7; }
+.fq-src { margin: 10px 0 0; font-family: var(--mono, ui-monospace, monospace); font-size: 11.5px; color: var(--text-3, #8a8d95); }
+
+/* R-FAQ-01：内容高度 300ms ease-in-out，全站唯一动画高度处；不淡入淡出（R-FAQ-02） */
+@supports selector(::details-content) {
+  html.motion .fq-item { interpolate-size: allow-keywords; }
+  html.motion .fq-item::details-content {
+    block-size: 0; overflow: clip;
+    transition: block-size .3s ease-in-out, content-visibility .3s ease-in-out allow-discrete;
+  }
+  html.motion .fq-item[open]::details-content { block-size: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tm-tab, .tm-copy, .fq-q, .fq-sign { transition: none !important; }
+  .tm-bar { animation: none !important; }
+  .fq-item::details-content { transition: none !important; }
+}

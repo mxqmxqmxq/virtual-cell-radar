@@ -1,0 +1,16 @@
+model: "claude-haiku-5-5"
+max_tokens: 1024
+prompt_version: "v3"   # v3：v2 基础上放宽 9 分判据（v2 试打 9-10 为 0）
+max_calls_per_run: 300
+concurrency: 4
+must_read_threshold: 9
+abstract_max_chars: 6000
+cache_file: "cache/llm.jsonl"   # 相对 data_dir
+
+# 打分后端
+#   auto       有 ANTHROPIC_API_KEY 就走 API；没有 key 但本机装了并登录了 Claude Code，就用 `claude -p`（订阅额度）
+#   api        只用 Anthropic API（GitHub Actions 用这个）
+#   claude_cli 只用本机 Claude Code，不需要 key；只能在你自己电脑上跑，单篇约 10 秒
+backend: "auto"
+cli_command: "claude"
+cli_timeout: 180

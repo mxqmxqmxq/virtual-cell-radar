@@ -1,0 +1,12 @@
+{
+  "id": 1001,
+  "name": "demo-repo",
+  "full_name": "example-org/demo-repo",
+  "html_url": "https://github.com/example-org/demo-repo",
+  "description": "Demo repository used as a test fixture",
+  "stargazers_count": 1234,
+  "pushed_at": "2026-10-20T08:30:00Z",
+  "archived": false,
+  "license": {"key": "mit", "name": "MIT License", "spdx_id": "MIT"},
+  "language": "Python"
+}

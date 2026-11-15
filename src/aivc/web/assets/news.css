@@ -1,0 +1,102 @@
+/* 商业新闻页样式：类名一律 nw- 前缀，颜色/间距/圆角全部走 styles.css 的变量。 */
+
+.nw-meta { margin: 0 0 16px; text-transform: uppercase; letter-spacing: .04em; }
+.nw-page .notice { margin-bottom: 16px; }
+
+/* 标签页 */
+.nw-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 24px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+.nw-tab { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; padding: 8px 14px; border-radius: var(--radius-btn); border: 1px solid var(--border); background: var(--surface); color: var(--text-2); text-decoration: none; outline: 2px solid transparent; outline-offset: 2px; transition: background-color .15s var(--mo-ease-std), color .15s var(--mo-ease-std), border-color .15s var(--mo-ease-std); }
+.nw-tab:hover { border-color: var(--text-3); color: var(--text); }
+.nw-tab:focus-visible { outline-color: var(--accent); }
+.nw-tab[aria-current="page"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+/* 筛选条 */
+.nw-filters { margin-top: 0; }
+.nw-chiprow { display: flex; flex-wrap: wrap; gap: 6px; }
+.nw-chipbtn { font-family: var(--mono); font-size: 12px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg); color: var(--text-2); cursor: pointer; outline: 2px solid transparent; outline-offset: 2px; transition: background-color .15s var(--mo-ease-std), border-color .15s var(--mo-ease-std), color .15s var(--mo-ease-std), scale .15s var(--mo-ease-std); }
+.nw-chipbtn:hover { border-color: var(--text-3); color: var(--text); }
+.nw-chipbtn:active { scale: .98; }
+.nw-chipbtn:focus-visible { outline-color: var(--accent); }
+.nw-chipbtn[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.nw-fline { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 10px; align-items: end; }
+.nw-fline .field select { width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); font-size: 13.5px; min-width: 0; }
+.nw-checks { align-items: center; }
+.nw-clear[hidden] { display: none; }
+
+/* 周分组 + 行式条目 */
+.nw-results { margin-top: 24px; }
+.nw-week { margin-bottom: 32px; }
+.nw-weekhead { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+.nw-weekid { font-size: 15px; font-weight: 500; letter-spacing: 0; margin: 0; color: var(--text); }
+.nw-weekn { margin-left: auto; }
+.nw-list { display: flex; flex-direction: column; }
+.nw-item { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 16px; padding: 18px 0; border-bottom: 1px solid var(--border); }
+.nw-item:last-child { border-bottom: 0; }
+.nw-item.is-major { box-shadow: inset 3px 0 0 var(--accent); padding-left: 14px; margin-left: -14px; }
+.nw-date { font-size: 12px; color: var(--text-3); padding-top: 3px; }
+.nw-body { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.nw-h { font-size: 17px; line-height: 1.4; letter-spacing: -.01em; font-weight: 500; overflow-wrap: anywhere; }
+.nw-title { color: var(--text); text-decoration: none; }
+.nw-title:hover { color: var(--accent); text-decoration: underline; }
+.nw-title:focus-visible, .nw-src:focus-visible, .nw-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.nw-chip { text-decoration: none; }
+.nw-chip:hover { background: var(--accent); color: var(--accent-ink); }
+.nw-sum, .nw-sig, .nw-inv, .nw-reason { margin: 0; overflow-wrap: anywhere; }
+.nw-sum { color: var(--text); font-size: 14.5px; }
+.nw-sig { color: var(--text-2); font-size: 13.5px; }
+.nw-lab { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); }
+.nw-reason { font-size: 12px; color: var(--accent); }
+.nw-sources { margin: 0; overflow-wrap: anywhere; }
+.nw-src { color: var(--text-2); }
+.nw-src:hover { color: var(--accent); }
+.nw-sep { color: var(--text-3); }
+
+/* 融资图 */
+.nw-fnote { margin: 0 0 16px; }
+.nw-chartcard { padding: 24px 20px 16px; overflow-x: auto; }
+.nw-chart { display: flex; gap: 14px; min-width: min-content; }
+.nw-col { flex: 1 0 72px; display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
+.nw-plot { height: 200px; padding-top: 24px; display: flex; flex-direction: column; justify-content: flex-end; border-bottom: 1px solid var(--border); }
+.nw-barbox { position: relative; width: 100%; max-width: 72px; margin: 0 auto; }
+.nw-bar { position: absolute; inset: 0; background: var(--accent); border-radius: 4px 4px 0 0; }
+.nw-bar.mo-grow-y { transform-origin: center bottom; }
+.nw-bar-z { background: var(--surface-2); inset: auto 0 0 0; height: 3px; }
+.nw-bval { position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); padding-bottom: 4px; font-size: 12px; white-space: nowrap; color: var(--text); }
+.nw-qlabel { text-align: center; font-size: 12px; color: var(--text); }
+.nw-qmeta { text-align: center; font-size: 11.5px; margin: 0; }
+.nw-topgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.nw-topcard { padding: 18px; min-width: 0; }
+.nw-toplist { margin: 8px 0 0; padding-left: 1.3em; display: grid; gap: 8px; font-size: 13.5px; overflow-wrap: anywhere; }
+.nw-table td, .nw-table th { vertical-align: top; }
+
+/* 公司 */
+.nw-ctitle { margin-bottom: 12px; }
+.nw-ctags { margin-bottom: 16px; }
+.nw-clinks { margin-bottom: 24px; }
+.nw-models { margin-bottom: 20px; }
+.nw-subh { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); margin: 0 0 8px; font-weight: 400; }
+.nw-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 12px; }
+.nw-statv { font-size: clamp(20px, 3vw, 30px); letter-spacing: -.03em; line-height: 1.1; overflow-wrap: anywhere; }
+.nw-statl { margin-top: 6px; }
+.nw-papers { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); overflow: hidden; }
+.nw-prow { display: grid; grid-template-columns: 92px minmax(0, 1fr) auto; gap: 12px; align-items: baseline; text-align: left; width: 100%; padding: 12px 16px; border: 0; border-bottom: 1px solid var(--border); background: transparent; color: var(--text); cursor: pointer; outline: 2px solid transparent; outline-offset: -2px; transition: background-color .15s var(--mo-ease-std); }
+.nw-prow:last-of-type { border-bottom: 0; }
+.nw-prow:hover { background: var(--surface-2); }
+.nw-prow:focus-visible { outline-color: var(--accent); }
+.nw-pdate { font-size: 12px; color: var(--text-3); }
+.nw-ptitle { overflow-wrap: anywhere; }
+.nw-pscore { font-size: 12px; color: var(--text-2); }
+
+/* 论文抽屉里的相关公司 */
+.nw-draw-chips a.tag { text-decoration: none; }
+
+@media (max-width: 760px) {
+  .nw-fline { grid-template-columns: 1fr 1fr; }
+  .nw-checks { grid-column: 1 / -1; }
+  .nw-item { grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 16px 0; }
+  .nw-item.is-major { padding-left: 12px; margin-left: -12px; }
+  .nw-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .nw-prow { grid-template-columns: minmax(0, 1fr) auto; }
+  .nw-pdate { grid-column: 1 / -1; }
+  .nw-topgrid { grid-template-columns: minmax(0, 1fr); }
+}

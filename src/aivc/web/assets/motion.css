@@ -1,0 +1,76 @@
+/* 全站公共动效层：缓动变量、mo- 关键帧、播放容器、滚动入场、循环类、toast。
+   手法与时序参数取自实测记录，实现为本项目自写。 */
+:root {
+  --mo-ease-out: cubic-bezier(.22, 1, .36, 1);
+  --mo-ease-std: cubic-bezier(.4, 0, .2, 1);
+  --mo-ease-wire: cubic-bezier(.65, 0, .35, 1);
+  --mo-ease-fade: cubic-bezier(0, 0, .2, 1);
+  --mo-ease-pulse: cubic-bezier(.4, 0, .6, 1);
+}
+
+@keyframes mo-rise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+@keyframes mo-reveal { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes mo-hide { from { opacity: 1; } to { opacity: 0; } }
+@keyframes mo-pop { 0% { opacity: 0; transform: scale(.8); } 60% { opacity: 1; transform: scale(1.06); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes mo-type { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }
+@keyframes mo-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes mo-grow-y { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes mo-wire { 0% { stroke-dashoffset: 1; } 16% { stroke-dashoffset: 0; } 26% { stroke-dashoffset: -1; } 100% { stroke-dashoffset: -1; } }
+@keyframes mo-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+@keyframes mo-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes mo-marquee { from { transform: translateX(0); } to { transform: translateX(calc(-100% - var(--mo-gap, 0px))); } }
+
+/* ---------- 播放容器 ---------- */
+[data-mo-demo] .mo-pending { display: none; }
+.mo-bar { transform-origin: left center; }
+.mo-grow-y { transform-origin: center top; }
+.mo-type { white-space: nowrap; }
+
+html.motion [data-mo-demo]:not([data-playing]) .mo-reveal,
+html.motion [data-mo-demo]:not([data-playing]) .mo-pop,
+html.motion [data-mo-demo]:not([data-playing]) .mo-type,
+html.motion [data-mo-demo]:not([data-playing]) .mo-done { opacity: 0; }
+html.motion [data-mo-demo]:not([data-playing]) .mo-bar,
+html.motion [data-mo-demo]:not([data-playing]) .mo-grow-y { transform: scaleX(0); }
+html.motion [data-mo-demo]:not([data-playing]) .mo-grow-y { transform: scaleY(0); }
+html.motion [data-mo-demo]:not([data-playing]) .mo-type { clip-path: inset(0 100% 0 0); }
+html.motion [data-mo-demo]:not([data-playing]) .mo-pending { display: revert; }
+
+html.motion [data-mo-demo][data-playing] .mo-reveal { animation: mo-reveal .48s var(--mo-ease-out) both; animation-delay: var(--mo-delay, 0s); }
+html.motion [data-mo-demo][data-playing] .mo-pop { animation: mo-pop .42s var(--mo-ease-out) both; animation-delay: var(--mo-delay, 0s); }
+html.motion [data-mo-demo][data-playing] .mo-type { animation: mo-type .9s steps(32) both; animation-delay: var(--mo-delay, 0s); }
+html.motion [data-mo-demo][data-playing] .mo-bar { animation: mo-bar .7s var(--mo-ease-out) both; animation-delay: var(--mo-delay, 0s); }
+html.motion [data-mo-demo][data-playing] .mo-grow-y { animation: mo-grow-y var(--mo-duration, 2s) linear both; animation-delay: var(--mo-delay, 0s); }
+html.motion [data-mo-demo][data-playing] .mo-pending { display: revert; animation: mo-hide .16s linear both; animation-delay: var(--mo-done, 0s); }
+html.motion [data-mo-demo][data-playing] .mo-done { animation: mo-reveal .24s var(--mo-ease-out) both; animation-delay: var(--mo-done, 0s); }
+
+/* ---------- 滚动入场 ---------- */
+@supports (animation-timeline: view()) {
+  html.motion .mo-rise {
+    animation: mo-rise linear both;
+    animation-timeline: view();
+    animation-range: entry var(--mo-start, 0%) cover var(--mo-end, 22%);
+  }
+}
+html.motion:not(.mo-vt) .mo-rise { opacity: 0; }
+html.motion:not(.mo-vt) .mo-rise.is-in { animation: mo-rise .8s var(--mo-ease-out) both; animation-delay: var(--mo-delay, 0s); }
+
+/* ---------- 循环类 ---------- */
+.mo-wire { stroke-dasharray: 1; stroke-dashoffset: 0; }
+html.motion .mo-wire { animation: mo-wire 2.8s var(--mo-ease-wire) infinite; }
+html.motion .mo-pulse { animation: mo-pulse 2s var(--mo-ease-pulse) infinite; }
+html.motion .mo-blink { animation: mo-blink 1s step-end infinite; }
+html.motion .mo-marquee { animation: mo-marquee var(--mo-duration, 40s) linear infinite; }
+.mo-paused, .mo-paused * { animation-play-state: paused !important; }
+
+/* ---------- toast ---------- */
+.mo-toast-region { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 200; display: flex; flex-direction: column; align-items: center; gap: 8px; max-width: calc(100vw - 32px); pointer-events: none; }
+.mo-toast { font-family: var(--mono); font-size: 13px; line-height: 1.5; padding: 10px 16px; border-radius: 0; border: 1px solid var(--border); background: var(--text); color: var(--bg); box-shadow: 0 8px 24px rgba(0, 0, 0, .18); overflow-wrap: anywhere; }
+html.motion .mo-toast { animation: mo-reveal .48s var(--mo-ease-out) both; }
+html.motion .mo-toast.is-leaving { animation: mo-hide .16s linear both; }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-mo-demo] *, .mo-rise, .mo-wire, .mo-pulse, .mo-blink, .mo-marquee, .mo-toast {
+    animation: none !important; transition: none !important;
+  }
+}

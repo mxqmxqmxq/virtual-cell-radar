@@ -1,0 +1,61 @@
+/* 知识资源页样式：类名一律 rs- 前缀，颜色/间距/圆角全部走 styles.css 的变量。 */
+
+.rs-meta { margin: 0 0 16px; text-transform: uppercase; letter-spacing: .04em; }
+.rs-page .notice { margin-bottom: 16px; }
+.rs-fgrid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.rs-fgrid .field select { width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); font-size: 13.5px; min-width: 0; }
+.rs-fgrid .field select:focus-visible, .rs-filters .search:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.rs-clear[hidden] { display: none; }
+
+.rs-results { margin-top: 28px; }
+.rs-group { margin-bottom: 36px; }
+.rs-gh2 { display: flex; align-items: baseline; gap: 12px; font-size: 22px; letter-spacing: -.02em; margin: 0 0 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.rs-gn { font-size: 12px; font-weight: 400; color: var(--text-3); letter-spacing: .04em; }
+.rs-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+
+.rs-card { display: flex; flex-direction: column; gap: 10px; padding: 20px; min-width: 0; transition: box-shadow .2s var(--mo-ease-std), border-color .2s var(--mo-ease-std); scroll-margin-top: 90px; }
+.rs-card:hover { box-shadow: var(--shadow-hover); }
+.rs-card.is-target { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft), var(--shadow); }
+.rs-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.rs-h { font-size: 17px; line-height: 1.35; letter-spacing: -.01em; font-weight: 500; margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.rs-name { color: var(--text); text-decoration: none; outline: 2px solid transparent; outline-offset: 2px; border-radius: 4px; }
+a.rs-name:hover { color: var(--accent); text-decoration: underline; }
+a.rs-name:focus-visible { outline-color: var(--accent); }
+.rs-name .arr { display: inline-block; transition: transform .15s var(--mo-ease-std); }
+a.rs-name:hover .arr { transform: translate(2px, -2px); }
+.rs-kind { flex: none; background: var(--surface-2); }
+.rs-full { font-size: 12px; color: var(--text-3); overflow-wrap: anywhere; margin-top: -4px; }
+.rs-desc { font-size: 14px; line-height: 1.65; color: var(--text-2); margin: 0; }
+.rs-gh { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; font-size: 12px; color: var(--text-2); }
+.rs-star { color: var(--text); font-weight: 500; }
+.rs-tags { margin-top: auto; }
+.rs-tagl { text-decoration: none; outline: 2px solid transparent; outline-offset: 2px; transition: border-color .15s var(--mo-ease-std), color .15s var(--mo-ease-std); }
+.rs-tagl:hover { border-color: var(--accent); }
+.rs-tagl:focus-visible { outline-color: var(--accent); }
+.rs-rel { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; font-size: 13px; }
+.rs-rel-l { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--text-3); }
+.rs-rel .linkbtn { font-size: 13px; overflow-wrap: anywhere; }
+
+.rs-dsl { margin-left: 8px; font-size: 12px; font-family: var(--mono); white-space: nowrap; }
+
+@media (max-width: 1000px) {
+  .rs-fgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .rs-grid { grid-template-columns: minmax(0, 1fr); }
+  .rs-fgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 420px) {
+  .rs-fgrid { grid-template-columns: minmax(0, 1fr); }
+  .rs-head { flex-direction: column; gap: 6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rs-card, .rs-name .arr { transition: none; }
+}
+
+/* 板块跳转条 */
+.rs-jump { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 24px; }
+.rs-jump-b { appearance: none; cursor: pointer; font: 13px/1 var(--mono, ui-monospace, monospace); padding: 8px 12px; border: 1px solid var(--border); background: var(--card, #fff); color: var(--text); border-radius: 0; transition: border-color 150ms var(--mo-ease-std, ease), background-color 150ms var(--mo-ease-std, ease); }
+.rs-jump-b:hover { border-color: var(--accent, #1f4fff); }
+.rs-jump-b:focus-visible { outline: 2px solid var(--accent, #1f4fff); outline-offset: 2px; }
+.rs-group { scroll-margin-top: 90px; }

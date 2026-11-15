@@ -1,0 +1,49 @@
+[project]
+name = "virtual-cell-radar"
+version = "0.1.0"
+description = "Virtual Cell Radar: a live radar of papers, business news and resources for AI virtual cell (AIVC) research"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Virtual Cell Radar contributors" }]
+keywords = ["virtual cell", "literature", "knowledge base", "bioinformatics", "paper tracking"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+requires-python = ">=3.11"
+dependencies = [
+  "httpx",
+  "feedparser",
+  "pydantic>=2",
+  "pyyaml",
+  "rapidfuzz",
+  "pypdf",
+  "anthropic",
+  "python-dotenv",
+]
+
+[project.urls]
+Homepage = "https://github.com/mxqmxqmxq/virtual-cell-radar"
+Repository = "https://github.com/mxqmxqmxq/virtual-cell-radar"
+Issues = "https://github.com/mxqmxqmxq/virtual-cell-radar/issues"
+Documentation = "https://mxqmxqmxq.github.io/virtual-cell-radar/"
+
+[dependency-groups]
+dev = ["pytest"]
+
+[project.scripts]
+aivc = "aivc.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/aivc"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

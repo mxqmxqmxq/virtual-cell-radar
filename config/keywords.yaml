@@ -1,0 +1,95 @@
+# 关键词预筛：命中的词组按 weight 累加为 keyword_score，circle 取命中词组中最高优先级（core > peripheral）。
+min_keyword_score: 1.0
+
+groups:
+  - name: virtual_cell
+    circle: core
+    weight: 3.0
+    terms: ["virtual cell", "AIVC", "AI virtual cell", "in silico cell", "digital twin of cell", "cell simulator"]
+  - name: perturbation_prediction
+    circle: core
+    weight: 3.0
+    terms: ["perturbation prediction", "perturbation response", "Perturb-seq", "genetic perturbation", "unseen perturbation", "perturbation modeling", "perturbation effect"]
+  - name: single_cell_foundation_model
+    circle: core
+    weight: 3.0
+    terms: ["single-cell foundation model", "cell foundation model", "scGPT", "Geneformer", "scFoundation", "AIDO.Cell", "STATE model", "scBERT", "UCE", "single-cell language model", "transcriptomic foundation model"]
+  - name: drug_response
+    circle: core
+    weight: 2.5
+    terms: ["chemical perturbation", "Tahoe-100M", "LINCS", "L1000", "sci-Plex", "drug perturbation", "compound response transcriptomic", "dose response transcriptomic"]
+  - name: grn
+    circle: core
+    weight: 2.0
+    terms: ["gene regulatory network", "GRN inference", "regulatory network inference", "transcription factor network"]
+  - name: cell_fate
+    circle: core
+    weight: 2.0
+    terms: ["cell fate", "cell trajectory", "trajectory inference", "RNA velocity", "differentiation trajectory", "lineage tracing", "cell state transition"]
+  # 组合规则 all_of：每个子列表至少命中一个，所有子列表同时命中才算命中；'xxx*' 为前缀匹配
+  # 组合规则权重低于直接短语命中，且两侧词都要足够具体，避免 gene/cell/diffusion 等泛词误收
+  - name: generative_single_cell
+    circle: core
+    weight: 1.5
+    terms: ["diffusion model gene expression", "scRNA-seq generative"]
+    all_of:
+      - ["flow matching", "optimal transport", "denoising diffusion", "latent diffusion", "conditional diffusion", "diffusion model", "diffusion-based", "scDiffusion", "with diffusion models", "using diffusion models", "score-based", "Schrodinger bridge", "Schrödinger bridge", "*MeanFlow", "generative model"]
+      - ["single-cell", "scRNA-seq", "single cell", "transcriptom*"]
+  - name: world_model_cell
+    circle: core
+    weight: 1.5
+    terms: ["world model virtual cell", "latent dynamics cell"]
+    all_of:
+      - ["world model", "JEPA", "joint embedding predictive"]
+      - ["single-cell", "single cell", "scRNA-seq", "cell state", "virtual cell", "cellular dynamics", "perturbation", "transcriptom*"]
+  - name: latent_dynamics_single_cell
+    circle: core
+    weight: 1.5
+    terms: []
+    all_of:
+      - ["latent dynamics"]
+      - ["single-cell", "single cell", "scRNA-seq"]
+  - name: perturbation_combo
+    circle: core
+    weight: 1.5
+    terms: []
+    all_of:
+      - ["perturbation", "perturb-seq"]
+      - ["single-cell", "single cell", "scRNA-seq", "transcriptome-wide", "virtual cell", "foundation model"]
+  # CRISPR 筛选 / 药物响应单独出现太泛（会收进大量湿实验或癌症基因组学论文），需配合建模/单细胞语境
+  - name: crispr_screen_combo
+    circle: core
+    weight: 1.5
+    terms: []
+    all_of:
+      - ["CRISPR screen", "CRISPRi screen", "CRISPRa screen", "pooled screen"]
+      - ["single-cell", "single cell", "scRNA-seq", "transcriptom*", "deep learning", "machine learning", "predict*"]
+  - name: drug_response_combo
+    circle: core
+    weight: 1.5
+    terms: []
+    all_of:
+      - ["drug response", "drug sensitivity", "compound response"]
+      - ["single-cell", "single cell", "scRNA-seq", "transcriptom*", "deep learning", "foundation model", "generative model"]
+  - name: phenotypic_drug_discovery
+    circle: peripheral
+    weight: 2.0
+    terms: ["phenotypic drug discovery", "phenotypic screening", "cell painting", "high-content imaging", "morphological profiling", "mechanism of action prediction"]
+  - name: molecular_generation
+    circle: peripheral
+    weight: 1.5
+    terms: ["molecular generation", "molecule generation", "de novo molecular design", "generative drug design", "molecular optimization"]
+  - name: protein_design
+    circle: peripheral
+    weight: 1.5
+    terms: ["protein design", "protein language model", "protein structure generation", "de novo protein"]
+  - name: spatial_transcriptomics
+    circle: peripheral
+    weight: 1.5
+    terms: ["spatial transcriptomics", "spatial omics", "spatially resolved transcriptomics"]
+  - name: multi_omics
+    circle: peripheral
+    weight: 1.5
+    terms: ["multi-omics integration", "multiomics integration", "single-cell multi-omics", "scATAC-seq", "CITE-seq"]
+
+exclude_terms: ["quantum computing", "cryptocurrency", "stock price"]

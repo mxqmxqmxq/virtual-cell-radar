@@ -1,0 +1,29 @@
+# CI：测试 + 前端单测 + 发布前自查。不使用任何 secret；测试自带禁网与禁用 LLM 的 fixture。
+# action 版本于 2026-11 核对自各仓库 releases 与 tags（checkout v7、setup-node v7、setup-uv v10.3.3）；以后请核对并更新。
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.3   # 该仓库可能不提供浮动主版本标签，故写完整版本
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - name: Install dependencies
+        run: uv sync --locked   # 锁文件与 pyproject 不一致时直接失败，让漂移在 CI 暴露
+      - name: Python tests
+        run: uv run pytest -q
+      - name: JS tests
+        # 注意：node 22 下 `node --test tests/js/` 传目录会报错，必须用 glob
+        run: node --test "tests/js/*.test.mjs"
+      - name: Check public repo hygiene
+        run: uv run python -m aivc check-public

@@ -1,0 +1,245 @@
+{
+ "version": 1,
+ "cases": [
+  {
+   "term": "virtual cell",
+   "text": "Virtual cells are useful",
+   "match": true,
+   "note": "复数 s"
+  },
+  {
+   "term": "virtual cell",
+   "text": "a virtual cell model",
+   "match": true,
+   "note": "单数"
+  },
+  {
+   "term": "box",
+   "text": "several boxes here",
+   "match": true,
+   "note": "复数 es"
+  },
+  {
+   "term": "UCE",
+   "text": "the UCEs model",
+   "match": false,
+   "note": "缩写不加复数"
+  },
+  {
+   "term": "UCE",
+   "text": "we use UCE here",
+   "match": true,
+   "note": "缩写本身"
+  },
+  {
+   "term": "single cell",
+   "text": "single-cell RNA",
+   "match": true,
+   "note": "空格匹配连字符"
+  },
+  {
+   "term": "single-cell",
+   "text": "single cell RNA",
+   "match": true,
+   "note": "连字符匹配空格"
+  },
+  {
+   "term": "single-cell",
+   "text": "single   cell RNA",
+   "match": true,
+   "note": "多空格"
+  },
+  {
+   "term": "transcriptom*",
+   "text": "Transcriptomics and more",
+   "match": true,
+   "note": "结尾 * 前缀"
+  },
+  {
+   "term": "transcriptom*",
+   "text": "transcriptome",
+   "match": true,
+   "note": "结尾 * 前缀2"
+  },
+  {
+   "term": "transcriptom*",
+   "text": "a transcript",
+   "match": false,
+   "note": "前缀未达"
+  },
+  {
+   "term": "*MeanFlow",
+   "text": "we propose scMeanFlow here",
+   "match": true,
+   "note": "开头 * 前接字母"
+  },
+  {
+   "term": "*MeanFlow",
+   "text": "MeanFlow alone",
+   "match": true,
+   "note": "开头 * 也匹配无前缀"
+  },
+  {
+   "term": "MeanFlow",
+   "text": "we propose scMeanFlow here",
+   "match": false,
+   "note": "前面紧挨字母不命中"
+  },
+  {
+   "term": "空间转录组",
+   "text": "研究空间转录组数据",
+   "match": true,
+   "note": "CJK 字面"
+  },
+  {
+   "term": "Abc中文",
+   "text": "abc中文",
+   "match": false,
+   "note": "CJK 区分大小写"
+  },
+  {
+   "term": "perturbation",
+   "text": "PERTURBATION effects",
+   "match": true,
+   "note": "英文不区分大小写"
+  },
+  {
+   "term": "perturbation",
+   "text": "Perturbation at the start",
+   "match": true,
+   "note": "词项在最开头"
+  },
+  {
+   "term": "seq",
+   "text": "Perturb-seq data",
+   "match": false,
+   "note": "前面紧挨连字符不命中"
+  },
+  {
+   "term": "seq",
+   "text": "scseq data",
+   "match": false,
+   "note": "前面紧挨字母不命中"
+  },
+  {
+   "term": "cell",
+   "text": "cellular data",
+   "match": false,
+   "note": "后面紧挨字母不命中"
+  },
+  {
+   "term": "cell",
+   "text": "cell2 data",
+   "match": false,
+   "note": "后面紧挨数字不命中"
+  },
+  {
+   "term": "L1000",
+   "text": "the L1000 dataset",
+   "match": true,
+   "note": "含数字缩写"
+  },
+  {
+   "term": "AIDO.Cell",
+   "text": "we use AIDO.Cell for",
+   "match": true,
+   "note": "含点号"
+  },
+  {
+   "term": "AIDO.Cell",
+   "text": "AIDOxCell",
+   "match": false,
+   "note": "点号不是通配"
+  },
+  {
+   "term": "C++",
+   "text": "written in C++ today",
+   "match": true,
+   "note": "正则元字符 C++"
+  },
+  {
+   "term": "(foo)",
+   "text": "see (foo) here",
+   "match": true,
+   "note": "括号"
+  },
+  {
+   "term": "  graph  ",
+   "text": "a graph model",
+   "match": true,
+   "note": "首尾空格"
+  },
+  {
+   "term": "gene network",
+   "text": "gene\nnetwork analysis",
+   "match": true,
+   "note": "跨换行"
+  },
+  {
+   "term": "flow matching",
+   "text": "flow\nmatching",
+   "match": true,
+   "note": "换行等价空白"
+  },
+  {
+   "term": "cell painting",
+   "text": "cell-painting assay",
+   "match": true,
+   "note": "连字符换空格"
+  },
+  {
+   "term": "world model",
+   "text": "world models",
+   "match": true,
+   "note": "复数"
+  },
+  {
+   "term": "DNA",
+   "text": "DNAs",
+   "match": false,
+   "note": "缩写不加复数2"
+  },
+  {
+   "term": "GRN inference",
+   "text": "grn inference tool",
+   "match": true,
+   "note": "含缩写词大小写不敏感(含空格不算缩写)"
+  },
+  {
+   "term": "[abc]",
+   "text": "see x [abc] y",
+   "match": true,
+   "note": "方括号按字面"
+  },
+  {
+   "term": "a.c",
+   "text": "abc",
+   "match": false,
+   "note": "点号不是通配"
+  },
+  {
+   "term": "a.c",
+   "text": "an a.c file",
+   "match": true,
+   "note": "点号字面"
+  },
+  {
+   "term": "a|b",
+   "text": "a b",
+   "match": false,
+   "note": "竖线不是或"
+  },
+  {
+   "term": "a|b",
+   "text": "use a|b here",
+   "match": true,
+   "note": "竖线字面"
+  },
+  {
+   "term": "x+y",
+   "text": "xxy",
+   "match": false,
+   "note": "加号不是量词"
+  }
+ ]
+}

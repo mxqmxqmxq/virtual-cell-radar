@@ -1,0 +1,20 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+*.egg-info/
+dist/
+site/
+.shots/
+.backup/
+.claude/
+local/
+*.tmp
+node_modules/
+.env.*
+!.env.example
+
+# 新闻 LLM 缓存只在本机使用（含已停用源的摘要），不进公开仓库
+data/cache/news_llm.jsonl

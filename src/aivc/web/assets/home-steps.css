@@ -1,0 +1,80 @@
+/* 首页「一篇论文的旅程」：吸附式分步区块（st- 前缀）。
+ * 宽屏 data-mode=sticky：外层高度 = 吸附层高 + 4 × 70vh，吸附层 top 5.5rem。
+ * data-mode=stack（窄屏 / reduced）：5 步与其面板交错纵向堆叠，全部为终态。 */
+.st-lede { margin: 12px 0 0; max-width: 640px; font-size: 15px; line-height: 1.65; color: var(--text-2); }
+.st-outer { margin-top: 36px; }
+.st .mono, .st-mono { font-family: var(--mono); }
+
+/* ---- 步骤列表 ---- */
+.st-left { position: relative; padding-left: 20px; }
+.st-line { position: absolute; left: 0; top: 6px; bottom: 6px; width: 2px; background: var(--border); }
+.st-line-fill { display: block; width: 100%; height: 100%; background: var(--accent); transform-origin: top center; transform: scaleY(1); transition: transform .5s cubic-bezier(.4, 0, .2, 1); }
+.st-steps { list-style: none; margin: 0; padding: 0; }
+.st-step { padding: 14px 0; border-top: 1px solid var(--border); }
+.st-step:first-child { border-top: 0; }
+.st-step-btn { display: flex; align-items: baseline; gap: 14px; width: 100%; padding: 0; margin: 0; border: 0; background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.st-step-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.st-num { font-size: 12px; color: var(--text-3); letter-spacing: .06em; }
+.st-step-t { font-size: clamp(20px, 2.2vw, 28px); font-weight: 500; letter-spacing: -.02em; line-height: 1.2; }
+.st-step-d { margin: 6px 0 0 36px; font-size: 14px; line-height: 1.6; color: var(--text-2); }
+
+/* ---- 面板与卡片 ---- */
+.st-stage { min-width: 0; }
+.st-card { background: var(--surface); border: 1px solid var(--border); border-radius: 0; box-shadow: var(--shadow); padding: 22px 24px; }
+.st-card-step { font-size: 11px; letter-spacing: .08em; color: var(--accent); text-transform: uppercase; margin-bottom: 14px; }
+.st-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-family: var(--mono); font-size: 12px; color: var(--text-3); }
+.st-ptitle { margin: 8px 0 18px; font-size: 18px; line-height: 1.4; font-weight: 600; letter-spacing: -.01em; overflow-wrap: anywhere; }
+.st-body { display: flex; flex-direction: column; gap: 14px; border-top: 1px solid var(--border); padding-top: 16px; }
+.st-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.st-flabel { font-size: 12px; color: var(--text-3); }
+.st-val { font-size: 14px; line-height: 1.6; color: var(--text); overflow-wrap: anywhere; }
+.st-clip { color: var(--text-2); }
+.st-b-key { color: var(--accent); }
+.st-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.st-chip { font-family: var(--mono); font-size: 12px; padding: 3px 8px; background: var(--accent-soft); color: var(--accent); }
+.st-track { display: block; height: 6px; background: var(--surface-2); }
+.st-fill { display: block; height: 100%; background: var(--accent); }
+.st-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+.st-badge { display: inline-block; font-size: 12px; font-weight: 600; padding: 4px 10px; background: var(--surface-2); color: var(--text); }
+.st-b-accent { background: var(--accent); color: var(--accent-ink); }
+.st-b-good { background: var(--good-soft); color: var(--good); }
+.st-b-warn { background: var(--warn-soft); color: var(--warn); }
+.st-score { display: flex; align-items: baseline; gap: 6px; }
+.st-score-num { font-size: 52px; font-weight: 600; letter-spacing: -.03em; line-height: 1; }
+.st-score-un { font-size: 14px; color: var(--text-3); }
+.st-link { color: var(--accent); text-decoration: none; overflow-wrap: anywhere; font-size: 14px; line-height: 1.6; }
+.st-link:hover { text-decoration: underline; }
+
+/* ---- 堆叠形态（默认；窄屏 / reduced） ---- */
+.st[data-mode="stack"] .st-pin { display: flex; flex-direction: column; gap: 12px; }
+.st[data-mode="stack"] .st-left, .st[data-mode="stack"] .st-steps, .st[data-mode="stack"] .st-panel { display: contents; }
+.st[data-mode="stack"] .st-line { display: none; }
+.st[data-mode="stack"] .st-step { order: calc(var(--i) * 2); border-top: 0; padding: 18px 0 0; }
+.st[data-mode="stack"] .st-stage { order: calc(var(--i) * 2 + 1); }
+.st[data-mode="stack"] .st-step-btn { cursor: default; }
+.st[data-mode="stack"] .st-step-d { margin-left: 0; }
+
+/* ---- 吸附形态（宽屏） ---- */
+.st[data-mode="sticky"] .st-outer { height: calc(100vh - 7rem + 4 * 70vh); view-timeline: --st-outer block; }
+.st[data-mode="sticky"] .st-pin { position: sticky; top: 5.5rem; height: calc(100vh - 7rem); display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 56px; align-items: center; }
+.st[data-mode="sticky"] .st-left { align-self: center; }
+.st[data-mode="sticky"] .st-step { opacity: .4; transition: opacity .5s cubic-bezier(.4, 0, .2, 1); }
+.st[data-mode="sticky"] .st-step.is-on { opacity: 1; }
+.st[data-mode="sticky"] .st-step-t { transition: color .5s cubic-bezier(.4, 0, .2, 1); }
+.st[data-mode="sticky"] .st-step:not(.is-on) .st-step-t { color: var(--text-2); }
+.st[data-mode="sticky"] .st-panel { display: grid; align-items: center; min-width: 0; transform: translateY(calc((1 - var(--st-land, 1)) * 36px)); }
+.st[data-mode="sticky"] .st-stage { grid-area: 1 / 1; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .35s cubic-bezier(.22, 1, .36, 1), visibility 0s linear .35s; }
+.st[data-mode="sticky"] .st-stage.is-on { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity .35s cubic-bezier(.22, 1, .36, 1) .35s, visibility 0s linear .35s; }
+.st[data-mode="sticky"] .st-card { min-height: 0; }
+
+/* 支持 view-timeline 时，用命名时间线驱动面板落位，覆盖上面的 JS 变量 */
+@supports (animation-timeline: view()) {
+  html.motion.mo-vt .st[data-mode="sticky"] .st-panel { transform: none; animation: st-land linear both; animation-timeline: --st-outer; animation-range: entry 0% entry 60%; }
+}
+@keyframes st-land { from { transform: translateY(36px); } to { transform: none; } }
+
+@media (max-width: 1023px) { .st-step-t { font-size: 22px; } }
+@media (max-width: 480px) { .st-card { padding: 18px 16px; } .st-score-num { font-size: 44px; } }
+@media (prefers-reduced-motion: reduce) {
+  .st-line-fill, .st-step, .st-step-t, .st-stage, .st-panel { transition: none !important; animation: none !important; }
+}

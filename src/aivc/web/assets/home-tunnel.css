@@ -1,0 +1,30 @@
+/* home-tunnel：首屏 LED 像素隧道背景（WebGL2 画布 + <768 / 加载前的 CSS 渐变静态回退）。面向深色背景。 */
+.tn-canvas, .tn-fallback {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  pointer-events: none; display: block;
+}
+.tn-canvas {
+  /* 黑底画布用 lighten 融入：黑色处不遮挡，亮色处取最大值 */
+  mix-blend-mode: lighten;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 60%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0, #000 60%, transparent 100%);
+}
+
+/* 静态回退：左右两侧竖条渐变，底部 40% 渐隐；中间留暗给标题 */
+.tn-fallback::before, .tn-fallback::after {
+  content: ""; position: absolute; top: 18%; bottom: 0; width: 34%;
+  background:
+    repeating-linear-gradient(90deg, rgba(31, 63, 255, .55) 0 3px, transparent 3px 6px),
+    linear-gradient(180deg, transparent 0, color-mix(in srgb, var(--brand, #1f3fff) 45%, transparent) 55%, transparent 100%);
+  background-blend-mode: multiply;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 35%, #000 60%, transparent 100%),
+                      linear-gradient(to right, #000 0, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to bottom, transparent 0, #000 35%, #000 60%, transparent 100%),
+              linear-gradient(to right, #000 0, transparent 100%);
+  mask-composite: intersect;
+  opacity: .8;
+}
+.tn-fallback::before { left: 0; }
+.tn-fallback::after { right: 0; transform: scaleX(-1); }
+.tn-on .tn-fallback { display: none; }

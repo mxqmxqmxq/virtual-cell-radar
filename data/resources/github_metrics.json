@@ -1,0 +1,719 @@
+{
+  "fetched_at": "2026-11-14T19:29:00Z",
+  "repos": {
+    "aaronwtr/perteval": {
+      "full_name": "aaronwtr/PertEval",
+      "html_url": "https://github.com/aaronwtr/PertEval",
+      "stars": 42,
+      "pushed_at": "2025-07-29T00:59:54Z",
+      "archived": false,
+      "license": "MIT",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 42
+        }
+      ]
+    },
+    "altoslabs/perturbench": {
+      "full_name": "altoslabs/perturbench",
+      "html_url": "https://github.com/altoslabs/perturbench",
+      "stars": 102,
+      "pushed_at": "2026-08-10T15:09:43Z",
+      "archived": false,
+      "license": "NOASSERTION",
+      "language": "Jupyter Notebook",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 102
+        }
+      ]
+    },
+    "arcinstitute/arc-virtual-cell-atlas": {
+      "full_name": "ArcInstitute/arc-virtual-cell-atlas",
+      "html_url": "https://github.com/ArcInstitute/arc-virtual-cell-atlas",
+      "stars": 654,
+      "pushed_at": "2026-10-29T04:28:31Z",
+      "archived": false,
+      "license": null,
+      "language": "Jupyter Notebook",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 654
+        }
+      ]
+    },
+    "arcinstitute/cell-eval": {
+      "full_name": "ArcInstitute/cell-eval",
+      "html_url": "https://github.com/ArcInstitute/cell-eval",
+      "stars": 167,
+      "pushed_at": "2026-07-27T22:51:17Z",
+      "archived": false,
+      "license": "MIT",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 167
+        }
+      ]
+    },
+    "arcinstitute/cell-load": {
+      "full_name": "ArcInstitute/cell-load",
+      "html_url": "https://github.com/ArcInstitute/cell-load",
+      "stars": 56,
+      "pushed_at": "2026-07-18T19:46:40Z",
+      "archived": false,
+      "license": "MIT",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 56
+        }
+      ]
+    },
+    "arcinstitute/state": {
+      "full_name": "ArcInstitute/state",
+      "html_url": "https://github.com/ArcInstitute/state",
+      "stars": 746,
+      "pushed_at": "2026-07-24T00:53:03Z",
+      "archived": false,
+      "license": "NOASSERTION",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 746
+        }
+      ]
+    },
+    "biomap-research/scfoundation": {
+      "full_name": "biomap-research/scFoundation",
+      "html_url": "https://github.com/biomap-research/scFoundation",
+      "stars": 433,
+      "pushed_at": "2025-11-23T08:31:22Z",
+      "archived": false,
+      "license": "Apache-2.0",
+      "language": "Jupyter Notebook",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 433
+        }
+      ]
+    },
+    "biomed-ai/cellfm": {
+      "full_name": "biomed-AI/CellFM",
+      "html_url": "https://github.com/biomed-AI/CellFM",
+      "stars": 117,
+      "pushed_at": "2026-09-07T09:48:59Z",
+      "archived": false,
+      "license": "NOASSERTION",
+      "language": "Jupyter Notebook",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 117
+        }
+      ]
+    },
+    "bm2-lab/scperturbench": {
+      "full_name": "bm2-lab/scPerturBench",
+      "html_url": "https://github.com/bm2-lab/scPerturBench",
+      "stars": 110,
+      "pushed_at": "2026-10-22T03:25:03Z",
+      "archived": false,
+      "license": "GPL-3.0",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 110
+        }
+      ]
+    },
+    "bowang-lab/scgpt": {
+      "full_name": "bowang-lab/scGPT",
+      "html_url": "https://github.com/bowang-lab/scGPT",
+      "stars": 1666,
+      "pushed_at": "2026-04-29T17:41:42Z",
+      "archived": false,
+      "license": "MIT",
+      "language": "Jupyter Notebook",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 1666
+        }
+      ]
+    },
+    "bunnech/cellot": {
+      "full_name": "bunnech/cellot",
+      "html_url": "https://github.com/bunnech/cellot",
+      "stars": 182,
+      "pushed_at": "2024-10-31T23:34:58Z",
+      "archived": false,
+      "license": "BSD-3-Clause",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 182
+        }
+      ]
+    },
+    "cantinilab/scprint": {
+      "full_name": "cantinilab/scPRINT",
+      "html_url": "https://github.com/cantinilab/scPRINT",
+      "stars": 164,
+      "pushed_at": "2026-08-11T10:12:46Z",
+      "archived": false,
+      "license": "GPL-3.0",
+      "language": "Jupyter Notebook",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 164
+        }
+      ]
+    },
+    "chanzuckerberg/cellxgene-census": {
+      "full_name": "chanzuckerberg/cellxgene-census",
+      "html_url": "https://github.com/chanzuckerberg/cellxgene-census",
+      "stars": 130,
+      "pushed_at": "2026-08-04T22:30:14Z",
+      "archived": false,
+      "license": "MIT",
+      "language": "Jupyter Notebook",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 130
+        }
+      ]
+    },
+    "czi-ai/transcriptformer": {
+      "full_name": "czi-ai/transcriptformer",
+      "html_url": "https://github.com/czi-ai/transcriptformer",
+      "stars": 170,
+      "pushed_at": "2025-11-06T21:11:44Z",
+      "archived": false,
+      "license": "MIT",
+      "language": "Jupyter Notebook",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 170
+        }
+      ]
+    },
+    "facebookresearch/cpa": {
+      "full_name": "facebookresearch/CPA",
+      "html_url": "https://github.com/facebookresearch/CPA",
+      "stars": 186,
+      "pushed_at": "2023-09-07T16:24:38Z",
+      "archived": true,
+      "license": "MIT",
+      "language": "Jupyter Notebook",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 186
+        }
+      ]
+    },
+    "jump-cellpainting/datasets": {
+      "full_name": "jump-cellpainting/datasets",
+      "html_url": "https://github.com/jump-cellpainting/datasets",
+      "stars": 194,
+      "pushed_at": "2026-11-09T18:28:57Z",
+      "archived": false,
+      "license": "BSD-3-Clause",
+      "language": "Shell",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 194
+        }
+      ]
+    },
+    "nitzanlab/biolord": {
+      "full_name": "nitzanlab/biolord",
+      "html_url": "https://github.com/nitzanlab/biolord",
+      "stars": 102,
+      "pushed_at": "2024-08-12T06:33:54Z",
+      "archived": false,
+      "license": "BSD-3-Clause",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 102
+        }
+      ]
+    },
+    "omicsml/cellplm": {
+      "full_name": "OmicsML/CellPLM",
+      "html_url": "https://github.com/OmicsML/CellPLM",
+      "stars": 109,
+      "pushed_at": "2024-03-28T20:01:04Z",
+      "archived": false,
+      "license": "BSD-2-Clause",
+      "language": "Jupyter Notebook",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 109
+        }
+      ]
+    },
+    "openproblems-bio/openproblems": {
+      "full_name": "openproblems-bio/openproblems",
+      "html_url": "https://github.com/openproblems-bio/openproblems",
+      "stars": 443,
+      "pushed_at": "2026-10-02T06:13:45Z",
+      "archived": false,
+      "license": "MIT",
+      "language": "TeX",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 443
+        }
+      ]
+    },
+    "scverse/anndata": {
+      "full_name": "scverse/anndata",
+      "html_url": "https://github.com/scverse/anndata",
+      "stars": 786,
+      "pushed_at": "2026-11-12T17:01:21Z",
+      "archived": false,
+      "license": "BSD-3-Clause",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 786
+        }
+      ]
+    },
+    "scverse/cellrank": {
+      "full_name": "scverse/cellrank",
+      "html_url": "https://github.com/scverse/cellrank",
+      "stars": 460,
+      "pushed_at": "2026-11-13T15:51:30Z",
+      "archived": false,
+      "license": "BSD-3-Clause",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 460
+        }
+      ]
+    },
+    "scverse/decoupler": {
+      "full_name": "scverse/decoupler",
+      "html_url": "https://github.com/scverse/decoupler",
+      "stars": 302,
+      "pushed_at": "2026-11-12T17:44:52Z",
+      "archived": false,
+      "license": "BSD-3-Clause",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 302
+        }
+      ]
+    },
+    "scverse/mudata": {
+      "full_name": "scverse/mudata",
+      "html_url": "https://github.com/scverse/mudata",
+      "stars": 135,
+      "pushed_at": "2026-11-13T10:10:09Z",
+      "archived": false,
+      "license": "BSD-3-Clause",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 135
+        }
+      ]
+    },
+    "scverse/muon": {
+      "full_name": "scverse/muon",
+      "html_url": "https://github.com/scverse/muon",
+      "stars": 279,
+      "pushed_at": "2026-11-12T17:25:52Z",
+      "archived": false,
+      "license": "BSD-3-Clause",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 279
+        }
+      ]
+    },
+    "scverse/pertpy": {
+      "full_name": "scverse/pertpy",
+      "html_url": "https://github.com/scverse/pertpy",
+      "stars": 360,
+      "pushed_at": "2026-11-12T17:28:32Z",
+      "archived": false,
+      "license": "MIT",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 360
+        }
+      ]
+    },
+    "scverse/scanpy": {
+      "full_name": "scverse/scanpy",
+      "html_url": "https://github.com/scverse/scanpy",
+      "stars": 2615,
+      "pushed_at": "2026-11-13T15:18:52Z",
+      "archived": false,
+      "license": "BSD-3-Clause",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 2615
+        }
+      ]
+    },
+    "scverse/scvi-tools": {
+      "full_name": "scverse/scvi-tools",
+      "html_url": "https://github.com/scverse/scvi-tools",
+      "stars": 1727,
+      "pushed_at": "2026-11-13T16:48:37Z",
+      "archived": false,
+      "license": "BSD-3-Clause",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 1727
+        }
+      ]
+    },
+    "scverse/spatialdata": {
+      "full_name": "scverse/spatialdata",
+      "html_url": "https://github.com/scverse/spatialdata",
+      "stars": 410,
+      "pushed_at": "2026-11-13T14:41:19Z",
+      "archived": false,
+      "license": "BSD-3-Clause",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 410
+        }
+      ]
+    },
+    "scverse/squidpy": {
+      "full_name": "scverse/squidpy",
+      "html_url": "https://github.com/scverse/squidpy",
+      "stars": 614,
+      "pushed_at": "2026-11-12T17:49:49Z",
+      "archived": false,
+      "license": "BSD-3-Clause",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 614
+        }
+      ]
+    },
+    "seandavi/awesome-single-cell": {
+      "full_name": "seandavi/awesome-single-cell",
+      "html_url": "https://github.com/seandavi/awesome-single-cell",
+      "stars": 3893,
+      "pushed_at": "2026-11-13T11:58:11Z",
+      "archived": false,
+      "license": "MIT",
+      "language": null,
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 3893
+        }
+      ]
+    },
+    "single-cell-data/tiledb-soma": {
+      "full_name": "single-cell-data/TileDB-SOMA",
+      "html_url": "https://github.com/single-cell-data/TileDB-SOMA",
+      "stars": 135,
+      "pushed_at": "2026-11-12T18:48:17Z",
+      "archived": false,
+      "license": "MIT",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 135
+        }
+      ]
+    },
+    "snap-stanford/gears": {
+      "full_name": "snap-stanford/GEARS",
+      "html_url": "https://github.com/snap-stanford/GEARS",
+      "stars": 426,
+      "pushed_at": "2025-02-01T09:35:37Z",
+      "archived": false,
+      "license": "MIT",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 426
+        }
+      ]
+    },
+    "snap-stanford/uce": {
+      "full_name": "snap-stanford/UCE",
+      "html_url": "https://github.com/snap-stanford/UCE",
+      "stars": 355,
+      "pushed_at": "2026-07-08T17:49:55Z",
+      "archived": false,
+      "license": "MIT",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 355
+        }
+      ]
+    },
+    "tahoebio/tahoe-x1": {
+      "full_name": "tahoebio/tahoe-x1",
+      "html_url": "https://github.com/tahoebio/tahoe-x1",
+      "stars": 168,
+      "pushed_at": "2026-08-25T16:20:35Z",
+      "archived": false,
+      "license": "Apache-2.0",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 168
+        }
+      ]
+    },
+    "tencentailabhealthcare/scbert": {
+      "full_name": "TencentAILabHealthcare/scBERT",
+      "html_url": "https://github.com/TencentAILabHealthcare/scBERT",
+      "stars": 363,
+      "pushed_at": "2023-12-13T08:42:37Z",
+      "archived": false,
+      "license": "GPL-3.0",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 363
+        }
+      ]
+    },
+    "theislab/cellflow": {
+      "full_name": "theislab/CellFlow",
+      "html_url": "https://github.com/theislab/CellFlow",
+      "stars": 168,
+      "pushed_at": "2026-11-09T20:06:04Z",
+      "archived": false,
+      "license": "MIT",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 168
+        }
+      ]
+    },
+    "theislab/chemcpa": {
+      "full_name": "theislab/chemCPA",
+      "html_url": "https://github.com/theislab/chemCPA",
+      "stars": 163,
+      "pushed_at": "2025-02-06T15:11:37Z",
+      "archived": false,
+      "license": "MIT",
+      "language": "Jupyter Notebook",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 163
+        }
+      ]
+    },
+    "theislab/nicheformer": {
+      "full_name": "theislab/nicheformer",
+      "html_url": "https://github.com/theislab/nicheformer",
+      "stars": 179,
+      "pushed_at": "2025-11-23T13:38:26Z",
+      "archived": false,
+      "license": "BSD-3-Clause",
+      "language": "Jupyter Notebook",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 179
+        }
+      ]
+    },
+    "theislab/scgen": {
+      "full_name": "theislab/scgen",
+      "html_url": "https://github.com/theislab/scgen",
+      "stars": 363,
+      "pushed_at": "2024-12-05T12:08:14Z",
+      "archived": false,
+      "license": "GPL-3.0",
+      "language": "Python",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 363
+        }
+      ]
+    },
+    "vandijklab/cell2sentence": {
+      "full_name": "vandijklab/cell2sentence",
+      "html_url": "https://github.com/vandijklab/cell2sentence",
+      "stars": 896,
+      "pushed_at": "2026-10-06T17:08:54Z",
+      "archived": false,
+      "license": "Apache-2.0",
+      "language": "Jupyter Notebook",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 896
+        }
+      ]
+    },
+    "xcompass-ai/genecompass": {
+      "full_name": "xCompass-AI/GeneCompass",
+      "html_url": "https://github.com/xCompass-AI/GeneCompass",
+      "stars": 125,
+      "pushed_at": "2026-09-04T07:59:28Z",
+      "archived": false,
+      "license": null,
+      "language": "Jupyter Notebook",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 125
+        }
+      ]
+    },
+    "yiqunchen/genept": {
+      "full_name": "yiqunchen/GenePT",
+      "html_url": "https://github.com/yiqunchen/GenePT",
+      "stars": 326,
+      "pushed_at": "2024-03-18T19:27:27Z",
+      "archived": false,
+      "license": null,
+      "language": "Jupyter Notebook",
+      "fetched_at": "2026-11-14T19:29:00Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-14",
+          "stars": 326
+        }
+      ]
+    }
+  }
+}

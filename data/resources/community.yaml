@@ -1,0 +1,55 @@
+# 知识资源 · 精选清单：社区维护的资源合集（awesome 列表等，kind=awesome_list），人工维护；只收录链接，不复制其内容
+# 字段：id（小写字母数字与连字符，全库唯一）、name、kind、url、description_zh（用自己的话写的可核实事实）、
+#       tags、related_tasks / related_paradigms（config/scope.yaml 里的 id）、status（accepted/candidate/archived）、
+#       added、source（manual/auto_discovered）、github（owner/repo，url 是仓库地址时可省略）、
+#       paper_ids（论文库 id）、dataset_names（对应的数据集名/别名）、discovered_from、note。
+# 本文件可能被命令重写（手写注释不会保留），说明请写在 note 字段。
+
+resources:
+  - id: awesome-single-cell-list
+    name: awesome-single-cell
+    kind: awesome_list
+    url: https://github.com/seandavi/awesome-single-cell
+    description_zh: 社区共同维护的单细胞软件包与数据资源精选列表，覆盖 RNA-seq、ATAC-seq 等多种技术，可作为查找工具的索引。
+    tags:
+    - curated-list
+    - single-cell
+    related_tasks:
+    - dataset_resource
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: seandavi/awesome-single-cell
+
+  - id: awesome-virtual-cell
+    name: Awesome-Virtual-Cell
+    kind: awesome_list
+    url: https://github.com/Boom5426/Awesome-Virtual-Cell
+    description_zh: 社区维护的 AI 虚拟细胞资源合集，按年份整理论文，另有综述、数据集、挑战赛、报告博客与讲座视频分区，部分条目附中文解读链接，更新频繁。仓库未声明许可证，本站只收录链接。
+    tags:
+    - awesome-list
+    - virtual-cell
+    related_tasks:
+    - perturbation_response_prediction
+    - cell_state_representation
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: Boom5426/Awesome-Virtual-Cell
+
+  - id: awesome-foundation-model-single-cell-papers
+    name: awesome-foundation-model-single-cell-papers
+    kind: awesome_list
+    url: https://github.com/OmicsML/awesome-foundation-model-single-cell-papers
+    description_zh: OmicsML 维护的单细胞基础模型论文清单。
+    tags:
+    - awesome-list
+    - foundation-model
+    related_tasks:
+    - cell_state_representation
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: OmicsML/awesome-foundation-model-single-cell-papers

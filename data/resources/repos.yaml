@@ -1,0 +1,415 @@
+# 知识资源 · 精选清单：GitHub 代码仓库（kind=repo），人工维护
+# 字段：id（小写字母数字与连字符，全库唯一）、name、kind、url、description_zh（用自己的话写的可核实事实）、
+#       tags、related_tasks / related_paradigms（config/scope.yaml 里的 id）、status（accepted/candidate/archived）、
+#       added、source（manual/auto_discovered）、github（owner/repo，url 是仓库地址时可省略）、
+#       paper_ids（论文库 id）、dataset_names（对应的数据集名/别名）、discovered_from、note。
+# 本文件可能被命令重写（手写注释不会保留），说明请写在 note 字段。
+
+resources:
+  - id: scgpt
+    name: scGPT
+    kind: repo
+    url: https://github.com/bowang-lab/scGPT
+    description_zh: 基于生成式预训练 Transformer 的单细胞多组学基础模型，由 Bo Wang 实验室发布，可用于细胞类型注释、扰动预测、批次整合等下游任务。
+    tags:
+    - 单细胞基础模型
+    - Transformer
+    related_tasks:
+    - cell_state_representation
+    - perturbation_response_prediction
+    - multi_omics_integration
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: bowang-lab/scGPT
+
+  - id: geneformer
+    name: Geneformer
+    kind: repo
+    url: https://huggingface.co/ctheodoris/Geneformer
+    description_zh: 在大规模单细胞转录组语料上预训练的上下文感知 Transformer（掩码语言建模），模型与代码托管在 Hugging Face，提供多个不同参数规模的版本。
+    tags:
+    - 单细胞基础模型
+    - Hugging Face
+    - 基因排序编码
+    related_tasks:
+    - cell_state_representation
+    - gene_regulatory_network
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    note: 模型托管于 Hugging Face，无 GitHub 仓库指标。
+
+  - id: scfoundation
+    name: scFoundation
+    kind: repo
+    url: https://github.com/biomap-research/scFoundation
+    description_zh: 由 BioMap 研究团队发布的大规模单细胞转录组预训练基础模型的官方代码仓库，面向表达量读深度增强、扰动预测、药物响应等下游任务。
+    tags:
+    - 单细胞基础模型
+    - xTrimoGene
+    related_tasks:
+    - cell_state_representation
+    - drug_response
+    - perturbation_response_prediction
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: biomap-research/scFoundation
+
+  - id: uce
+    name: UCE
+    kind: repo
+    url: https://github.com/snap-stanford/UCE
+    description_zh: 通用细胞嵌入（Universal Cell Embeddings）：仓库自述为面向单细胞基因表达数据的零样本基础模型，由斯坦福 SNAP 组维护。
+    tags:
+    - 单细胞基础模型
+    - 零样本
+    - 细胞嵌入
+    related_tasks:
+    - cell_state_representation
+    related_paradigms:
+    - foundation_model_pretraining
+    - transfer_few_shot
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: snap-stanford/UCE
+
+  - id: scbert
+    name: scBERT
+    kind: repo
+    url: https://github.com/TencentAILabHealthcare/scBERT
+    description_zh: 腾讯 AI Lab 医疗团队发布的 scBERT 官方仓库，将 BERT 式大规模预训练用于单细胞转录组，主要应用为细胞类型注释。
+    tags:
+    - 单细胞基础模型
+    - BERT
+    - 细胞注释
+    related_tasks:
+    - cell_state_representation
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: TencentAILabHealthcare/scBERT
+
+  - id: cellplm
+    name: CellPLM
+    kind: repo
+    url: https://github.com/OmicsML/CellPLM
+    description_zh: CellPLM（Pre-training of Cell Language Model Beyond Single Cells）的官方仓库，以细胞而非单个基因为 token 单位进行预训练，并引入细胞间关系信息。
+    tags:
+    - 单细胞基础模型
+    - 细胞语言模型
+    related_tasks:
+    - cell_state_representation
+    - perturbation_response_prediction
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: OmicsML/CellPLM
+
+  - id: cell2sentence
+    name: Cell2Sentence (C2S)
+    kind: repo
+    url: https://github.com/vandijklab/cell2sentence
+    description_zh: van Dijk 实验室维护的 Cell2Sentence 代码库，思路是把单细胞表达谱转写为按表达量排序的基因名文本，使大语言模型可直接处理单细胞数据。
+    tags:
+    - LLM
+    - 单细胞
+    - 文本化表达谱
+    related_tasks:
+    - cell_state_representation
+    - perturbation_response_prediction
+    related_paradigms:
+    - llm_agent
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: vandijklab/cell2sentence
+
+  - id: transcriptformer
+    name: TranscriptFormer
+    kind: repo
+    url: https://github.com/czi-ai/transcriptformer
+    description_zh: Chan Zuckerberg Initiative AI 团队发布的 TranscriptFormer 官方仓库，为跨物种的单细胞转录组生成式基础模型。
+    tags:
+    - 单细胞基础模型
+    - 跨物种
+    - CZI
+    related_tasks:
+    - cell_state_representation
+    related_paradigms:
+    - foundation_model_pretraining
+    - transfer_few_shot
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: czi-ai/transcriptformer
+
+  - id: scprint
+    name: scPRINT
+    kind: repo
+    url: https://github.com/cantinilab/scPRINT
+    description_zh: Cantini 实验室的 scPRINT 官方仓库，单细胞基础模型，同时面向细胞表征与基因调控网络推断。
+    tags:
+    - 单细胞基础模型
+    - 基因调控网络
+    related_tasks:
+    - gene_regulatory_network
+    - cell_state_representation
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: cantinilab/scPRINT
+
+  - id: nicheformer
+    name: Nicheformer
+    kind: repo
+    url: https://github.com/theislab/nicheformer
+    description_zh: Theis 实验室发布的 Nicheformer 仓库，同时在单细胞与空间组学数据上预训练的基础模型，用于空间组成与标签的预测。
+    tags:
+    - 单细胞基础模型
+    - 空间组学
+    related_tasks:
+    - spatial
+    - cell_state_representation
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: theislab/nicheformer
+
+  - id: genept
+    name: GenePT
+    kind: repo
+    url: https://github.com/yiqunchen/GenePT
+    description_zh: GenePT 官方仓库：用 GPT 系列模型对基因文本描述生成嵌入，再据此构造细胞表征，作者为 Yiqun Chen 与 James Zou。
+    tags:
+    - LLM
+    - 基因嵌入
+    - 文本先验
+    related_tasks:
+    - cell_state_representation
+    related_paradigms:
+    - llm_agent
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: yiqunchen/GenePT
+
+  - id: gears
+    name: GEARS
+    kind: repo
+    url: https://github.com/snap-stanford/GEARS
+    description_zh: 仓库自述为一种几何深度学习模型，利用基因关系知识图预测新的单基因与多基因组合扰动的表达结果。
+    tags:
+    - 基因扰动
+    - 知识图
+    - 组合扰动
+    related_tasks:
+    - perturbation_response_prediction
+    related_paradigms:
+    - graph_prior_knowledge
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: snap-stanford/GEARS
+
+  - id: cpa
+    name: CPA
+    kind: repo
+    url: https://github.com/facebookresearch/CPA
+    description_zh: 组合扰动自编码器（Compositional Perturbation Autoencoder）的原始实现，用于单细胞层面的扰动效应学习，可预测未见药物组合并估计剂量响应曲线。
+    tags:
+    - 自编码器
+    - 药物组合
+    - 剂量响应
+    related_tasks:
+    - perturbation_response_prediction
+    - drug_response
+    related_paradigms:
+    - vae_latent_variable
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: facebookresearch/CPA
+    note: 该仓库已被 GitHub 标记为归档（只读），最近一次推送在 2023 年；保留作为原始实现参考。
+
+  - id: chemcpa
+    name: chemCPA
+    kind: repo
+    url: https://github.com/theislab/chemCPA
+    description_zh: NeurIPS 2022 论文《Predicting Cellular Responses to Novel Drug Perturbations at a Single-Cell Resolution》的代码，把分子结构嵌入引入 CPA 以预测新药物扰动。
+    tags:
+    - 药物扰动
+    - 分子嵌入
+    related_tasks:
+    - drug_response
+    - perturbation_response_prediction
+    related_paradigms:
+    - vae_latent_variable
+    - transfer_few_shot
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: theislab/chemCPA
+
+  - id: scgen
+    name: scGen
+    kind: repo
+    url: https://github.com/theislab/scgen
+    description_zh: 基于 VAE 隐空间向量运算的单细胞扰动响应预测方法实现，由 Theis 实验室发布。
+    tags:
+    - VAE
+    - 扰动预测
+    related_tasks:
+    - perturbation_response_prediction
+    related_paradigms:
+    - vae_latent_variable
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: theislab/scgen
+
+  - id: cellot
+    name: CellOT
+    kind: repo
+    url: https://github.com/bunnech/cellot
+    description_zh: 论文《Learning Single-Cell Perturbation Responses using Neural Optimal Transport》的代码，用神经最优传输学习对照与扰动细胞群之间的映射。
+    tags:
+    - 最优传输
+    - 扰动响应
+    related_tasks:
+    - perturbation_response_prediction
+    related_paradigms:
+    - flow_matching_diffusion_ot
+    - distributional_modeling
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: bunnech/cellot
+
+  - id: cellflow
+    name: CellFlow
+    kind: repo
+    url: https://github.com/theislab/cellflow
+    description_zh: Theis 实验室的 CellFlow 仓库，基于流匹配建模复杂扰动（含组合与多条件设定）下的单细胞分布变化。
+    tags:
+    - 流匹配
+    - 扰动建模
+    related_tasks:
+    - perturbation_response_prediction
+    related_paradigms:
+    - flow_matching_diffusion_ot
+    - distributional_modeling
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: theislab/cellflow
+
+  - id: biolord
+    name: biolord
+    kind: repo
+    url: https://github.com/nitzanlab/biolord
+    description_zh: Nitzan 实验室发布的 biolord 官方仓库，通过解耦已知与未知属性的深度生成模型，对单细胞数据进行反事实预测。
+    tags:
+    - 解耦表示
+    - 反事实预测
+    related_tasks:
+    - perturbation_response_prediction
+    - cell_state_representation
+    related_paradigms:
+    - vae_latent_variable
+    - causal_mechanistic
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: nitzanlab/biolord
+
+  - id: state
+    name: STATE
+    kind: repo
+    url: https://github.com/ArcInstitute/state
+    description_zh: Arc Institute 发布的 State 仓库，自述为可跨不同细胞环境预测细胞扰动响应的机器学习模型。
+    tags:
+    - 扰动预测
+    - 虚拟细胞
+    - Arc Institute
+    related_tasks:
+    - perturbation_response_prediction
+    related_paradigms:
+    - foundation_model_pretraining
+    - transfer_few_shot
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: ArcInstitute/state
+
+  - id: tahoe-x1
+    name: Tahoe-x1
+    kind: repo
+    url: https://github.com/tahoebio/tahoe-x1
+    description_zh: Tahoe 团队发布的 Tahoe-x1 仓库，自述为面向超大规模（gigascale）数据集的单细胞基础模型。
+    tags:
+    - 单细胞基础模型
+    - 大规模预训练
+    related_tasks:
+    - cell_state_representation
+    - perturbation_response_prediction
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: tahoebio/tahoe-x1
+
+  - id: genecompass
+    name: GeneCompass
+    kind: repo
+    url: https://github.com/xCompass-AI/GeneCompass
+    description_zh: xCompass-AI 发布的 GeneCompass 官方仓库，在大规模人类与小鼠单细胞转录组上预训练并融入先验知识的基础模型。
+    tags:
+    - 单细胞基础模型
+    - 先验知识
+    - 跨物种
+    related_tasks:
+    - cell_state_representation
+    - gene_regulatory_network
+    related_paradigms:
+    - foundation_model_pretraining
+    - graph_prior_knowledge
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: xCompass-AI/GeneCompass
+
+  - id: cellfm
+    name: CellFM
+    kind: repo
+    url: https://github.com/biomed-AI/CellFM
+    description_zh: biomed-AI 团队发布的 CellFM 官方仓库，面向单细胞转录组的大规模预训练基础模型。
+    tags:
+    - 单细胞基础模型
+    related_tasks:
+    - cell_state_representation
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    github: biomed-AI/CellFM

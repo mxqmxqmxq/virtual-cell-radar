@@ -1,0 +1,473 @@
+# 知识资源 · 精选清单：虚拟细胞方向的代表性实验室、研究团队与机构（kind=lab），人工维护
+# 字段：id（小写字母数字与连字符，全库唯一）、name、kind、url、description_zh（用自己的话写的可核实事实）、
+#       tags、related_tasks / related_paradigms（config/scope.yaml 里的 id）、status（accepted/candidate/archived）、
+#       added、source（manual/auto_discovered）、github（owner/repo，url 是仓库地址时可省略）、
+#       paper_ids（论文库 id）、dataset_names（对应的数据集名/别名）、discovered_from、note。
+# 本文件可能被命令重写（手写注释不会保留），说明请写在 note 字段。
+
+resources:
+  - id: lab-theis
+    name: Theis Lab（Helmholtz Munich）
+    kind: lab
+    url: https://github.com/theislab
+    description_zh: Fabian Theis 领导的计算生物学团队，位于德国 Helmholtz Munich。GitHub 组织下有 scGen、chemCPA、CellFlow、Nicheformer 等扰动建模与单细胞基础模型代码；scanpy 最初也出自该团队。
+    tags:
+    - perturbation
+    - foundation-model
+    - scverse
+    related_tasks:
+    - perturbation_response_prediction
+    - cell_state_representation
+    - spatial
+    related_paradigms:
+    - foundation_model_pretraining
+    - flow_matching_diffusion_ot
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-snap-stanford
+    name: Stanford SNAP（Jure Leskovec）
+    kind: lab
+    url: https://snap.stanford.edu/
+    description_zh: 斯坦福大学 Jure Leskovec 领导的图机器学习团队。生物方向的代表工作包括基因扰动预测模型 GEARS 与跨物种单细胞模型 UCE，代码在 snap-stanford GitHub 组织下。
+    tags:
+    - graph-ml
+    - perturbation
+    related_tasks:
+    - perturbation_response_prediction
+    - cell_state_representation
+    related_paradigms:
+    - graph_prior_knowledge
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-arc-institute
+    name: Arc Institute
+    kind: lab
+    url: https://arcinstitute.org/
+    description_zh: 位于美国帕洛阿尔托的非营利研究机构，把虚拟细胞列为重点方向：发布了扰动预测模型 STATE、Arc Virtual Cell Atlas 数据与评测工具 cell-eval，并主办 Virtual Cell Challenge。
+    tags:
+    - virtual-cell
+    - institute
+    related_tasks:
+    - perturbation_response_prediction
+    - benchmark_evaluation
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-goodarzi
+    name: Goodarzi Lab（Arc Institute）
+    kind: lab
+    url: https://arcinstitute.org/labs/goodarzilab
+    description_zh: Hani Goodarzi 在 Arc Institute 的实验室，结合实验与计算基因组学研究疾病中 RNA 编码的基因调控程序如何被重塑；主页写明团队在构建 DNA/RNA 基础模型和扰动响应的虚拟细胞模型。
+    tags:
+    - rna
+    - virtual-cell
+    related_tasks:
+    - perturbation_response_prediction
+    - gene_regulatory_network
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-biohub
+    name: Biohub（Chan Zuckerberg）
+    kind: lab
+    url: https://biohub.org/
+    description_zh: Chan Zuckerberg 旗下的研究机构网络，以 AI 驱动生物学为方向。相关成果包括 CZ CELLxGENE 数据平台、单细胞基础模型 TranscriptFormer，以及汇集虚拟细胞模型、数据与评测的 Virtual Cells Platform。
+    tags:
+    - virtual-cell
+    - institute
+    related_tasks:
+    - cell_state_representation
+    - perturbation_response_prediction
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-bowang
+    name: WangLab（Bo Wang，多伦多大学）
+    kind: lab
+    url: https://github.com/bowang-lab
+    description_zh: 多伦多大学 Bo Wang 团队的 GitHub 组织，单细胞基础模型 scGPT 的代码即发布于此，也有医学影像与多模态方向的仓库。
+    tags:
+    - foundation-model
+    related_tasks:
+    - cell_state_representation
+    - perturbation_response_prediction
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-van-dijk
+    name: van Dijk Lab（Yale）
+    kind: lab
+    url: https://www.vandijklab.org/
+    description_zh: 耶鲁大学 David van Dijk 的实验室，研究把单细胞数据转成文本、用大语言模型建模细胞，代表工作是 Cell2Sentence（C2S）。
+    tags:
+    - llm
+    - single-cell
+    related_tasks:
+    - cell_state_representation
+    - perturbation_response_prediction
+    related_paradigms:
+    - llm_agent
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-lotfollahi
+    name: Lotfollahi Group（Wellcome Sanger）
+    kind: lab
+    url: https://www.sanger.ac.uk/group/lotfollahi-group/
+    description_zh: Mohammad Lotfollahi 在英国 Wellcome Sanger 研究所的课题组，研究单细胞生成模型与扰动预测；他是 scGen 与 CPA 两篇论文的第一作者。
+    tags:
+    - perturbation
+    - generative
+    related_tasks:
+    - perturbation_response_prediction
+    - drug_response
+    related_paradigms:
+    - vae_latent_variable
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-bunne
+    name: Bunne Lab（EPFL AIMM）
+    kind: lab
+    url: https://aimm.epfl.ch/
+    description_zh: Charlotte Bunne 在瑞士洛桑联邦理工（EPFL）的 Artificial Intelligence in Molecular Medicine 实验室；她是 CellOT（最优传输预测单细胞扰动响应）与 2024 年 Cell 观点文章「How to build the virtual cell with AI」的第一作者。
+    tags:
+    - optimal-transport
+    - virtual-cell
+    related_tasks:
+    - perturbation_response_prediction
+    related_paradigms:
+    - flow_matching_diffusion_ot
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-theodoris
+    name: Theodoris Lab（Gladstone Institutes）
+    kind: lab
+    url: https://gladstone.org/people/christina-theodoris
+    description_zh: Christina Theodoris 在 Gladstone 研究所的实验室，单细胞转录组基础模型 Geneformer 的提出者，研究用迁移学习预测基因网络与疾病相关扰动。
+    tags:
+    - foundation-model
+    - gene-network
+    related_tasks:
+    - gene_regulatory_network
+    - cell_state_representation
+    related_paradigms:
+    - foundation_model_pretraining
+    - transfer_few_shot
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-weissman
+    name: Weissman Lab（MIT / Whitehead）
+    kind: lab
+    url: https://weissman.wi.mit.edu/
+    description_zh: Jonathan Weissman 的实验室，Perturb-seq 等 CRISPR 筛选与单细胞测序结合方法的主要开发者之一；2022 年发布的全基因组 Perturb-seq（Replogle 等）数据常被用作扰动预测模型的训练与评测数据。
+    tags:
+    - perturb-seq
+    - crispr
+    - wet-lab
+    related_tasks:
+    - perturbation_response_prediction
+    - dataset_resource
+    related_paradigms:
+    - wet_lab_assay
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-shendure
+    name: Shendure Lab（华盛顿大学）
+    kind: lab
+    url: https://shendurelab.github.io/
+    description_zh: Jay Shendure 在华盛顿大学基因组科学系的实验室，开发了单细胞组合索引测序（sci- 系列）等大规模单细胞与谱系记录技术。
+    tags:
+    - sequencing-tech
+    - wet-lab
+    related_tasks:
+    - dataset_resource
+    - cell_fate_differentiation
+    related_paradigms:
+    - wet_lab_assay
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-lundberg
+    name: Lundberg Lab（Stanford）
+    kind: lab
+    url: https://lundberglab.stanford.edu/
+    description_zh: Emma Lundberg 在斯坦福大学的实验室，负责 Human Protein Atlas 的亚细胞图谱部分，研究蛋白质空间定位与成像驱动的细胞建模，公开倡导 AI 虚拟细胞方向。
+    tags:
+    - proteomics
+    - imaging
+    related_tasks:
+    - cell_state_representation
+    - spatial
+    related_paradigms:
+    - contrastive_multimodal
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-cantini
+    name: Cantini Lab（Institut Pasteur）
+    kind: lab
+    url: https://research.pasteur.fr/en/team/machine-learning-for-integrative-genomics/
+    description_zh: Laura Cantini 在巴斯德研究所的 Machine Learning for Integrative Genomics 团队，研究多组学整合与基因网络推断，单细胞基础模型 scPRINT 出自该团队。
+    tags:
+    - multi-omics
+    - gene-network
+    related_tasks:
+    - multi_omics_integration
+    - gene_regulatory_network
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-peer
+    name: Dana Pe'er Lab（MSKCC）
+    kind: lab
+    url: https://www.mskcc.org/research/ski/labs/dana-pe-er
+    description_zh: Dana Pe'er 在纪念斯隆-凯特琳癌症中心的计算与系统生物学实验室，开发了 Palantir 等单细胞轨迹与细胞状态分析方法，是 Human Cell Atlas 的早期推动者之一。
+    tags:
+    - single-cell
+    - trajectory
+    related_tasks:
+    - cell_fate_differentiation
+    - cell_state_representation
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-teichmann
+    name: Teichmann Lab
+    kind: lab
+    url: https://www.teichlab.org/
+    description_zh: Sarah Teichmann 的实验室，她是 Human Cell Atlas 的联合发起人之一；团队开发了细胞类型自动注释工具 CellTypist，研究人体组织的细胞图谱。
+    tags:
+    - cell-atlas
+    related_tasks:
+    - cell_state_representation
+    - dataset_resource
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-zitnik
+    name: Zitnik Lab（Harvard）
+    kind: lab
+    url: https://zitniklab.hms.harvard.edu/
+    description_zh: Marinka Zitnik 在哈佛医学院的 AI for Science and Medicine 实验室，研究图学习与生物医学 AI 智能体，代表工作有 TxGNN 等；代码在 mims-harvard GitHub 组织下。
+    tags:
+    - graph-ml
+    - agent
+    related_tasks:
+    - drug_response
+    related_paradigms:
+    - graph_prior_knowledge
+    - llm_agent
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-schmidt-center
+    name: Eric and Wendy Schmidt Center（Broad Institute）
+    kind: lab
+    url: https://www.ericandwendyschmidtcenter.org/
+    description_zh: Broad 研究所下属的机器学习与生物学交叉研究中心，由 Caroline Uhler 领导，研究方向包括因果推断与扰动实验设计；Uhler 团队代码在 uhlerlab GitHub 组织下。
+    tags:
+    - causal
+    - institute
+    related_tasks:
+    - perturbation_response_prediction
+    - gene_regulatory_network
+    related_paradigms:
+    - causal_mechanistic
+    - active_learning_design
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-krishnaswamy
+    name: Krishnaswamy Lab（Yale）
+    kind: lab
+    url: https://krishnaswamylab.org/
+    description_zh: Smita Krishnaswamy 在耶鲁大学的实验室，用信号处理、数据几何与拓扑方法分析生物医学大数据，开发了 PHATE、MAGIC 等单细胞方法。
+    tags:
+    - geometry
+    - single-cell
+    related_tasks:
+    - cell_state_representation
+    - cell_fate_differentiation
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-valence
+    name: Valence Labs（Recursion）
+    kind: lab
+    url: https://github.com/valence-labs
+    description_zh: 'Recursion 旗下的 AI 研究团队，发表了观点论文「Virtual Cells: Predict, Explain, Discover」，并在 YouTube 频道发布虚拟细胞相关讲座（含 Arc 的 STATE 报告）。官网对自动访问有拦截，此处链接到其 GitHub 组织。'
+    tags:
+    - virtual-cell
+    - industry
+    related_tasks:
+    - perturbation_response_prediction
+    - drug_response
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-biomap
+    name: 百图生科 BioMap
+    kind: lab
+    url: https://www.biomap.com/
+    description_zh: 国内的 AI 生物计算公司。与清华大学合作发布单细胞基础模型 scFoundation（Nature Methods 2024，对约 2 万个基因直接建模）；代码在 GitHub 组织 biomap-research 下。
+    tags:
+    - foundation-model
+    - industry
+    - china
+    related_tasks:
+    - perturbation_response_prediction
+    - cell_state_representation
+    - drug_response
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-tsinghua-zhang-xuegong
+    name: 张学工团队（清华大学自动化系）
+    kind: lab
+    url: https://www.au.tsinghua.edu.cn/en/info/1110/3216.htm
+    description_zh: 清华大学自动化系教授张学工，研究方向包括单细胞生物信息学与人类细胞图谱，是 scFoundation 的通讯作者之一。链接为院系官方教师页。
+    tags:
+    - foundation-model
+    - cell-atlas
+    - china
+    related_tasks:
+    - cell_state_representation
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-tsinghua-jiang-rui
+    name: 江瑞团队（清华大学自动化系）
+    kind: lab
+    url: https://www.tsinghua.edu.cn/info/1175/124925.htm
+    description_zh: 清华大学自动化系江瑞团队，发布了单细胞表观基因组基础模型 EpiAgent（Nature Methods），在自建的人类染色质开放性图谱上预训练，入选 2025 年度「中国生物信息学十大进展」。暂未找到团队独立主页，链接为清华新闻网报道。
+    tags:
+    - foundation-model
+    - epigenomics
+    - china
+    related_tasks:
+    - cell_state_representation
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-ioz-xin-li
+    name: 李鑫团队（中国科学院动物研究所）
+    kind: lab
+    url: https://github.com/xCompass-AI
+    description_zh: 中国科学院动物研究所干细胞与生殖生物学国家重点实验室李鑫团队，发布了融合启动子序列、基因共表达等先验知识的跨物种（人、小鼠）单细胞基础模型 GeneCompass（Cell Research 2024）；GitHub 组织 xCompass-AI 下还有基因调控网络模型 CellPolaris。
+    tags:
+    - foundation-model
+    - cross-species
+    - china
+    related_tasks:
+    - cell_state_representation
+    - perturbation_response_prediction
+    related_paradigms:
+    - foundation_model_pretraining
+    - graph_prior_knowledge
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-sysu-yang-yuedong
+    name: 杨跃东团队（中山大学计算机学院）
+    kind: lab
+    url: https://github.com/biomed-AI
+    description_zh: 中山大学计算机学院杨跃东团队，发布了在约 1 亿个人类细胞转录组上预训练的单细胞基础模型 CellFM（Nature Communications 2025，基于 MindSpore 框架训练）。暂未找到团队独立主页，链接为其 GitHub 组织 biomed-AI。
+    tags:
+    - foundation-model
+    - china
+    related_tasks:
+    - cell_state_representation
+    - perturbation_response_prediction
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-pharmolix-tsinghua-air
+    name: 水木分子 PharMolix 与清华大学智能产业研究院（AIR）
+    kind: lab
+    url: https://github.com/PharMolix
+    description_zh: PharMolix 与清华 AIR 联合发布了「语言-细胞」多模态预训练模型 LangCell、空间转录组基础模型 SToFM，以及生物医药工具集 OpenBioMed，代码在 PharMolix GitHub 组织下。
+    tags:
+    - foundation-model
+    - multimodal
+    - industry
+    - china
+    related_tasks:
+    - cell_state_representation
+    - spatial
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: lab-tencent-ai-healthcare
+    name: 腾讯 AI Lab 医疗团队
+    kind: lab
+    url: https://github.com/TencentAILabHealthcare
+    description_zh: 腾讯 AI Lab 医疗方向的代码组织，包括单细胞注释模型 scBERT、转录组到蛋白组的翻译模型 scTranslator、单细胞蛋白组表示模型 scPROTEIN 和扰动表示模型 UniPert 等。
+    tags:
+    - foundation-model
+    - industry
+    - china
+    related_tasks:
+    - cell_state_representation
+    - perturbation_response_prediction
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual

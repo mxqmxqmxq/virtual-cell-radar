@@ -1,0 +1,147 @@
+/* 首页「本周速览」(dg-)、「领域脉搏」(dg-pgrid / hm-heat) 与「数据来源芯片」(hm-srcs)。仅用现有设计变量。 */
+
+/* ---------- 速览：头部与概要数字 ---------- */
+.dg-stats { display: flex; flex-wrap: wrap; gap: 8px 36px; margin: -6px 0 28px; padding: 14px 0; border-top: 1px solid var(--border, #e3e3e6); border-bottom: 1px solid var(--border, #e3e3e6); }
+.dg-stat { display: flex; align-items: baseline; gap: 8px; }
+.dg-stat-n { font-size: 26px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.dg-stat-l { font-size: 11.5px; letter-spacing: .06em; color: var(--text-3, #6b6e76); }
+
+.dg-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 40px; }
+@media (min-width: 1024px) {
+  .dg-body { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 56px; }
+  .dg-side { border-left: 1px solid var(--border, #e3e3e6); padding-left: 40px; }
+}
+.dg-papers, .dg-side { min-width: 0; }
+.dg-colhead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-bottom: 8px; min-height: 32px; }
+.dg-h3 { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-family: var(--mono, ui-monospace, monospace); color: var(--text-2, #55585f); }
+.dg-more { display: inline-block; font-size: 13px; text-decoration: none; color: var(--accent, #1f4fff); }
+.dg-more:hover { text-decoration: underline; }
+.dg-papers > .dg-more { margin-top: 14px; }
+.dg-empty { padding: 14px 0; font-size: 14px; line-height: 1.6; color: var(--text-2, #55585f); }
+.dg-empty a { margin-left: 6px; }
+.dg-empty code { font-family: var(--mono, ui-monospace, monospace); font-size: 12.5px; background: var(--surface-2, rgba(127, 127, 127, .1)); padding: 1px 6px; }
+.dg-hint { margin: 6px 0; }
+
+/* 分段控件 */
+.dg-seg { display: inline-flex; border: 1px solid var(--border, #e3e3e6); background: var(--surface, #fff); }
+.dg-seg-b { appearance: none; border: 0; background: transparent; color: var(--text-2, #55585f); font: inherit; font-size: 12.5px; padding: 6px 14px; cursor: pointer; transition: background-color 150ms var(--mo-ease-std, cubic-bezier(.4, 0, .2, 1)), color 150ms var(--mo-ease-std, cubic-bezier(.4, 0, .2, 1)); }
+.dg-seg-b + .dg-seg-b { border-left: 1px solid var(--border, #e3e3e6); }
+.dg-seg-b[aria-pressed="true"] { background: var(--accent-soft, rgba(31, 79, 255, .1)); color: var(--accent, #1f4fff); font-weight: 500; }
+.dg-seg-b:focus-visible, .dg-guide:focus-visible { outline: 2px solid var(--accent, #1f4fff); outline-offset: 2px; }
+.dg-guide { appearance: none; border: 0; background: none; padding: 0; font: inherit; font-size: 13px; color: var(--accent, #1f4fff); cursor: pointer; text-align: left; text-decoration: underline; text-underline-offset: 3px; }
+
+/* 论文排行行 */
+.dg-rows { list-style: none; margin: 0; padding: 0; }
+.dg-row { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 12px; padding: 14px 0; border-top: 1px solid var(--border, #e3e3e6); }
+.dg-rows .dg-row:first-child { border-top: 0; }
+.dg-rank { font-size: 12px; color: var(--text-3, #6b6e76); padding-top: 4px; }
+.dg-main { min-width: 0; }
+.dg-line { display: flex; align-items: flex-start; gap: 10px; }
+.dg-score { flex: none; min-width: 34px; text-align: center; padding: 2px 6px; font-size: 12px; border: 1px solid var(--border, #e3e3e6); color: var(--text-2, #55585f); font-variant-numeric: tabular-nums; margin-top: 1px; }
+.dg-score.is-must { background: var(--accent, #1f4fff); border-color: var(--accent, #1f4fff); color: var(--accent-ink, #fff); }
+.dg-title { appearance: none; background: none; border: 0; padding: 0; text-align: left; font: inherit; font-size: 15.5px; font-weight: 500; line-height: 1.45; color: var(--text, #111214); cursor: pointer; overflow-wrap: anywhere; min-width: 0; transition: color 150ms var(--mo-ease-std, cubic-bezier(.4, 0, .2, 1)); }
+.dg-title:hover { color: var(--accent, #1f4fff); text-decoration: underline; }
+.dg-title:focus-visible { outline: 2px solid var(--accent, #1f4fff); outline-offset: 2px; }
+.dg-sub { margin: 4px 0 0 44px; font-size: 13.5px; line-height: 1.55; color: var(--text-2, #55585f); overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.dg-tags { margin: 6px 0 0 44px; }
+
+/* 右栏分段 */
+.dg-blk { padding: 0 0 26px; }
+.dg-blk + .dg-blk { padding-top: 22px; border-top: 1px solid var(--border, #e3e3e6); }
+.dg-side .dg-colhead { margin-bottom: 6px; }
+
+.dg-nrows, .dg-drows, .dg-mrows { list-style: none; margin: 0; padding: 0; }
+.dg-nrow { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; padding: 10px 0; border-top: 1px solid var(--border, #e3e3e6); }
+.dg-nrows .dg-nrow:first-child { border-top: 0; }
+.dg-ndate { font-size: 11.5px; color: var(--text-3, #6b6e76); padding-top: 2px; }
+.dg-nmain { min-width: 0; }
+.dg-nline { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+.dg-ntype { font-size: 10.5px; letter-spacing: .06em; color: var(--text-3, #6b6e76); }
+.dg-major { font-size: 10.5px; padding: 1px 6px; background: var(--warn-soft, #fdf0dc); color: var(--warn, #a35b00); letter-spacing: .04em; }
+.dg-ntitle { display: block; font-size: 14.5px; line-height: 1.5; font-weight: 500; color: var(--text, #111214); text-decoration: none; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+a.dg-ntitle:hover { color: var(--accent, #1f4fff); text-decoration: underline; }
+.dg-ntitle .arr { color: var(--text-3, #6b6e76); }
+.dg-nmeta { margin-top: 2px; font-size: 12.5px; color: var(--text-3, #6b6e76); overflow-wrap: anywhere; }
+
+.dg-drow { padding: 9px 0; border-top: 1px solid var(--border, #e3e3e6); display: grid; gap: 2px; }
+.dg-drows .dg-drow:first-child { border-top: 0; }
+.dg-dname { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+.dg-dpaper { appearance: none; background: none; border: 0; padding: 0; text-align: left; font: inherit; font-size: 13px; line-height: 1.5; color: var(--text-2, #55585f); cursor: pointer; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+button.dg-dpaper:hover { color: var(--accent, #1f4fff); text-decoration: underline; }
+
+.dg-mrow { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(40px, 1fr) 3ch 7ch; align-items: center; gap: 10px; padding: 7px 0; font-size: 13px; }
+.dg-mlabel { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-2, #55585f); }
+.dg-mtrack { height: 6px; background: var(--heat-0, rgba(127, 127, 127, .10)); overflow: hidden; }
+.dg-mfill { height: 100%; width: calc(var(--w, 0) * 100%); background: var(--accent, #1f4fff); transform-origin: left center; }
+.dg-mfill.is-down { background: var(--warn, #a35b00); }
+.dg-mn { text-align: right; font-size: 12px; color: var(--text-3, #6b6e76); }
+.dg-md { text-align: right; font-size: 12px; color: var(--text-3, #6b6e76); white-space: nowrap; }
+.dg-md.is-up { color: var(--good, #0f8a4f); }
+.dg-md.is-down { color: var(--warn, #a35b00); }
+.dg-mnote { margin-top: 6px; }
+
+/* ---------- 领域脉搏 ---------- */
+.dg-pgrid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px; }
+.hm-panel { min-width: 0; padding: 20px; border: 1px solid var(--border, #e3e3e6); background: var(--surface, #fff); border-radius: var(--radius, 8px); }
+.hm-panel-t { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3, #6b6e76); margin-bottom: 14px; }
+.hm-hint-box { padding: 28px 16px; text-align: center; font-size: 14px; line-height: 1.6; color: var(--text-2, #55585f); border: 1px dashed var(--border, #e3e3e6); border-radius: var(--radius-sm, 6px); }
+.hm-heat-wrap { overflow-x: auto; padding-bottom: 4px; max-width: 100%; }
+.hm-heat { display: grid; gap: 3px; width: max-content; align-items: center; }
+.hm-col { writing-mode: vertical-rl; transform: rotate(180deg); max-height: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: var(--text-2, #55585f); justify-self: center; }
+.hm-row-l { font-size: 12.5px; color: var(--text-2, #55585f); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 6px; }
+.hm-cell { display: block; width: 28px; height: 28px; border-radius: 3px; background: var(--heat-0, rgba(127, 127, 127, .10)); transition: transform 150ms var(--mo-ease-std, cubic-bezier(.4, 0, .2, 1)), box-shadow 150ms var(--mo-ease-std, cubic-bezier(.4, 0, .2, 1)); }
+.hm-cell.is-zero { background: var(--heat-0, rgba(127, 127, 127, .10)); }
+a.hm-cell:hover, a.hm-cell:focus-visible { transform: scale(1.18); box-shadow: 0 0 0 2px var(--accent, #1f4fff); position: relative; z-index: 1; outline: none; }
+/* 格子点亮由 .mo-pop 完成；完成后撤掉填充动画，让 hover 的 scale 生效 */
+html.motion .dg-pgrid[data-playing] .hm-heat.is-done .hm-cell.mo-pop { animation: none; opacity: 1; }
+
+.hm-wkwrap { margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border, #e3e3e6); }
+.hm-wks { display: flex; align-items: flex-end; gap: 4px; height: 72px; }
+.hm-wk { flex: 1; height: 100%; display: flex; align-items: flex-end; min-width: 0; }
+.hm-wk-bar { width: 100%; height: calc(var(--h, .04) * 100%); background: var(--accent, #1f4fff); opacity: .85; transform-origin: bottom center; border-radius: 1px 1px 0 0; }
+.hm-wk-bar.mo-grow-y { transform-origin: center bottom; }
+html.motion .dg-pgrid[data-playing] .hm-wk-bar.mo-grow-y, html.motion .dg-pgrid[data-playing] .dg-fbar.mo-grow-y { animation-duration: .7s; animation-timing-function: var(--mo-ease-out); }
+.hm-wk-axis { display: flex; justify-content: space-between; margin-top: 6px; font-size: 10.5px; color: var(--text-3, #6b6e76); }
+
+/* 季度融资柱 */
+.dg-fchart { display: flex; align-items: stretch; gap: 8px; }
+.dg-fcol { flex: 1; min-width: 0; text-align: center; }
+.dg-fplot { height: 170px; padding-top: 22px; box-sizing: border-box; display: flex; align-items: flex-end; border-bottom: 1px solid var(--border, #e3e3e6); }
+.dg-fbox { position: relative; width: 100%; }
+.dg-fbar { width: 100%; height: 100%; background: var(--accent, #1f4fff); border-radius: 1px 1px 0 0; }
+.dg-fbar.mo-grow-y { transform-origin: center bottom; }
+.dg-fbar-z { height: 2px; opacity: .4; }
+.dg-fval { position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); padding-bottom: 3px; font-size: 11px; white-space: nowrap; color: var(--text-2, #55585f); }
+.dg-fq { margin-top: 6px; font-size: 11px; color: var(--text-2, #55585f); }
+.dg-fn { font-size: 10.5px; color: var(--text-3, #6b6e76); }
+.dg-fnote { margin: 14px 0 6px; }
+
+/* ---------- 数据来源芯片（静态换行，窄屏自身横向滚动） ---------- */
+.hm-srcs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 36px; }
+.hm-chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--border, #e3e3e6); background: var(--surface, #fff); border-radius: var(--radius-btn, 2px); white-space: nowrap; font-weight: 500; font-size: 14px; }
+.hm-chip.is-planned { opacity: .5; }
+.hm-chip-n { font-size: 11px; color: var(--text-3, #6b6e76); letter-spacing: .04em; }
+.hm-mk { display: inline-block; width: 10px; height: 10px; flex: none; background: var(--accent, #1f4fff); }
+.hm-mk-source { border-radius: 50%; }
+.hm-mk-journal { border-radius: 1px; }
+.hm-mk-venue { transform: rotate(45deg) scale(.85); border-radius: 1px; background: var(--text, #111214); }
+.hm-how .dm-section { margin-top: 0; }
+.hm-how .dm-section .section-head h2, .hm-how .dm-section .section-head .eyebrow { display: none; }
+.hm-how .dm-section .section-head { margin-bottom: 16px; }
+.hm-how-more { margin-top: 28px; }
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 860px) {
+  .dg-pgrid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 767px) {
+  .hm-srcs { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; padding-bottom: 8px; }
+  .hm-chip { flex: none; }
+}
+@media (max-width: 640px) {
+  .hm-panel { padding: 16px; }
+  .dg-stats { gap: 8px 22px; }
+  .dg-sub, .dg-tags { margin-left: 0; }
+  .dg-mrow { grid-template-columns: minmax(0, 1.4fr) minmax(30px, 1fr) 3ch 6.5ch; gap: 8px; }
+  .dg-fchart { gap: 4px; }
+}

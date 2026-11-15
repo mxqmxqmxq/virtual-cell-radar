@@ -1,0 +1,11 @@
+{
+  "id": 1002,
+  "name": "new-name",
+  "full_name": "example-org/new-name",
+  "html_url": "https://github.com/example-org/new-name",
+  "stargazers_count": 56,
+  "pushed_at": "2025-01-05T00:00:00Z",
+  "archived": true,
+  "license": null,
+  "language": null
+}

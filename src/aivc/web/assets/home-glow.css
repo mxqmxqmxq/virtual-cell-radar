@@ -1,0 +1,22 @@
+/* home-glow：深色区光晕背景（静态回退层 + 2D canvas，opacity 700ms 交叉） */
+.gl-fallback, .gl-canvas {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  pointer-events: none; display: block;
+}
+.gl-fallback {
+  opacity: 1;
+  background:
+    radial-gradient(ellipse 55% 60% at 22% 18%, var(--glow-a, rgba(31, 79, 255, .32)) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 55% at 80% 85%, var(--glow-b, rgba(0, 200, 255, .2)) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 45% at 55% 50%, color-mix(in srgb, var(--brand, #1f3fff) 22%, transparent) 0%, transparent 72%);
+  transition: opacity 700ms cubic-bezier(0, 0, .2, 1);
+}
+.gl-canvas {
+  opacity: 0;
+  transition: opacity 700ms cubic-bezier(0, 0, .2, 1);
+}
+.gl-on .gl-canvas { opacity: 1; }
+.gl-on .gl-fallback { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .gl-fallback, .gl-canvas { transition: none; }
+}

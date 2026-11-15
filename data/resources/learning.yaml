@@ -1,0 +1,499 @@
+# 知识资源 · 精选清单：课程、综述、教程、博客、播客等学习资源（kind=course/review/tutorial/blog/podcast/other），人工维护
+# 字段：id（小写字母数字与连字符，全库唯一）、name、kind、url、description_zh（用自己的话写的可核实事实）、
+#       tags、related_tasks / related_paradigms（config/scope.yaml 里的 id）、status（accepted/candidate/archived）、
+#       added、source（manual/auto_discovered）、github（owner/repo，url 是仓库地址时可省略）、
+#       paper_ids（论文库 id）、dataset_names（对应的数据集名/别名）、discovered_from、note。
+# 本文件可能被命令重写（手写注释不会保留），说明请写在 note 字段。
+
+resources:
+  - id: bunne-how-to-build-virtual-cell-2024
+    name: 'How to build the virtual cell with artificial intelligence: Priorities and opportunities'
+    kind: review
+    url: https://doi.org/10.1016/j.cell.2024.11.015
+    description_zh: Bunne、Roohani 等人 2024 年发表于 Cell 的观点文章，讨论用 AI 构建虚拟细胞的总体目标、数据与模型层面的优先事项和机遇。
+    tags:
+    - virtual-cell
+    - perspective
+    related_tasks:
+    - perturbation_response_prediction
+    - cell_state_representation
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: ahlmann-eltze-linear-baselines-2025
+    name: Deep-learning-based gene perturbation effect prediction does not yet outperform simple linear baselines
+    kind: review
+    url: https://doi.org/10.1038/s41592-025-02772-6
+    description_zh: Ahlmann-Eltze、Huber 与 Anders 2025 年发表于 Nature Methods 的评测研究，将多种深度学习与基础模型的基因扰动预测方法同简单线性基线相比较。
+    tags:
+    - evaluation
+    - perturbation
+    - baseline
+    related_tasks:
+    - perturbation_response_prediction
+    - benchmark_evaluation
+    related_paradigms:
+    - evaluation_interpretability
+    - classical_ml_baseline
+    status: accepted
+    added: 2026-11-15
+    source: manual
+    note: 评测类原创研究论文，因对扰动预测评测讨论影响大而归入综述类；预印本于 2024 年 9 月发布。
+
+  - id: szalata-transformers-single-cell-omics-2024
+    name: 'Transformers in single-cell omics: a review and new perspectives'
+    kind: review
+    url: https://doi.org/10.1038/s41592-024-02353-z
+    description_zh: Szałata 等人 2024 年发表于 Nature Methods 的综述，梳理 Transformer 架构在单细胞组学中的应用，并讨论未来方向，适合了解单细胞基础模型的技术背景。
+    tags:
+    - transformer
+    - single-cell
+    - foundation-model
+    related_tasks:
+    - cell_state_representation
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: heumos-best-practices-single-cell-2023
+    name: Best practices for single-cell analysis across modalities
+    kind: review
+    url: https://doi.org/10.1038/s41576-023-00586-w
+    description_zh: Heumos 等人 2023 年发表于 Nature Reviews Genetics 的综述，总结单细胞多模态分析各步骤的最佳实践，与同名在线教程书互为配套。
+    tags:
+    - single-cell
+    - best-practices
+    - analysis
+    related_tasks:
+    - cell_state_representation
+    - multi_omics_integration
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: gavriilidis-perturbation-mini-review-2024
+    name: A mini-review on perturbation modelling across single-cell omic modalities
+    kind: review
+    url: https://doi.org/10.1016/j.csbj.2024.04.058
+    description_zh: Gavriilidis 等人 2024 年发表于 Computational and Structural Biotechnology Journal 的短篇综述，按单细胞组学模态归纳扰动建模方法，开放获取，适合快速了解方向概貌。
+    tags:
+    - perturbation
+    - single-cell
+    - review
+    related_tasks:
+    - perturbation_response_prediction
+    - multi_omics_integration
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: single-cell-best-practices-book
+    name: Single-cell best practices
+    kind: tutorial
+    url: https://www.sc-best-practices.org/
+    description_zh: 在线开放教材，按步骤讲解单细胞分析的质控、整合、轨迹、扰动等流程，配有可运行代码，与 Nature Reviews Genetics 的最佳实践综述相呼应。
+    tags:
+    - single-cell
+    - book
+    - scverse
+    related_tasks:
+    - cell_state_representation
+    - multi_omics_integration
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: osca-bioconductor-book
+    name: Orchestrating Single-Cell Analysis with Bioconductor
+    kind: tutorial
+    url: https://bioconductor.org/books/release/OSCA/
+    description_zh: Bioconductor 社区维护的在线开放教材，以 R 语言演示单细胞 RNA-seq 分析的完整流程，是 Python 生态之外入门参考。
+    tags:
+    - single-cell
+    - R
+    - bioconductor
+    related_tasks:
+    - cell_state_representation
+    status: archived
+    added: 2026-11-15
+    source: manual
+    note: 2026-11-15 归档：通用单细胞基础设施，与虚拟细胞主题关系较远。
+
+  - id: scvi-tools-tutorials
+    name: scvi-tools tutorials
+    kind: tutorial
+    url: https://docs.scvi-tools.org/en/stable/tutorials/index.html
+    description_zh: scvi-tools 官方文档中的教程合集，涵盖用深度生成模型做单细胞数据整合、注释、差异表达等流程的示例笔记本。
+    tags:
+    - scvi-tools
+    - tutorial
+    - vae
+    related_tasks:
+    - cell_state_representation
+    - multi_omics_integration
+    related_paradigms:
+    - vae_latent_variable
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: scanpy-tutorials
+    name: Scanpy tutorials
+    kind: tutorial
+    url: https://scanpy.readthedocs.io/en/stable/tutorials/index.html
+    description_zh: Scanpy 官方文档的教程索引，包括预处理聚类、轨迹推断、空间数据等基础流程，是使用 Python 做单细胞分析的入门材料。
+    tags:
+    - scanpy
+    - tutorial
+    - python
+    related_tasks:
+    - cell_state_representation
+    status: archived
+    added: 2026-11-15
+    source: manual
+    note: 2026-11-15 归档：通用单细胞基础设施，与虚拟细胞主题关系较远。
+
+  - id: scverse-learn
+    name: 'scverse: Getting started and learning resources'
+    kind: tutorial
+    url: https://scverse.org/learn/
+    description_zh: scverse 社区的学习入口页，汇集生态内各工具的入门文档与教程链接，便于从一处进入 Python 单细胞工具链。
+    tags:
+    - scverse
+    - tutorial
+    - ecosystem
+    related_tasks:
+    - cell_state_representation
+    status: archived
+    added: 2026-11-15
+    source: manual
+    note: 2026-11-15 归档：通用单细胞基础设施，与虚拟细胞主题关系较远。
+
+  - id: mit-6874-deep-learning-life-sciences
+    name: 'MIT 6.874 Computational Systems Biology: Deep Learning in the Life Sciences'
+    kind: course
+    url: https://mit6874.github.io/
+    description_zh: MIT 2021 年春季学期的公开课程网站，讲授机器学习与深度学习在基因组学和生命科学中的基础与前沿问题，提供课程材料与笔记。
+    tags:
+    - course
+    - deep-learning
+    - genomics
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: decoding-bio-newsletter
+    name: Decoding Bio
+    kind: blog
+    url: https://www.decodingbio.com/
+    description_zh: 面向生物技术与 AI 交叉领域的订阅简报与活动社区，定期梳理 AI 生物医药进展并发布专题报告。
+    tags:
+    - newsletter
+    - ai-biotech
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: century-of-biology-newsletter
+    name: The Century of Biology
+    kind: blog
+    url: https://centuryofbio.com/
+    description_zh: Elliot Hershberg 主笔的 Substack 简报，关注生物学前沿的数据、公司与观点。
+    tags:
+    - newsletter
+    - biotech
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: owl-posting-blog
+    name: Owl Posting
+    kind: blog
+    url: https://www.owlposting.com/
+    description_zh: Abhishaike Mahajan 撰写的 Substack 博客，主题为生物学与机器学习的交叉，以随笔和访谈为主。
+    tags:
+    - blog
+    - ml-biology
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: noutahi-virtual-cells-predict-explain-discover-2025
+    name: 'Virtual Cells: Predict, Explain, Discover'
+    kind: review
+    url: https://arxiv.org/abs/2505.14613
+    description_zh: Noutahi、Hartford 等人（Valence Labs）2025 年的 arXiv 观点论文，从药物发现角度讨论虚拟细胞应具备的预测、解释与发现三种能力。
+    tags:
+    - virtual-cell
+    - perspective
+    - drug-discovery
+    related_tasks:
+    - perturbation_response_prediction
+    - drug_response
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: wu-blueprint-interpretable-virtual-cell-2026
+    name: Revisiting the blueprint for an interpretable virtual cell
+    kind: review
+    url: https://doi.org/10.1038/s41576-026-00940-8
+    description_zh: Angela Ruohao Wu 2026 年发表于 Nature Reviews Genetics 的文章，讨论可解释虚拟细胞的构建蓝图。
+    tags:
+    - virtual-cell
+    - interpretability
+    related_tasks:
+    - cell_state_representation
+    related_paradigms:
+    - evaluation_interpretability
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: xing-world-model-virtual-cell-2026
+    name: A world model of the virtual cell
+    kind: review
+    url: https://doi.org/10.1016/j.cell.2026.08.042
+    description_zh: 2026 年发表于 Cell 的文章（两位作者，第一作者 Xing），从世界模型的角度讨论虚拟细胞。
+    tags:
+    - virtual-cell
+    - world-model
+    related_tasks:
+    - perturbation_response_prediction
+    - cell_state_representation
+    related_paradigms:
+    - world_model_jepa
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: noori-world-models-biomedicine-2026
+    name: World models for biomedicine
+    kind: review
+    url: https://doi.org/10.1016/j.cell.2026.08.032
+    description_zh: Noori 等人 2026 年发表于 Cell 的综述，讨论世界模型在生物医学中的应用。
+    tags:
+    - world-model
+    related_tasks:
+    - perturbation_response_prediction
+    related_paradigms:
+    - world_model_jepa
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: cui-multimodal-foundation-models-cell-biology-2025
+    name: Towards multimodal foundation models in molecular cell biology
+    kind: review
+    url: https://doi.org/10.1038/s41586-025-08710-y
+    description_zh: Cui 等人 2025 年发表于 Nature 的观点文章，讨论面向分子细胞生物学的多模态基础模型。
+    tags:
+    - foundation-model
+    - multimodal
+    - perspective
+    related_tasks:
+    - cell_state_representation
+    - multi_omics_integration
+    related_paradigms:
+    - foundation_model_pretraining
+    - contrastive_multimodal
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: tang-the-virtual-cell-2025
+    name: The virtual cell
+    kind: review
+    url: https://doi.org/10.1038/s41592-025-02951-5
+    description_zh: Nature Methods 2025 年 12 月刊出的单作者短文（作者 Lin Tang），介绍虚拟细胞这一方向。
+    tags:
+    - virtual-cell
+    - editorial
+    related_tasks:
+    - perturbation_response_prediction
+    - cell_state_representation
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: callaway-can-ai-build-virtual-cell-2025
+    name: Can AI build a virtual cell? Scientists race to model life's smallest unit
+    kind: blog
+    url: https://doi.org/10.1038/d41586-025-02011-0
+    description_zh: Nature 2025 年 6 月的新闻特稿（作者 Callaway），介绍学界与业界构建 AI 虚拟细胞的进展与争议，适合入门了解全貌。
+    tags:
+    - virtual-cell
+    - news-feature
+    related_tasks:
+    - perturbation_response_prediction
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: rood-hca-to-foundation-model-2024
+    name: The Human Cell Atlas from a cell census to a unified foundation model
+    kind: review
+    url: https://doi.org/10.1038/s41586-024-08338-4
+    description_zh: Rood 等人 2024 年发表于 Nature 的文章，讨论 Human Cell Atlas 从细胞普查走向统一基础模型的路线。
+    tags:
+    - cell-atlas
+    - foundation-model
+    related_tasks:
+    - cell_state_representation
+    - dataset_resource
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: rood-perturbation-cell-tissue-atlas-2024
+    name: Toward a foundation model of causal cell and tissue biology with a Perturbation Cell and Tissue Atlas
+    kind: review
+    url: https://doi.org/10.1016/j.cell.2024.07.035
+    description_zh: Rood 等人 2024 年发表于 Cell 的观点文章，提出建设大规模扰动细胞与组织图谱，作为因果细胞生物学基础模型的数据基础。
+    tags:
+    - perturbation
+    - atlas
+    - perspective
+    related_tasks:
+    - perturbation_response_prediction
+    - dataset_resource
+    related_paradigms:
+    - causal_mechanistic
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: dimitrov-interpretation-extrapolation-perturbation-2026
+    name: Interpretation, extrapolation and perturbation of single cells
+    kind: review
+    url: https://doi.org/10.1038/s41576-025-00920-4
+    description_zh: Dimitrov 等人发表于 Nature Reviews Genetics（2026 年卷期）的综述，围绕单细胞模型的解释、外推与扰动预测展开。
+    tags:
+    - perturbation
+    - interpretability
+    related_tasks:
+    - perturbation_response_prediction
+    - cell_state_representation
+    related_paradigms:
+    - evaluation_interpretability
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: tejada-lapuerta-causal-ml-single-cell-2025
+    name: Causal machine learning for single-cell genomics
+    kind: review
+    url: https://doi.org/10.1038/s41588-025-02124-2
+    description_zh: Tejada-Lapuerta 等人 2025 年发表于 Nature Genetics 的综述，介绍因果机器学习在单细胞基因组学中的应用与挑战。
+    tags:
+    - causal
+    - single-cell
+    related_tasks:
+    - perturbation_response_prediction
+    - gene_regulatory_network
+    related_paradigms:
+    - causal_mechanistic
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: wang-ai-virtual-cells-pharmacology-2026
+    name: AI virtual cells for drug discovery and pharmacology
+    kind: review
+    url: https://doi.org/10.1016/j.tips.2026.08.006
+    description_zh: Wang 等人 2026 年发表于 Trends in Pharmacological Sciences 的综述，讨论 AI 虚拟细胞在药物发现与药理学中的应用。
+    tags:
+    - virtual-cell
+    - drug-discovery
+    related_tasks:
+    - drug_response
+    - perturbation_response_prediction
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: connell-state-of-virtual-cell-research-2025
+    name: The state of research on virtual cell modeling
+    kind: blog
+    url: https://behindbioml.substack.com/p/the-state-of-research-on-virtual
+    description_zh: Will Connell 在 Substack 博客 Behind Bio ML 上的长文，梳理虚拟细胞建模的研究现状。
+    tags:
+    - virtual-cell
+    - blog
+    related_tasks:
+    - perturbation_response_prediction
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: hershberg-what-are-virtual-cells-2025
+    name: What Are Virtual Cells?
+    kind: blog
+    url: https://centuryofbio.com/p/virtual-cell
+    description_zh: Elliot Hershberg 在 The Century of Biology 上的文章，面向非专业读者解释虚拟细胞的概念与「通用细胞表示」的思路。
+    tags:
+    - virtual-cell
+    - blog
+    - intro
+    related_tasks:
+    - cell_state_representation
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: noetik-octo-vc
+    name: Noetik OCTO-vc 技术报告
+    kind: blog
+    url: https://www.noetik.ai/octo-vc
+    description_zh: 生物技术公司 Noetik 发布的 OCTO-vc 技术报告页面，介绍其面向组织环境的虚拟细胞模型。属于公司材料，结论未经同行评审。
+    tags:
+    - virtual-cell
+    - spatial
+    - industry
+    related_tasks:
+    - spatial
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: talk-valence-virtual-cells
+    name: '讲座：Virtual Cells: Predict, Explain, Discover（Valence Labs）'
+    kind: podcast
+    url: https://www.youtube.com/watch?v=QSfVjsa1i4g
+    description_zh: Valence Labs YouTube 频道上 Emmanuel Noutahi 的讲座，讲解同名观点论文。
+    tags:
+    - talk
+    - virtual-cell
+    related_tasks:
+    - perturbation_response_prediction
+    status: accepted
+    added: 2026-11-15
+    source: manual
+
+  - id: talk-arc-state
+    name: 讲座：Predicting cellular responses to perturbation across diverse contexts with State
+    kind: podcast
+    url: https://www.youtube.com/watch?v=rPWzpPf-3N0
+    description_zh: Valence Labs YouTube 频道上 Abhinav Adduri 介绍 Arc Institute 扰动预测模型 STATE 的报告。
+    tags:
+    - talk
+    - perturbation
+    related_tasks:
+    - perturbation_response_prediction
+    related_paradigms:
+    - foundation_model_pretraining
+    status: accepted
+    added: 2026-11-15
+    source: manual

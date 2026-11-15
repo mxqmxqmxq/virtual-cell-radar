@@ -1,0 +1,50 @@
+# 每日更新（默认只能手动触发）：抓取新论文、打分、生成报告，并把 data/ 与 reports/ 的变更提交回仓库。
+# `aivc update` 现在默认也会抓取行业新闻（pipeline.yaml 的 news.run_with_update），因此 data/news/ 的变更会一并提交。
+# 新闻抽取与论文打分共用同一后端；没有 ANTHROPIC_API_KEY 时新闻以未打分状态入库。
+#
+# 需要的 secret：
+#   ANTHROPIC_API_KEY  仓库 Settings -> Secrets and variables -> Actions 中添加。
+#                      未设置时流水线自动跳过打分，其余步骤照常完成。
+# 费用：打分调用 Anthropic API，费用由仓库所有者自行承担。
+#
+# 启用定时：取消下方 schedule 注释（cron 为 UTC）。
+# 用默认 GITHUB_TOKEN 推送不会触发 push 事件，因此 pages.yml 监听本工作流的 workflow_run（成功后）来重新部署；
+# 默认分支保护若禁止机器人直接推送，需要调整。
+name: Daily update
+
+on:
+  workflow_dispatch:
+  # schedule:
+  #   - cron: "0 1 * * *"   # 每天 UTC 01:00
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.3
+      - run: uv sync --locked
+      - name: Update
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: uv run python -m aivc update
+      - name: Check public repo hygiene
+        run: uv run python -m aivc check-public
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data reports
+          if git diff --cached --quiet; then
+            echo "no changes"
+          else
+            git commit -m "chore: daily update"
+            git push
+          fi

@@ -1,0 +1,38 @@
+# 商业新闻跟踪公司名单（Phase 3：用于新闻匹配与公司档案）。只写公开信息；不确定的 url 留空。官网 URL 于 2026-11-15 实测可访问。
+# category: research_institute / biotech / pharma / big_tech / philanthropy / other
+# tier: top = 公认头部机构（用于重大事件规则）
+# models: 其公开发布的模型/数据集名；paper_terms: 在论文标题/摘要里做词边界匹配（建立公司↔论文互链），
+#   只写不会误配的专名（公司全名、独特的模型/数据集名），禁止普通英文词或短词（如 Arc、State、Evo、Tahoe 单独出现）。
+companies:
+  - {id: "arc-institute", name: "Arc Institute", aliases: ["Arc"], url: "https://arcinstitute.org", blog_rss: null, category: research_institute, tier: top, models: ["Evo 2", "State Transition model", "Virtual Cell Atlas"], paper_terms: ["Arc Institute", "Evo 2", "Virtual Cell Challenge", "Virtual Cell Atlas", "scBaseCount"]}
+  - {id: "recursion", name: "Recursion", aliases: ["Recursion Pharmaceuticals"], url: "https://www.recursion.com", blog_rss: null, category: biotech, tier: top, models: ["Phenom-1", "Phenom-2", "MolPhenix", "OpenPhenom", "RxRx3"], paper_terms: ["Recursion Pharmaceuticals", "Phenom-1", "Phenom-2", "MolPhenix", "OpenPhenom", "RxRx3", "RxRx1", "RxRx2"]}
+  - {id: "insitro", name: "Insitro", aliases: [], url: "https://insitro.com", blog_rss: null, category: biotech, tier: normal, models: [], paper_terms: ["insitro"]}
+  - {id: "xaira", name: "Xaira", aliases: ["Xaira Therapeutics"], url: "https://www.xaira.com", blog_rss: null, category: biotech, tier: normal, models: [], paper_terms: ["Xaira Therapeutics"]}
+  - {id: "noetik", name: "Noetik", aliases: [], url: "https://www.noetik.ai", blog_rss: null, category: biotech, tier: normal, models: ["OCTO-vc", "Celleporter"], paper_terms: ["Noetik", "OCTO-vc"]}
+  - {id: "tahoe-therapeutics", name: "Tahoe Therapeutics", aliases: ["Tahoe", "Vevo Therapeutics"], url: "https://www.tahoebio.ai", blog_rss: null, category: biotech, tier: normal, models: ["Tahoe-100M", "Tahoe-x1"], paper_terms: ["Tahoe-100M", "Tahoe-x1", "Tahoe Therapeutics", "Vevo Therapeutics"]}
+  - {id: "czi", name: "CZI", aliases: ["Chan Zuckerberg Initiative", "CZ Biohub"], url: "https://chanzuckerberg.com", blog_rss: null, category: philanthropy, tier: top, models: ["TranscriptFormer", "CZ CELLxGENE", "Tabula Sapiens", "GREmLN"], paper_terms: ["Chan Zuckerberg Initiative", "Chan Zuckerberg Biohub", "CZ CELLxGENE", "CELLxGENE", "TranscriptFormer", "GREmLN", "Tabula Sapiens"]}
+  - {id: "isomorphic-labs", name: "Isomorphic Labs", aliases: ["Isomorphic"], url: "https://www.isomorphiclabs.com", blog_rss: null, category: biotech, tier: top, models: ["AlphaFold 3"], paper_terms: ["Isomorphic Labs"]}
+  - {id: "genentech-roche", name: "Genentech/Roche", aliases: ["Genentech", "Roche"], url: "https://www.gene.com", blog_rss: null, category: pharma, tier: top, models: [], paper_terms: ["Genentech"]}
+  - {id: "nvidia-bionemo", name: "NVIDIA BioNeMo", aliases: ["BioNeMo", "NVIDIA"], url: "https://www.nvidia.com/en-us/clara/bionemo/", blog_rss: null, category: big_tech, tier: top, models: ["BioNeMo"], paper_terms: ["BioNeMo"]}
+  - {id: "owkin", name: "Owkin", aliases: [], url: "https://www.owkin.com", blog_rss: null, category: biotech, tier: normal, models: ["Phikon"], paper_terms: ["Owkin", "Phikon"]}
+  - {id: "bioptimus", name: "Bioptimus", aliases: [], url: "https://www.bioptimus.com", blog_rss: null, category: biotech, tier: normal, models: ["H-optimus-0", "H-optimus-1"], paper_terms: ["Bioptimus", "H-optimus-0", "H-optimus-1"]}
+  - {id: "xtalpi", name: "晶泰科技 (XtalPi)", aliases: ["XtalPi", "晶泰科技"], url: "https://www.xtalpi.com", blog_rss: null, category: biotech, tier: normal, models: [], paper_terms: ["XtalPi"]}
+  - {id: "insilico-medicine", name: "英矽智能 (Insilico Medicine)", aliases: ["Insilico Medicine", "Insilico", "英矽智能"], url: "https://insilico.com", blog_rss: null, category: biotech, tier: normal, models: ["PandaOmics", "Chemistry42"], paper_terms: ["Insilico Medicine", "PandaOmics", "Chemistry42"]}
+  - {id: "google-deepmind", name: "Google DeepMind", aliases: ["DeepMind"], url: "https://deepmind.google", blog_rss: null, category: big_tech, tier: top, models: ["AlphaFold 3", "C2S-Scale"], paper_terms: ["Google DeepMind", "C2S-Scale", "Cell2Sentence"]}
+  - {id: "evolutionaryscale", name: "EvolutionaryScale", aliases: [], url: "https://www.evolutionaryscale.ai", blog_rss: null, category: biotech, tier: normal, models: ["ESM3", "ESM Cambrian"], paper_terms: ["EvolutionaryScale", "ESM3", "ESM Cambrian"]}
+  - {id: "chai-discovery", name: "Chai Discovery", aliases: ["Chai"], url: "https://www.chaidiscovery.com", blog_rss: null, category: biotech, tier: normal, models: ["Chai-1", "Chai-2"], paper_terms: ["Chai Discovery", "Chai-1", "Chai-2"]}
+  - {id: "profluent", name: "Profluent", aliases: [], url: "https://www.profluent.bio", blog_rss: null, category: biotech, tier: normal, models: ["ProGen3", "OpenCRISPR-1"], paper_terms: ["Profluent", "ProGen3", "OpenCRISPR"]}
+  - {id: "generate-biomedicines", name: "Generate:Biomedicines", aliases: ["Generate Biomedicines"], url: "https://generatebiomedicines.com", blog_rss: null, category: biotech, tier: normal, models: [], paper_terms: ["Generate Biomedicines", "Generate:Biomedicines"]}
+  - {id: "cellarity", name: "Cellarity", aliases: [], url: "https://www.cellarity.com", blog_rss: null, category: biotech, tier: normal, models: [], paper_terms: ["Cellarity"]}
+  - {id: "altos-labs", name: "Altos Labs", aliases: ["Altos"], url: "https://altoslabs.com", blog_rss: null, category: research_institute, tier: normal, models: [], paper_terms: ["Altos Labs"]}
+  - {id: "shift-bioscience", name: "Shift Bioscience", aliases: [], url: "https://www.shiftbioscience.com", blog_rss: null, category: biotech, tier: normal, models: [], paper_terms: ["Shift Bioscience"]}
+  - {id: "lila-sciences", name: "Lila Sciences", aliases: ["Lila"], url: "https://www.lila.ai", blog_rss: null, category: biotech, tier: normal, models: [], paper_terms: ["Lila Sciences"]}
+  - {id: "absci", name: "Absci", aliases: [], url: "https://www.absci.com", blog_rss: "https://www.absci.com/feed/", category: biotech, tier: normal, models: [], paper_terms: ["Absci"]}
+  - {id: "broad-institute", name: "Broad Institute", aliases: ["Broad"], url: "https://www.broadinstitute.org", blog_rss: null, category: research_institute, tier: normal, models: [], paper_terms: []}
+  - {id: "wyss-institute", name: "Wyss Institute", aliases: [], url: "https://wyss.harvard.edu", blog_rss: "https://wyss.harvard.edu/feed/", category: research_institute, tier: normal, models: [], paper_terms: []}
+  - {id: "embl", name: "EMBL", aliases: ["EMBL-EBI"], url: "https://www.embl.org", blog_rss: "https://www.embl.org/news/feed/", category: research_institute, tier: normal, models: [], paper_terms: []}
+  - {id: "google-research", name: "Google Research", aliases: [], url: "https://research.google", blog_rss: "https://research.google/blog/rss/", category: big_tech, tier: normal, models: [], paper_terms: []}
+  - {id: "microsoft-research", name: "Microsoft Research", aliases: [], url: "https://www.microsoft.com/en-us/research/", blog_rss: "https://www.microsoft.com/en-us/research/feed/", category: big_tech, tier: normal, models: [], paper_terms: []}
+  - {id: "wellcome-sanger", name: "Wellcome Sanger Institute", aliases: ["Sanger Institute"], url: "https://www.sanger.ac.uk", blog_rss: null, category: research_institute, tier: normal, models: [], paper_terms: []}
+  - {id: "dyno-therapeutics", name: "Dyno Therapeutics", aliases: ["Dyno"], url: "https://www.dynotx.com", blog_rss: null, category: biotech, tier: normal, models: [], paper_terms: ["Dyno Therapeutics"]}
+  - {id: "enveda", name: "Enveda", aliases: ["Enveda Biosciences"], url: "https://enveda.com", blog_rss: "https://enveda.com/feed/", category: biotech, tier: normal, models: [], paper_terms: ["Enveda"]}

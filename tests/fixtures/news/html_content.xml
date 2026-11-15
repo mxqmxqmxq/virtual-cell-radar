@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Example HTML Feed</title>
+    <link>https://html.example.test/</link>
+    <description>Fictional</description>
+    <item>
+      <title>Fiction &amp; Co. unveils model</title>
+      <link>https://html.example.test/a</link>
+      <pubDate>Tue, 10 Nov 2026 09:00:00 GMT</pubDate>
+      <description>&lt;p&gt;Hello   &lt;b&gt;bold&lt;/b&gt; &amp;amp; world.&lt;/p&gt;&lt;script&gt;alert(1)&lt;/script&gt;
+      &lt;p&gt;Second&#10;paragraph&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>FULLTEXT-SENTINEL this must never be read.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title>Only full content</title>
+      <link>https://html.example.test/b</link>
+      <pubDate>Tue, 10 Nov 2026 10:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>FULLTEXT-SENTINEL only content.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title>Long one</title>
+      <link>https://html.example.test/c</link>
+      <pubDate>Tue, 10 Nov 2026 11:00:00 GMT</pubDate>
+      <description>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</description>
+    </item>
+  </channel>
+</rss>

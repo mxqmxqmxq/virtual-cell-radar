@@ -1,0 +1,372 @@
+# 知识资源 · 候选清单：自动发现或待审核的资源（status=candidate/archived），由 aivc resources 命令写入，不会直接展示在公开页
+# 字段：id（小写字母数字与连字符，全库唯一）、name、kind、url、description_zh（用自己的话写的可核实事实）、
+#       tags、related_tasks / related_paradigms（config/scope.yaml 里的 id）、status（accepted/candidate/archived）、
+#       added、source（manual/auto_discovered）、github（owner/repo，url 是仓库地址时可省略）、
+#       paper_ids（论文库 id）、dataset_names（对应的数据集名/别名）、discovered_from、note。
+# 本文件可能被命令重写（手写注释不会保留），说明请写在 note 字段。
+
+resources:
+  - id: gh-kabir-ai2bio-lab-dynamicsplm
+    name: DynamicsPLM
+    kind: repo
+    url: https://github.com/kabir-ai2bio-lab/DynamicsPLM
+    description_zh: ''
+    status: candidate
+    added: 2026-11-15
+    source: auto_discovered
+    github: kabir-ai2bio-lab/DynamicsPLM
+    discovered_from:
+    - biorxiv:2026.11.11.765945
+
+  - id: ds-adamson
+    name: Adamson
+    kind: data_portal
+    url: ''
+    description_zh: ''
+    status: archived
+    added: 2026-11-15
+    source: auto_discovered
+    dataset_names:
+    - Adamson
+    discovered_from:
+    - openreview:50HszOqvOg
+    - openreview:Kmg1mYJYDq
+    - openreview:aKhOOCL7ZQ
+    note: 2026-11-15 归档：缺少可核实链接。
+
+  - id: ds-ambimodbench
+    name: AmbiModBench
+    kind: data_portal
+    url: ''
+    description_zh: ''
+    status: archived
+    added: 2026-11-15
+    source: auto_discovered
+    dataset_names:
+    - AmbiModBench
+    discovered_from:
+    - openreview:zhuPXttc8G
+    note: 2026-11-15 归档：缺少可核实链接。
+
+  - id: ds-bbbc021
+    name: BBBC021
+    kind: data_portal
+    url: ''
+    description_zh: ''
+    status: archived
+    added: 2026-11-15
+    source: auto_discovered
+    dataset_names:
+    - BBBC021
+    discovered_from:
+    - openreview:4AIImLVpB7
+    - openreview:IIoSruarQX
+    - openreview:KeNS3zwSDx
+    - openreview:NfUmPnzW2a
+    - openreview:bQGsgyqrWe
+    note: 2026-11-15 归档：缺少可核实链接。
+
+  - id: ds-bridge
+    name: BRIDGE
+    kind: data_portal
+    url: ''
+    description_zh: ''
+    status: archived
+    added: 2026-11-15
+    source: auto_discovered
+    dataset_names:
+    - BRIDGE
+    discovered_from:
+    - openreview:IMw6WGwnyr
+    note: 2026-11-15 归档：缺少可核实链接。
+
+  - id: ds-cellchain
+    name: CellChain
+    kind: data_portal
+    url: ''
+    description_zh: ''
+    status: archived
+    added: 2026-11-15
+    source: auto_discovered
+    dataset_names:
+    - CellChain
+    discovered_from:
+    - openreview:QvbJZhSLIi
+    note: 2026-11-15 归档：缺少可核实链接。
+
+  - id: ds-cellshift
+    name: CellShift
+    kind: data_portal
+    url: ''
+    description_zh: ''
+    status: archived
+    added: 2026-11-15
+    source: auto_discovered
+    dataset_names:
+    - CellShift
+    discovered_from:
+    - openreview:3uy68kAVum
+    note: 2026-11-15 归档：缺少可核实链接。
+
+  - id: ds-crossperturb
+    name: CrossPerturb
+    kind: data_portal
+    url: ''
+    description_zh: ''
+    status: archived
+    added: 2026-11-15
+    source: auto_discovered
+    dataset_names:
+    - CrossPerturb
+    discovered_from:
+    - openreview:26SqFImlH3
+    note: 2026-11-15 归档：缺少可核实链接。
+
+  - id: ds-geo-omicsqa
+    name: GEO-OmicsQA
+    kind: data_portal
+    url: ''
+    description_zh: ''
+    status: archived
+    added: 2026-11-15
+    source: auto_discovered
+    dataset_names:
+    - GEO-OmicsQA
+    discovered_from:
+    - openreview:kI1ZMwT9Xu
+    note: 2026-11-15 归档：缺少可核实链接。
+
+  - id: ds-gneval
+    name: GNEval
+    kind: data_portal
+    url: ''
+    description_zh: ''
+    status: archived
+    added: 2026-11-15
+    source: auto_discovered
+    dataset_names:
+    - GNEval
+    discovered_from:
+    - openreview:NWBKjDCaNf
+    note: 2026-11-15 归档：缺少可核实链接。
+
+  - id: ds-hepg2
+    name: HepG2
+    kind: data_portal
+    url: ''
+    description_zh: ''
+    status: archived
+    added: 2026-11-15
+    source: auto_discovered
+    dataset_names:
+    - HepG2
+    discovered_from:
+    - openreview:Kmg1mYJYDq
+    - openreview:OkJfhOMwID
+    - openreview:awt30o9pm2
+    - openreview:uxscd6AH4M
+    note: 2026-11-15 归档：缺少可核实链接。
+
+  - id: ds-inverseperturbbench
+    name: InversePerturbBench
+    kind: data_portal
+    url: ''
+    description_zh: ''
+    status: archived
+    added: 2026-11-15
+    source: auto_discovered
+    dataset_names:
+    - InversePerturbBench
+    discovered_from:
+    - openreview:7e0QTiLo6V
+    note: 2026-11-15 归档：缺少可核实链接。
+
+  - id: ds-k562
+    name: K562
+    kind: data_portal
+    url: ''
+    description_zh: ''
+    status: archived
+    added: 2026-11-15
+    source: auto_discovered
+    dataset_names:
+    - K562
+    discovered_from:
+    - openreview:peMXLCiQYA
+    - openreview:uxscd6AH4M
+    - openreview:zhuPXttc8G
+    note: 2026-11-15 归档：缺少可核实链接。
+
+  - id: ds-morphanalysis
+    name: MorphAnalysis
+    kind: data_portal
+    url: ''
+    description_zh: ''
+    status: archived
+    added: 2026-11-15
+    source: auto_discovered
+    dataset_names:
+    - MorphAnalysis
+    discovered_from:
+    - openreview:fG6gMiEzqt
+    note: 2026-11-15 归档：缺少可核实链接。
+
+  - id: ds-morphknow
+    name: MorphKnow
+    kind: data_portal
+    url: ''
+    description_zh: ''
+    status: archived
+    added: 2026-11-15
+    source: auto_discovered
+    dataset_names:
+    - MorphKnow
+    discovered_from:
+    - openreview:fG6gMiEzqt
+    note: 2026-11-15 归档：缺少可核实链接。
+
+  - id: ds-norman
+    name: Norman
+    kind: data_portal
+    url: ''
+    description_zh: ''
+    status: archived
+    added: 2026-11-15
+    source: auto_discovered
+    dataset_names:
+    - Norman
+    discovered_from:
+    - openreview:0565GuBFYb
+    - openreview:50HszOqvOg
+    - openreview:9LFLH2h0og
+    - openreview:Kmg1mYJYDq
+    - openreview:XPOYoRnz2G
+    - openreview:aKhOOCL7ZQ
+    - openreview:bJ9SqZK1KQ
+    - openreview:peMXLCiQYA
+    - openreview:zhuPXttc8G
+    note: 2026-11-15 归档：缺少可核实链接。
+
+  - id: ds-omnivcbench
+    name: OmniVCBench
+    kind: data_portal
+    url: ''
+    description_zh: ''
+    status: archived
+    added: 2026-11-15
+    source: auto_discovered
+    dataset_names:
+    - OmniVCBench
+    discovered_from:
+    - openreview:8DPQER56To
+    note: 2026-11-15 归档：缺少可核实链接。
+
+  - id: ds-pbmc
+    name: PBMC
+    kind: data_portal
+    url: ''
+    description_zh: ''
+    status: archived
+    added: 2026-11-15
+    source: auto_discovered
+    dataset_names:
+    - PBMC
+    discovered_from:
+    - openreview:LCMLwH6Amw
+    - openreview:eGrYPpzVaM
+    - openreview:m8e25icYJN
+    note: 2026-11-15 归档：缺少可核实链接。
+
+  - id: ds-primo
+    name: PRIMO
+    kind: data_portal
+    url: ''
+    description_zh: ''
+    status: archived
+    added: 2026-11-15
+    source: auto_discovered
+    dataset_names:
+    - PRIMO
+    discovered_from:
+    - openreview:9ql2fWXNNr
+    note: 2026-11-15 归档：缺少可核实链接。
+
+  - id: ds-prover-600-case-reasoning-trace-audit-benchmark-metadata-and-audit-artifacts
+    name: PROVER 600-case reasoning-trace audit benchmark (metadata and audit artifacts)
+    kind: data_portal
+    url: ''
+    description_zh: ''
+    status: archived
+    added: 2026-11-15
+    source: auto_discovered
+    dataset_names:
+    - PROVER 600-case reasoning-trace audit benchmark (metadata and audit artifacts)
+    discovered_from:
+    - openreview:6ibSSEhqg5
+    note: 2026-11-15 归档：缺少可核实链接。
+
+  - id: ds-rpe1
+    name: RPE1
+    kind: data_portal
+    url: ''
+    description_zh: ''
+    status: archived
+    added: 2026-11-15
+    source: auto_discovered
+    dataset_names:
+    - RPE1
+    discovered_from:
+    - openreview:0565GuBFYb
+    - openreview:peMXLCiQYA
+    - openreview:uxscd6AH4M
+    - openreview:zhuPXttc8G
+    note: 2026-11-15 归档：缺少可核实链接。
+
+  - id: ds-sci-plex3
+    name: sci-Plex3
+    kind: data_portal
+    url: ''
+    description_zh: ''
+    status: archived
+    added: 2026-11-15
+    source: auto_discovered
+    dataset_names:
+    - sci-Plex3
+    discovered_from:
+    - openreview:8tScMLKS7c
+    - openreview:DVGHFaScK9
+    - openreview:FyycZNGwsC
+    - openreview:T2w7KEgDSv
+    - openreview:hcuE6KHnwu
+    - openreview:x2pjdFFjB2
+    note: 2026-11-15 归档：缺少可核实链接。
+
+  - id: ds-string
+    name: STRING
+    kind: data_portal
+    url: ''
+    description_zh: ''
+    status: archived
+    added: 2026-11-15
+    source: auto_discovered
+    dataset_names:
+    - STRING
+    discovered_from:
+    - openreview:IfYDX3tDmp
+    - openreview:Kmg1mYJYDq
+    - openreview:peGhfOUode
+    note: 2026-11-15 归档：缺少可核实链接。
+
+  - id: ds-subcellpert
+    name: SubcellPert
+    kind: data_portal
+    url: ''
+    description_zh: ''
+    status: archived
+    added: 2026-11-15
+    source: auto_discovered
+    dataset_names:
+    - SubcellPert
+    discovered_from:
+    - openreview:xXMiQdKwL4
+    note: 2026-11-15 归档：缺少可核实链接。
