@@ -287,6 +287,7 @@ def _run_build_site(cfg, args, data_dir, reports_dir) -> int:
                         top_used=cfg.pipeline.site.top_datasets_used, **_site_kwargs(cfg, args, data_dir))
     print(f"输出目录：{r.site_dir}")
     print(f"论文 {r.n_papers} 篇，周报 {r.n_weekly} 份，资源 {r.n_resources} 条")
+    print(f"新闻：核心 {r.n_news} 条、相关 {r.n_news_related} 条")
     print("预览：python -m aivc serve")
     return 0
 

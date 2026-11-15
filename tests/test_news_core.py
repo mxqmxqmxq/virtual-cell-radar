@@ -367,3 +367,126 @@ def test_store_sharding_idempotent_delete(tmp_path):
     assert not list((tmp_path / "news").glob("*.tmp"))
     assert s.delete([b.id, "nope"]) == 1
     assert {x.id for x in s.load_all()} == {a.id, c.id}
+
+
+# ---- 中文匹配层 / 严格预筛 / 中文去重
+from aivc.news import compile_news_term, spaced_text  # noqa: E402
+
+
+@pytest.mark.parametrize("text", ["AI制药公司", "AI 制药公司", "ai制药公司", "某AI 制药"])
+def test_cjk_term_spacing_and_case_equivalent(text):
+    assert compile_news_term("AI制药").search(spaced_text(text))
+
+
+def test_spaced_text_english_unchanged():
+    assert spaced_text("Zorbex Bio raises $5M for single-cell AI") == "Zorbex Bio raises $5M for single-cell AI"
+
+
+def test_chinese_combo_hits_adjacent_ascii(cfg):
+    out = to_candidates([E("用AI设计蛋白质药物")], cfg, TODAY)
+    assert len(out) == 1 and "combo:ai+bio" in out[0][0].matched_terms
+
+
+def test_chinese_company_adjacent_to_han(cfg):
+    assert match_companies("Zorbex公司宣布融资", cfg) == ["Zorbex Bio"]
+    assert match_companies("据QLN报道", cfg) == ["Quillon"]
+    assert match_companies("Zorbexian公司", cfg) == []
+
+
+def test_strict_drops_company_or_combo_only(cfg):
+    ents = [
+        E("Zorbex Bio raises money", feed_prefilter="strict"),  # 只有公司名
+        E("Startup brings AI to drug development", feed_prefilter="strict"),  # 只有 combo
+        E("A foundation model for cells", feed_prefilter="strict"),  # 普通 keyword
+    ]
+    assert to_candidates(ents, cfg, TODAY) == []
+    # default 档照旧放行
+    assert len(to_candidates([E("Zorbex Bio raises money")], cfg, TODAY)) == 1
+
+
+def test_strict_hit_keeps_and_tags(cfg):
+    e = E("Zorbex Bio builds a virtual cell model", feed_prefilter="strict")
+    out = to_candidates([e], cfg, TODAY)
+    assert len(out) == 1
+    it = out[0][0]
+    assert "strict:virtual cell" in it.matched_terms and it.companies == ["Zorbex Bio"]
+    assert it.keyword_score >= 1 + 2
+
+
+def test_strict_company_feed_still_prefills_own_company(cfg):
+    e = E("New virtual cell atlas", feed_prefilter="strict", feed_kind="company", feed_company="qln")
+    out = to_candidates([e], cfg, TODAY)
+    assert len(out) == 1 and out[0][0].companies == ["Quillon"]
+
+
+def test_strict_terms_override_global(cfg):
+    kw = dict(feed_prefilter="strict", feed_strict_terms=["biolog*"])
+    keep = E("Controlling Biology - Fabian Theis, Helmholtz Munich", **kw)
+    drop = E("Designing for Agents", **kw)
+    assert [i.title for i, _ in to_candidates([keep, drop], cfg, TODAY)] == [keep.title]
+    # 全局词在被覆盖后不再生效
+    assert to_candidates([E("virtual cell news", **kw)], cfg, TODAY) == []
+
+
+@pytest.mark.parametrize("title", [
+    "英伟达发布新一代 AI 芯片",
+    "某公司大模型通过备案",
+    "市场扰动加剧，AI 概念股回调",
+    "AI 医学影像公司完成融资",
+])
+def test_strict_drops_generic_chinese_news(config_dir, title):
+    c = load_config(config_dir)  # 真实配置：真实 keywords、combos 与 strict_keywords
+    assert to_candidates([E(title, feed_prefilter="strict")], c, TODAY) == []
+
+
+@pytest.mark.parametrize("title", [
+    "首个百万级单细胞数据集发布，补 AI 虚拟细胞数据缺口",
+    "AI制药公司发布细胞基础模型",
+])
+def test_strict_keeps_on_topic_chinese_news(config_dir, title):
+    c = load_config(config_dir)
+    out = to_candidates([E(title, feed_prefilter="strict")], c, TODAY)
+    assert len(out) == 1 and any(t.startswith("strict:") for t in out[0][0].matched_terms)
+
+
+def test_cjk_short_titles_fuzzy_dedup(cfg):
+    a = mk("首个百万级单细胞数据集正式发布", "https://a.example/z1")
+    b = mk("首个百万级单细胞数据集正式发布!", "https://b.example/z2", source="B")
+    assert len(a.title) < 20
+    assert dedup_candidates([(b, "")], [a], cfg).n_duplicates == 1
+    c = mk("首个百万级单细胞数据集正式开源", "https://c.example/z3", source="C")
+    d = mk("首个百万级单细胞数据集正式发布", "https://d.example/z4", source="D")
+    # 相似但不够 90 的不合并
+    assert dedup_candidates([(c, "")], [mk("完全不同的一条中文新闻标题在此", "https://e.example/z5")], cfg).n_duplicates == 0
+    assert d.title != c.title
+
+
+def test_english_short_titles_still_not_fuzzy_merged(cfg):
+    a = mk("Zorbex hires CEO", "https://a.example/e1")
+    b = mk("Zorbex hires CEOx", "https://b.example/e2")
+    assert dedup_candidates([(b, "")], [a], cfg).n_duplicates == 0
+
+
+def test_prefilter_none_keeps_press_release_title_default_drops(cfg):
+    title = ("International, cross-sector collaboration commits nearly $2 billion to build "
+             "foundational data for AI models to predict and treat disease")
+    assert to_candidates([E(title, feed_kind="company", feed_company="qln")], cfg, TODAY) == []
+    out = to_candidates([E(title, feed_prefilter="none", feed_kind="company", feed_company="qln")], cfg, TODAY)
+    assert len(out) == 1 and out[0][0].companies == ["Quillon"]
+
+
+@pytest.mark.parametrize("text", ["AI制药公司融资", "AI 制药公司融资", "ai制药公司融资", "用AI制药的公司"])
+def test_cjk_term_ascii_boundary_still_matches(text):
+    pat = compile_news_term("AI制药")
+    assert pat.search(text)
+
+
+@pytest.mark.parametrize("text", ["MAI制药公司融资", "xAI制药", "NAI 制药"])
+def test_cjk_term_ascii_boundary_rejects_embedded(text):
+    assert compile_news_term("AI制药").search(text) is None
+
+
+def test_cjk_term_trailing_ascii_boundary():
+    pat = compile_news_term("细胞AI")
+    assert pat.search("细胞AI模型") and pat.search("细胞 AI")
+    assert pat.search("细胞AIx") is None

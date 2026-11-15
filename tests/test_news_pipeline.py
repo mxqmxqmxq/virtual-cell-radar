@@ -225,7 +225,7 @@ def test_summary_property_and_null_notifier(caplog):
 class VerExtractor(FakeExtractor):
     """打分时写入当前版本号；fail_ids 中的条目返回 error；记录每次调用。"""
 
-    def __init__(self, version="news-v5", fail_ids=(), budget_cut=None, **kw):
+    def __init__(self, version="news-v6.1", fail_ids=(), budget_cut=None, **kw):
         super().__init__(**kw)
         self.version, self.fail_ids, self.budget_cut = version, set(fail_ids), budget_cut
 
@@ -271,13 +271,13 @@ def test_rescore_stale_only_old_version_and_reappearing(cfg, tmp_path):
     store = NewsStore(tmp_path)
     items = {i.url: i for i in store.load_all()}
     cur = items["https://fake.example/n/3"]
-    store.upsert([cur.model_copy(update={"llm": cur.llm.model_copy(update={"prompt_version": "news-v5"})})])
+    store.upsert([cur.model_copy(update={"llm": cur.llm.model_copy(update={"prompt_version": "news-v6.1"})})])
     ext = VerExtractor()
     s = go(cfg, tmp_path, [es[0], es[2]], extractor=ext, rescore_stale=True)
     assert len(ext.calls) == 1 and len(ext.calls[0][0]) == 1
     assert (s.n_rescored, s.n_rescore_failed, s.n_rescore_skipped_budget) == (1, 0, 0)
     got = {i.url: i for i in NewsStore(tmp_path).load_all()}
-    assert got["https://fake.example/n/1"].llm.prompt_version == "news-v5"
+    assert got["https://fake.example/n/1"].llm.prompt_version == "news-v6.1"
     assert got["https://fake.example/n/1"].relevance == 9
     assert got["https://fake.example/n/2"].llm.prompt_version == "news-v1"
     assert got["https://fake.example/n/3"].relevance == 8
@@ -310,7 +310,7 @@ def test_rescore_stale_independent_budget_and_not_limited(cfg, tmp_path):
     assert (s.n_rescored, s.n_rescore_skipped_budget) == (2, 2)
     assert s.llm.api_calls == 1 + 2  # 两次统计合并
     versions = sorted(i.llm.prompt_version for i in NewsStore(tmp_path).load_all() if i.llm)
-    assert versions.count("news-v5") == 3 and versions.count("news-v1") == 2
+    assert versions.count("news-v6.1") == 3 and versions.count("news-v1") == 2
 
 
 def test_limit_rotates_sources(cfg, tmp_path):
@@ -372,7 +372,7 @@ def test_rescore_stored_basic_and_new_not_stored(cfg, tmp_path):
     b = got["https://fake.example/n/2"]
     assert ext.snips[b.id].startswith(STORED_SNIPPET_PREFIX) and "虚构摘要" in ext.snips[b.id]
     now = NewsStore(tmp_path).load_all()
-    assert len(now) == 2 and all(i.llm.prompt_version == "news-v5" and i.relevance == 9 for i in now)
+    assert len(now) == 2 and all(i.llm.prompt_version == "news-v6.1" and i.relevance == 9 for i in now)
     assert all(r[2] == 8 and r[3] == 9 for r in s.rows)
     assert ext.max_requests == cfg.pipeline.news.rescore_stale_max_calls
 
@@ -381,7 +381,7 @@ def test_rescore_stored_skips_current_and_undated(cfg, tmp_path):
     got = seed_stored(cfg, tmp_path, [ent(1), ent(2, "Insitro unveils another fictional collaboration headline AI")])
     store = NewsStore(tmp_path)
     a, b = got["https://fake.example/n/1"], got["https://fake.example/n/2"]
-    store.upsert([a.model_copy(update={"llm": a.llm.model_copy(update={"prompt_version": "news-v5"})}),
+    store.upsert([a.model_copy(update={"llm": a.llm.model_copy(update={"prompt_version": "news-v6.1"})}),
                   b.model_copy(update={"published": None, "llm_status": "unscored",
                                        "llm_skip_reason": "undated_excluded"})])
     ext = SnipExtractor()
@@ -448,3 +448,29 @@ def test_rescore_stored_max_requests_passthrough_and_fetch_error(cfg, tmp_path):
     assert ext.max_requests == 5 and s.n_rescored == 1
     assert any("抓取失败" in n for n in s.notes)
     assert s.n_stored_summary == 1
+
+
+def test_undated_stored_item_gets_date_and_scored(cfg, tmp_path):
+    """库内无日期且未打分的条目，再次抓到同 URL 且带日期（由文章页补日期）后，补上 published 并打分。"""
+    from aivc.fetchers.news_dates import ArticleDateCache, extract_published_date
+
+    url = "https://fake.example/n/900"
+    title = "Recursion announces fictional virtual cell model in AI drug discovery"
+    undated = NewsEntry(title=title, url=url, source="Fake Media", published=None, snippet="虚构片段 virtual cell")
+    # 第一次：无日期，抓取器给出无日期条目 -> 入库为未打分、无日期
+    go(cfg, tmp_path, [undated], extractor=FakeExtractor(available=False))
+    items = NewsStore(tmp_path).load_all()
+    assert len(items) == 1 and items[0].published is None and items[0].llm_status == "unscored"
+    # 第二次：fake 抓取器内部用 fake 提取器（真实 extract_published_date）补日期
+    page = '<meta property="article:published_time" content="2026-11-10T08:00:00Z">'
+    cache = ArticleDateCache(tmp_path / "cache" / "news_dates.json")
+    cache.put(url, extract_published_date(page, today=TODAY), today=TODAY)
+    d = cache.get(url, today=TODAY)[1]
+    assert d == date(2026, 11, 10)
+    dated = undated.model_copy(update={"published": d})
+    ex = FakeExtractor()
+    go(cfg, tmp_path, [dated], extractor=ex)
+    items = NewsStore(tmp_path).load_all()
+    assert len(items) == 1
+    assert items[0].published == date(2026, 11, 10) and items[0].llm_status == "scored"
+    assert ex.calls

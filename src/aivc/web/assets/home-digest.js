@@ -70,10 +70,10 @@
     var allNews = arr(NEWS.items);
     if (dg) {
       var nById = {};
-      allNews.forEach(function (n) { if (n && n.id) nById[n.id] = n; });
+      allNews.forEach(function (n) { if (n && n.id && n.tier !== "related") nById[n.id] = n; });
       arr(dg.news_ids).forEach(function (id) { if (nById[id]) newsItems.push(nById[id]); });
     } else {
-      newsItems = allNews.filter(function (n) { return n && n.scored !== false; }).slice(0, 8);
+      newsItems = allNews.filter(function (n) { return n && n.scored !== false && n.tier !== "related"; }).slice(0, 8);
     }
     var datasets = dg ? arr(dg.new_datasets) : arr(D.datasets && D.datasets.new_datasets);
     var movers = dg ? arr(dg.movers) : [];

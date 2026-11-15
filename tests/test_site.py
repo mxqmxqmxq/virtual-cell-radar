@@ -181,7 +181,7 @@ def test_make_server(tmp_path):
 
 
 # ---------- home.json ----------
-from aivc.site import _plain_lines, build_home  # noqa: E402
+from aivc.site import _plain_lines, build_home, build_meta  # noqa: E402
 
 TODAY = date(2026, 11, 12)  # ISO week 2026-W46 (Mon 2026-11-09)
 
@@ -348,7 +348,8 @@ def test_news_and_companies_json_with_data(env):
     ])
     res = _build(env)
     n = _j(env[4], "news.json")
-    assert res.n_news == 3 and n["count"] == 3
+    assert res.n_news == 2 and n["count"] == 3  # n_news 只计核心（已打分），未打分不计
+    assert n["counts"] == {"core": 2, "related": 0, "unscored": 1}
     assert (env[4] / "data" / "companies.json").is_file()
     s = _j(env[4], "meta.json")["stats"]
     assert s["news_total"] == 2 and s["news_7d"] == 1  # 2026-11-12 往前 7 天：11-06..11-12；未打分不计
@@ -434,6 +435,28 @@ def test_digest_news_and_weekly(env):
     assert d["weekly"] == {"id": "2026-W46", "title": "T"}
     many = [_nrow(f"n{i:02d}", TODAY, rel=5) for i in range(12)]
     assert len(_dg(env, [], many)["news_ids"]) == 8
+
+
+def test_digest_and_meta_exclude_related_tier(env):
+    news = [dict(_nrow("core1", date(2026, 11, 10), rel=6), tier="core"),
+            dict(_nrow("rel1", date(2026, 11, 11), rel=5), tier="related")]
+    d = _dg(env, [], news)
+    assert d["news_ids"] == ["core1"] and d["n_news_7d"] == 1
+    m = build_meta(env[0], [], [], TODAY, "t", news)["stats"]
+    assert m["news_total"] == 1 and m["news_7d"] == 1
+
+
+def test_build_reports_core_and_related_counts(env):
+    from aivc.news import NewsStore
+    cfg = env[0]
+    n = cfg.pipeline.news.model_copy(update={"site_min_relevance": 6, "site_related_min_relevance": 5})
+    env = (cfg.model_copy(update={"pipeline": cfg.pipeline.model_copy(update={"news": n})}), *env[1:])
+    NewsStore(env[1]).upsert([_news_item(1, date(2026, 11, 10), rel=7), _news_item(2, date(2026, 11, 10), rel=5)])
+    res = _build(env)
+    nj = _j(env[4], "news.json")
+    assert (res.n_news, res.n_news_related) == (1, 1) and nj["counts"] == {"core": 1, "related": 1, "unscored": 0}
+    assert _j(env[4], "meta.json")["stats"]["news_total"] == 1
+    assert len(_j(env[4], "home.json")["digest"]["news_ids"]) == 1
 
 
 def test_digest_news_interleaves_companies_on_ties(env):

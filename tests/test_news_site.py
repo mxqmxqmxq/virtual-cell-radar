@@ -60,7 +60,7 @@ def test_sort_order(cfg):
 
 def test_exact_keys_and_event_types(cfg):
     out = export_news([mk("a")], cfg, generated_at=GEN)
-    assert set(out) == {"generated_at", "count", "event_types", "items", "weeks", "funding_quarters"}
+    assert set(out) == {"generated_at", "count", "counts", "min_relevance", "related_min_relevance", "event_types", "items", "weeks", "funding_quarters"}
     assert set(out["items"][0]) == set(NEWS_ITEM_KEYS)
     assert [e["id"] for e in out["event_types"]] == [
         "funding", "partnership", "m_and_a", "model_or_data_release", "clinical", "people", "other"]
@@ -179,3 +179,65 @@ def test_undated_items_excluded_from_export_and_funding(cfg):
     out = export_news(items, cfg, generated_at=GEN)
     assert [r["title"] for r in out["items"]] == ["Ta"]
     assert sum(q["total_usd"] for q in out["funding_quarters"]) == 5_000_000
+
+
+@pytest.fixture
+def tcfg(cfg):
+    """site_min=6、related_min=5 的分层配置；公司上限放宽，单测按需调整。"""
+    news = cfg.pipeline.news.model_copy(update={"site_min_relevance": 6, "site_related_min_relevance": 5})
+    return cfg.model_copy(update={"pipeline": cfg.pipeline.model_copy(update={"news": news})})
+
+
+def test_tier_counts_and_unscored(tcfg):
+    items = [mk("a", rel=7), mk("b", rel=6), mk("c", rel=5), mk("d", rel=4), mk("e", scored=False)]
+    out = export_news(items, tcfg, generated_at=GEN)
+    tiers = {r["title"]: r["tier"] for r in out["items"]}
+    assert tiers == {"Ta": "core", "Tb": "core", "Tc": "related", "Te": None}
+    assert out["counts"] == {"core": 2, "related": 1, "unscored": 1}
+    assert out["count"] == 4
+    assert out["min_relevance"] == 6 and out["related_min_relevance"] == 5
+    assert all(set(r) == set(NEWS_ITEM_KEYS) for r in out["items"])
+
+
+def test_no_related_tier_when_related_min_not_below_site_min(cfg):
+    news = cfg.pipeline.news.model_copy(update={"site_min_relevance": 6, "site_related_min_relevance": 6})
+    c6 = cfg.model_copy(update={"pipeline": cfg.pipeline.model_copy(update={"news": news})})
+    out = export_news([mk("a", rel=6), mk("b", rel=5)], c6, generated_at=GEN)
+    assert [r["title"] for r in out["items"]] == ["Ta"] and out["counts"]["related"] == 0
+    news = news.model_copy(update={"site_related_min_relevance": 8})  # 大于 site_min 时取 min
+    c8 = cfg.model_copy(update={"pipeline": cfg.pipeline.model_copy(update={"news": news})})
+    out = export_news([mk("a", rel=6), mk("b", rel=5)], c8, generated_at=GEN)
+    assert out["related_min_relevance"] == 6 and out["counts"] == {"core": 1, "related": 0, "unscored": 0}
+
+
+def test_weeks_and_funding_exclude_related(tcfg):
+    items = [mk("a", rel=6, amt=1_000_000, pub=date(2026, 11, 10)),
+             mk("b", rel=5, amt=9_000_000, pub=date(2026, 11, 10)),
+             mk("c", rel=5, pub=date(2026, 10, 1))]
+    out = export_news(items, tcfg, generated_at=GEN)
+    assert len(out["items"]) == 3
+    assert [(w["id"], w["count"]) for w in out["weeks"]] == [("2026-W46", 1)]
+    assert sum(q["total_usd"] for q in out["funding_quarters"]) == 1_000_000
+    assert sum(q["n_events"] for q in out["funding_quarters"]) == 1
+
+
+def test_companies_only_count_core(tcfg):
+    items = [mk("a", rel=6, cos=["Zorbex"], amt=1_000_000), mk("b", rel=5, cos=["Zorbex"], amt=5_000_000)]
+    co = {c["id"]: c for c in export_companies(items, [], tcfg, generated_at=GEN)["companies"]}["zorbex"]
+    assert co["n_news"] == 1 and co["news_ids"] == [items[0].id]
+    assert co["funding_total_usd"] == 1_000_000 and len(co["funding_events"]) == 1
+
+
+def test_company_caps_keep_core_over_related(tcfg):
+    news = tcfg.pipeline.news.model_copy(update={"max_per_company_per_week": 3, "max_per_company_per_30d": 0})
+    c = tcfg.model_copy(update={"pipeline": tcfg.pipeline.model_copy(update={"news": news})})
+    items = [mk(f"c{i}", rel=6, cos=["Zorbex"]) for i in range(3)] + \
+            [mk(f"r{i}", rel=5, cos=["Zorbex"], pub=date(2026, 11, 11)) for i in range(2)]
+    out = export_news(items, c, generated_at=GEN)
+    assert sorted(r["title"] for r in out["items"]) == ["Tc0", "Tc1", "Tc2"]
+    assert {r["tier"] for r in out["items"]} == {"core"}
+    # 滚动上限同样优先保留核心
+    news = news.model_copy(update={"max_per_company_per_week": 0, "max_per_company_per_30d": 3})
+    c = tcfg.model_copy(update={"pipeline": tcfg.pipeline.model_copy(update={"news": news})})
+    out = export_news(items, c, generated_at=GEN)
+    assert sorted(r["title"] for r in out["items"]) == ["Tc0", "Tc1", "Tc2"]

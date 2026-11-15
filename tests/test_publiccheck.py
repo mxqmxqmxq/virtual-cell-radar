@@ -178,6 +178,8 @@ def test_site_news(tmp_path):
           "date": "2026-11-10", "scored": True}
     _w(tmp_path / "data/news.json", json.dumps({"items": [ok]}))
     assert pc.check_site_news(tmp_path) == []
+    _w(tmp_path / "data/news.json", json.dumps({"items": [dict(ok, tier="core"), dict(ok, tier="related"), dict(ok, tier=None)]}))
+    assert pc.check_site_news(tmp_path) == []
     bad = [dict(ok, body="x"), dict(ok, url="file:///x"), dict(ok, summary_zh=" ".join(["w"] * 30)),
            dict(ok, first_seen="2026-11-10", keyword_score=1.0)]  # keyword_score 不在站点字段集
     _w(tmp_path / "data/news.json", json.dumps({"items": [ok] + bad}))

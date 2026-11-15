@@ -100,3 +100,22 @@
   .nw-pdate { grid-column: 1 / -1; }
   .nw-topgrid { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* 相关动态（次级区块） */
+.nw-related { margin-top: 32px; border-top: 1px solid var(--border); padding-top: 4px; }
+.nw-relsum { display: flex; align-items: baseline; gap: 10px; padding: 14px 0; cursor: pointer; list-style: none; outline: 2px solid transparent; outline-offset: 2px; }
+.nw-relsum::-webkit-details-marker { display: none; }
+.nw-relsum::before { content: "▸"; color: var(--text-3); font-size: 12px; transition: rotate .15s var(--mo-ease-std); }
+.nw-related[open] > .nw-relsum::before { rotate: 90deg; }
+.nw-relsum:focus-visible { outline-color: var(--accent); }
+.nw-reltitle { font-family: var(--mono); font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); }
+.nw-relsum:hover .nw-reltitle { color: var(--text); }
+.nw-relhint { margin: 0 0 8px; }
+.nw-item.is-related { padding: 14px 0; }
+.nw-item.is-related .nw-h { font-size: 15px; font-weight: 400; }
+.nw-item.is-related .nw-title { color: var(--text-2); }
+.nw-item.is-related .nw-title:hover { color: var(--accent); }
+.nw-item.is-related .nw-sum { font-size: 13.5px; color: var(--text-2); }
+@media (max-width: 760px) {
+  .nw-item.is-related { padding: 12px 0; }
+}

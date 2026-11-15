@@ -53,8 +53,8 @@ def _mk(y: int, m: int, d: int) -> date | None:
         return None
 
 
-def find_date(text: str) -> date | None:
-    """返回文本里位置最靠前的合法日期。"""
+def find_date(text: str, *, last: bool = False) -> date | None:
+    """返回文本里位置最靠前的合法日期；last=True 时返回位置最靠后的合法日期。"""
     best: tuple[int, date] | None = None
     for pat, kind in _DATE_PATTERNS:
         for m in pat.finditer(text):
@@ -66,7 +66,19 @@ def find_date(text: str) -> date | None:
             else:
                 d = _mk(int(g[2]), _MONTHS[g[1][:3].lower()], int(g[0]))
             if d is not None:
-                if best is None or m.start() < best[0]:
+                if last:
+                    # 该模式下的所有匹配里取最靠后的合法日期
+                    for m2 in pat.finditer(text, m.start()):
+                        g2 = m2.groups()
+                        if kind == "ymd":
+                            d2 = _mk(int(g2[0]), int(g2[1]), int(g2[2]))
+                        elif kind == "mdy":
+                            d2 = _mk(int(g2[2]), _MONTHS[g2[0][:3].lower()], int(g2[1]))
+                        else:
+                            d2 = _mk(int(g2[2]), _MONTHS[g2[1][:3].lower()], int(g2[0]))
+                        if d2 is not None and (best is None or m2.start() >= best[0]):
+                            best = (m2.start(), d2)
+                elif best is None or m.start() < best[0]:
                     best = (m.start(), d)
                 break
     return best[1] if best else None
@@ -270,13 +282,20 @@ def parse_list_page(html_text: str, source: NewsHtmlSource) -> list[NewsEntry]:
         lo = keep[i - 1].end + 1 if i > 0 else 0
         return find_date(_texts(tokens, lo, a.start)[-_BEFORE_MAX_CHARS:])
 
+    def before_nearest(i: int) -> date | None:
+        a = keep[i]
+        lo = keep[i - 1].end + 1 if i > 0 else 0
+        txt = _texts(tokens, lo, a.start)
+        n = source.date_lookback_chars
+        return find_date(txt[-n:] if n > 0 else "", last=True)
+
     scope = source.date_scope
     if scope == "auto":
         # 取覆盖最多条目的方向；并列时 after 优先于 before
         n_after = sum(1 for i in range(len(keep)) if after(i))
         n_before = sum(1 for i in range(len(keep)) if before(i))
         scope = "before" if n_before > n_after else "after"
-    scoped = {"after": after, "before": before}.get(scope)
+    scoped = {"after": after, "before": before, "before_nearest": before_nearest}.get(scope)
 
     entries: list[NewsEntry] = []
     for url in order:
@@ -306,6 +325,8 @@ def parse_list_page(html_text: str, source: NewsHtmlSource) -> list[NewsEntry]:
                 snippet="",
                 feed_kind=source.kind,
                 feed_company=source.company,
+                feed_prefilter=source.prefilter,
+                feed_strict_terms=list(source.strict_terms),
             )
         )
         if len(entries) >= source.max_items:
@@ -356,8 +377,9 @@ class CompositeNewsFetcher:
         *,
         client: httpx.Client | None = None,
         sleep: Callable[[float], None] = time.sleep,
+        date_cache: Any = None,
     ):
-        self.rss = NewsRSSFetcher(news_cfg, http_cfg, client=client, sleep=sleep)
+        self.rss = NewsRSSFetcher(news_cfg, http_cfg, client=client, sleep=sleep, date_cache=date_cache)
         self.html = NewsHTMLFetcher(news_cfg, http_cfg, sleep=sleep, share_with=self.rss)
 
     def fetch(self, since: date, until: date) -> NewsFetchResult:
@@ -372,4 +394,5 @@ class CompositeNewsFetcher:
             out.per_feed.update(r.per_feed)
             out.errors.update(r.errors)
             out.requests += r.requests
+            out.date_lookups += r.date_lookups
         return out

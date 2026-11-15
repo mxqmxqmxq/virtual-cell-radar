@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Protocol
 
 from .config import AppConfig
+from .fetchers.news_dates import ArticleDateCache
 from .fetchers.news_html import CompositeNewsFetcher
 from .llm import LLMCache
 from .models import NewsItem
@@ -40,6 +41,7 @@ class NewsRunSummary:
     per_feed: dict[str, int] = field(default_factory=dict)
     fetch_errors: dict[str, str] = field(default_factory=dict)
     requests: int = 0
+    date_lookups: int = 0
     n_fetched: int = 0
     n_candidates: int = 0
     n_duplicates: int = 0
@@ -134,7 +136,9 @@ def run_news(
 
     # 1) 抓取：任何异常都只记录，不抛出
     s.attempted = [f.name for f in feeds]
-    fetcher = fetcher or CompositeNewsFetcher(src, cfg.sources.http)
+    fetcher = fetcher or CompositeNewsFetcher(
+        src, cfg.sources.http,
+        date_cache=ArticleDateCache(Path(data_dir) / "cache" / "news_dates.json"))
     entries = []
     try:
         fr = fetcher.fetch(since, until)
@@ -142,6 +146,7 @@ def run_news(
         s.per_feed = dict(fr.per_feed)
         s.fetch_errors = dict(fr.errors)
         s.requests = fr.requests
+        s.date_lookups = getattr(fr, "date_lookups", 0)
     except Exception as e:  # noqa: BLE001
         log.warning("新闻抓取失败: %s", e)
         for n in s.attempted or ["news"]:
@@ -351,7 +356,9 @@ def rescore_stored(
             else:
                 since = max(event_date(targets[0]), until - timedelta(days=89))
             s.window = (since, until)
-            fetcher = fetcher or CompositeNewsFetcher(src, cfg.sources.http)
+            fetcher = fetcher or CompositeNewsFetcher(
+                src, cfg.sources.http,
+                date_cache=ArticleDateCache(Path(data_dir) / "cache" / "news_dates.json"))
             try:
                 fr = fetcher.fetch(since, until)
                 thr = ncfg.title_threshold

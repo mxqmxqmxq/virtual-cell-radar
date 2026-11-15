@@ -13,7 +13,7 @@
 | 对照项 | DATA_LICENSE.md 中的数量 | 本表对应 |
 |---|---|---|
 | 第 8 节「待核实清单」 | 16 条 | 全部有对应行，见下方对照表 |
-| 第 6 节新闻表格里带「待核实」的源 | 19 行（另有 2026-11-15 新增的 4 行 Valence、Enveda、Dyno、Noetik，对应 C24–C27）（表格共 21 行，MIT News 与 EMBL-EBI 两行无此标记，本表仍列为 C15、C21 供参考） | C1–C14、C16–C20，共 19 行 |
+| 第 6 节新闻表格里带「待核实」的源 | 19 行（另有 2026-11-15 新增的 4 行 Valence、Enveda、Dyno、Noetik，对应 C24–C27）（表格共 21 行，MIT News 与 EMBL-EBI 两行无此标记，本表仍列为 C15、C21 供参考）；之后 S5 补充核对又新增 NYGC、Whitehead 两行（C28、C29），并以 C30 汇总未启用的候选 | C1–C14、C16–C20，共 19 行 |
 | 第 7 节资源表里带「待核实」的数据门户/基准 | `data/resources/data.yaml` 中 14 条（20 条里 14 条 note 带「待核实」） | D2–D15，共 14 行 |
 | 第 6 节「未启用」段落里带「待核实」的 Science、OpenAI | 2 处 | C23 |
 | 第 3、4、7 节正文里的「待核实」（bioRxiv、OpenReview/ICLR、Anthropic、Geist、GitHub） | 与第 8 节重复 | A1–A5、B1–B2、D1 |
@@ -39,6 +39,7 @@
 | 14 | Arc / insitro / Sanger / EMBL-EBI 列表页 | C18、C19、C20、C21 |
 | 15 | Science 与 OpenAI 条款读不到 | C23 |
 | 16 | 知识资源许可与 GitHub 条款 | D1（GitHub）、D2–D15（14 个门户/基准） |
+| 17 | 2026-11-15 新增的中文媒体、Biohub 新闻稿栏目、播客与 newsletter | C31–C38 |
 
 ---
 
@@ -78,7 +79,7 @@
 | C5 | Chan Zuckerberg Initiative（公司 feed）（§6；§8.11） | RSS，标题+链接+日期 | **未能核实**。https://chanzuckerberg.com/privacy/ 与其网站隐私政策页 https://chanzuckerberg.com/privacy/czi-website-privacy-policy/ 均为 200，但我在其中没有找到关于内容使用、RSS 或自动访问的条款；我猜的 https://chanzuckerberg.com/terms-of-use/ 和 https://chanzuckerberg.com/terms/ 均 404。 | 你能否在其网站页脚找到使用条款页并发来链接（能/不能）？ | 保留，仅标题+链接。 |
 | C6 | Genentech Stories（公司 feed，经 Feedburner 发布）（§6；§8.11） | RSS，标题+链接+日期 | **已核实，且是不利条款**。网站条款页（https://www.gene.com/terms-conditions ，200）列出禁止行为，其中包括「use any data mining, robots, or similar data gathering or extraction methods in connection with this Website」，并禁止未经许可修改、公开展示、复制或分发网站内容。条款没有提到 RSS；feed 本身托管在 Feedburner。此前猜的 gene.com 条款路径（/terms-of-use、/legal 等）均 404。 | 是否停用 Genentech feed（是/否）？ | **已处理：2026-11-15 停用，库内条目已移除** |
 | C7 | XtalPi（公司 feed）（§6；§8.11） | RSS，标题+链接+日期 | **未能核实**。官网首页（https://www.xtalpi.com/en ，200）页脚有「Privacy Policy & Legal Statement」，但 https://www.xtalpi.com/privacy-policy/ 请求没有响应（连接失败），https://www.xtalpi.com/en/privacy-policy/ 返回的仍是首页内容，读不到法律声明正文。 | 你能否在浏览器里打开页脚的 Legal Statement 并确认是否限制自动读取（是/否有限制）？ | 在核实前保留，仅标题+链接。 |
-| C8 | BiopharmaTrend（§6；§8.13） | RSS；条目无发布日期，已设为 `require_date`，目前不产生任何展示 | **部分核实**。条款页（https://wtmbgroup.com/terms-of-use ，200）：不得未经书面许可复制、分发或商业利用内容；公司保留以摘要形式展示投稿内容并附链接的权利；没有提到 RSS 或自动访问。 | 是否从配置里删除该源（是/否）？ | 建议停用并删除：反正没有展示产出，留着只增加条款风险。 |
+| C8 | BiopharmaTrend（§6；§8.13） | RSS，标题+链接+日期；条目无 pubDate，已设 `require_date: true` 与 `date_from_article: true`：对无日期条目只请求文章页读取发布日期，不存正文 | **部分核实**。条款页（https://wtmbgroup.com/terms-of-use ，200）：不得未经书面许可复制、分发或商业利用内容；公司保留以摘要形式展示投稿内容并附链接的权利；没有提到 RSS 或自动访问。2026-11-15 实测：文章页 `/post/<id>-<slug>/` 301 到同站 `/<category>/<slug>/`，页内带 article:published_time、JSON-LD datePublished、time datetime；robots.txt 只禁 /admin/ 等，不禁文章页。请求文章页取日期是否在条款允许范围内，条款没有讲。 | 是否保留该源并允许只为取日期请求文章页（是/否）？ | 作者判断。保留则只存标题+链接+日期；不放心可改 `enabled: false`（E5 曾建议停用，本次未自行改动）。 |
 | C9 | Drug Discovery Trends（§6；§8.13） | RSS，标题+链接 | **已核实，且是不利条款**。没有单独条款页（https://www.drugdiscoverytrends.com/privacy-policy/ 404）；首页（https://www.drugdiscoverytrends.com/ ，200）页脚写明：材料未经 Arrowfly 书面许可，不得复制、分发、传输、缓存或另作使用。运营方 Arrowfly 的隐私政策页（https://www.arrowfly.com/privacy-policy/ ，200）没有 RSS 条款。其 feed（https://www.drugdiscoverytrends.com/feed/ ）本身可访问（200）。 | 是否停用（是/否）？ | **已处理：2026-11-15 停用，库内条目已移除** |
 | C10 | MedCity News（§6；§8.13） | RSS，标题+链接 | **已核实，且是不利条款**。服务条款（https://medcitynews.com/medcitizen-terms-of-service/ ，200，Last Modified: August 23, 2024）：未经公司书面同意，不得复制、修改、公开展示、再发布、下载或存储、传输网站上的任何材料（仅列出少数例外，如浏览器缓存和合理打印）；没有提到 RSS 或机器人。 | 是否停用（是/否）？ | **已处理：2026-11-15 停用，库内条目已移除** |
 | C11 | FDA Press Releases（§6；§8.13） | RSS（官方「Stay Informed」feed），标题+链接+日期 | **已核实**。FDA 网站政策页（https://www.fda.gov/about-fda/about-website/website-policies ，200）写明：除另有说明外，fda.gov 的文字和图形不受版权保护，属于公共领域，可免许可自由再发布；署名为来源受欢迎但非必需，并更希望人们链接回 FDA 页面。美国政府门户的说明（https://www.usa.gov/government-copyright ，200，由 /government-works 跳转而来）提醒：联邦网站上的文字、图片和标志可能受版权或其他限制，所以仍以「另有说明除外」为界。免责声明页（https://www.fda.gov/about-fda/website-policies/website-disclaimer ，200）没有关于 RSS 的限制。 | 无需回答。是否同意在该条目处注明「来源 FDA，公共领域（另有说明除外）」（是/否）？ | 保留。 |
@@ -98,6 +99,17 @@
 | C25 | Enveda（RSS https://enveda.com/feed/ ；§6；§8.16） | RSS，标题+链接+日期 | **部分核实**。https://enveda.com/terms-of-service/ 只是短信服务条款，没找到网站使用条款；robots.txt 仅禁 /wp-admin/，并明确允许若干 AI 爬虫。 | 是否可接受「没有网站条款、robots 允许」作为依据？ | 保持启用，仅存标题+链接。 |
 | C26 | Dyno Therapeutics（HTML 列表页 https://www.dynotx.com/news ；§6；§8.16） | 通用 HTML 解析器，只存同站链接的标题、链接、日期 | **部分核实**。条款 https://www.dynotx.com/legal/terms-and-conditions 明文 "You must not: Republish material ... Reproduce, duplicate or copy material ... Redistribute content"，未提及 robots、抓取或 RSS；robots.txt 允许全部。**已在 sources.yaml 设为 enabled: false（默认停用，与 Cradle 同样保守处理）。**第三方媒体链接已丢弃（`same_host_only`）。 | 只存标题+链接+日期是否算「复制材料」？ | 作者判断；确认允许后再改 enabled: true。 |
 | C27 | Noetik（HTML 列表页 https://www.noetik.ai/news ；§6；§8.16） | 通用 HTML 解析器，只存同站链接的标题、链接、日期，标题经 `title_strip_patterns` 清洗 | **部分核实**。条款 https://www.noetik.ai/terms-of-use 原文 "may not ... reproduce, display, ... distribute, or otherwise use the Content in any way for any public or commercial purpose"，即限制公开展示；未提及 robots、抓取或 RSS；robots.txt 为空。**已在 sources.yaml 设为 enabled: false（默认停用）。**第三方新闻稿站点链接已丢弃。 | 同 C26。 | 作者判断；确认允许后再改 enabled: true。 |
+| C28 | New York Genome Center（RSS https://www.nygenome.org/feed/ ；§6；§8.16） | RSS，标题+链接+日期 | **部分核实**（2026-11-15）。HTTP 200，10 条，最新 2026-11-12；robots.txt 仅禁 /wp-content/plugins/、/wp-admin/、/readme.html，未点名 AI 爬虫；条款页 https://www.nygenome.org/terms-conditions/（200）正文主要是基因组测序服务条款，网站部分只有修改与终止声明，未提 RSS、抓取或自动访问。最近 10 条里约 2–3 条对口（脑细胞类型图谱、基因调控图谱），其余为人事与奖项，相关性中等偏弱，由打分层把关。 | 是否接受「条款未禁止、robots 允许」作为依据（是/否）？ | 保留，仅标题+链接+日期；展示后若噪声多可停用。news-v6.1 重打后：NYGC 在核心档 2 条（含 RNA fingerprinting 扰动方法，7 分）、相关档 2 条（脑图谱，5 分），不再占据核心档多数；它的内容多为基础图谱，若作者希望新闻页更聚焦，可停用本源或只保留进相关档。 |
+| C29 | Whitehead Institute（RSS https://wi.mit.edu/rss.xml ；§6；§8.16） | RSS，标题+链接+日期 | **未能核实条款**（2026-11-15）。HTTP 200，10 条，最新 2026-11-02（另有 1 条 2016 年旧稿，被 90 天窗口滤掉）；robots.txt 为 Drupal 默认，未点名 AI 爬虫；我试的 /terms、/terms-of-use、/legal、/privacy、/copyright 均 404，首页无条款链接。最近 10 条里约 2 条对口（全身单细胞图谱、胚胎发育），其余为奖项与研讨会。 | 你能否在浏览器里确认 wi.mit.edu 页脚有无使用条款（有/无）？ | 在核实前保留，仅标题+链接+日期。 |
+| C30 | S5 补充核对后未启用的候选（§6 末段；§8.16） | 未启用 | **已核实，不启用**（2026-11-15，项目 UA）。GenomeWeb（https://www.genomeweb.com/section/rss/news ，200，但 robots 对 ClaudeBot、GPTBot、CCBot 等全站 Disallow 且 Crawl-delay: 10）；Google News RSS（robots 对 * 为 Disallow: /）；Parse Biosciences（https://www.parsebiosciences.com/feed/ ，200，产品营销博客，条款 https://www.parsebiosciences.com/legal/terms-of-service/ 禁止 copy 与 mirror，robots 声明 Crawl-delay: 10；本次对该主机前几次请求按 1 秒间隔发出，未满足该声明）；Gladstone（https://gladstone.org/feed/ ，200，内容与虚拟细胞关联弱）；Human Cell Atlas、Turbine、Novo Nordisk Foundation（feed 200 但 0 条）；Wellcome Leap（200，无关内容）；Synthesize Bio、Ginkgo、CytoReason、Deepcell、EurekAlert、BioSpace、Tahoe、Xaira（无可用 feed 或页面 404）。Helmholtz Munich、JAX、Business Wire 的 robots.txt 本次仍读不到（本机证书校验失败或超时），未判定。 | 无需回答。 | 保持未启用。 |
+| C31 | 量子位（RSS https://www.qbitai.com/feed ；§6） | RSS，标题+链接+日期；严格预筛（只有命中严格词的条目才入库） | **未能核实条款**（2026-11-15，项目 UA）。HTTP 200，10 条，最新 2026-11-14，约覆盖 1.1 天；robots.txt 仅禁 /wp-admin/，未点名 AI 爬虫；「关于」页（https://www.qbitai.com/?page_id=99 ）没有条款，页脚只有版权所有。近 10 条里对口约 0-2 条。 | 条款找不到的中文媒体 RSS 是否保留（是/否）？ | 保留，只存标题+链接+日期；如你更稳妥，可停用。 |
+| C32 | IT之家（RSS https://www.ithome.com/rss/ ；§6） | RSS，标题+链接+日期；严格预筛 | **部分核实**。HTTP 200，60 条，但只覆盖约 5.75 小时（2026-11-14 23:35 至 11-15 05:20）；robots.txt 不禁 /rss/，未点名 AI 爬虫；https://www.ithome.com/about.htm 只有简介与版权所有，没有抓取或转载条款；首页提供「RSS订阅」入口，即官方提供 RSS。近 20 条对口 0。 | (1) 条款待核实的中文源是否保留（是/否）？(2) feed 只覆盖几小时，每天一次的定时运行只能看到当天一部分稿件，是否仍保留（是/否）？ | 价值有限，建议在你确认前可停用；若保留，只存标题+链接+日期。 |
+| C33 | 雷峰网（RSS https://www.leiphone.com/feed ；§6） | RSS，标题+链接+日期；严格预筛 | **未能核实条款**。HTTP 200（响应慢），20 条，最新 2026-11-13，约覆盖 1.1 天；robots.txt 不禁 /feed，未点名 AI 爬虫；https://www.leiphone.com/us/index 无条款，页脚版权所有，有 RSS 订阅入口。近 20 条对口近 0。 | 同 C31（条款待核实的中文源是否保留）。 | 保留，只存标题+链接+日期。 |
+| C34 | 36氪（RSS https://www.36kr.com/feed ；§6） | RSS，标题+链接+日期；严格预筛 | **未能核实条款**。HTTP 200（响应慢），30 条，最新 2026-11-15，文章与快讯（/newsflashes/）混排；robots.txt 禁 /detail/、/api/ 等，不禁 /feed 与 /p/；条款页没找到（首页为前端壳，/about-us 404）；早先用通用 UA 见过反爬挑战页，项目 UA 本次拿到了 RSS XML。近 30 条约 1 条对口。 | (1) 条款读不到且曾遇反爬的源是否保留（是/否）？ | 建议停用；若保留，只存标题+链接+日期。 |
+| C35 | Biohub News（HTML 列表页 https://biohub.org/news/ ；§6） | 只读列表页的标题、链接、日期（新闻稿，路径 /news/；/blog/ 已由 Biohub RSS 覆盖），日期取锚点之前最近一个（`date_scope: before_nearest`）；该源使用 `prefilter: none`（不预筛、直接交 LLM 打分），因为列表页没有摘要、标题常不含领域关键词，而其产量低、对口度高 | **未发现禁止条文，仍标待核实**（2026-11-15）。robots.txt 对所有机器人 `Disallow` 为空；使用条款（https://biohub.org/terms-of-use/ ）与可接受使用政策（https://biohub.org/acceptable-use-policy/ ）均 200，按 crawl、scrap、robot、spider、automat、data mining 等词检索没有禁止自动访问或转载的明文；条款里 reproduce 一句是对用户内容的授权，不是禁令。 | 条款没有明文谈自动访问，是否按此保留（是/否）？ | 保留；这是本轮漏掉的 18 亿美元虚拟生物学计划新闻稿所在栏目。 |
+| C36 | Latent Space（RSS https://latent.space/feed ；播客 feed https://podcast.latent.space/feed.xml ；§6）。**作者已确认启用（2026-11-15）**：`latent.space/feed` 为 `enabled: true`，播客 feed 保持停用以免重复 | 无（已启用） | **条款含糊**（2026-11-15）。站点没有条款页（/terms、/tos 均 404）；页脚 Terms 链接指向 https://www.beehiiv.com/tou ，该条款禁止「data mining, robots, crawling, scraping or data gathering or extraction methods」，其「Services」指 beehiiv 提供的服务，是否覆盖 latent.space 的公开 RSS 原文没有明说。robots.txt 为 `Allow: /`，仅禁 /api/，未点名 AI 爬虫。本项目只请求 latent.space（每次运行 1 次），不请求 beehiiv 域名，只存标题+链接+日期。主 feed 20 条约覆盖 12 天，其中 2026-11-06 的 Fabian Theis 访谈对口，但标题与一句话简介里只有 biology 一类词，LLM 只看这些，分数可能低于 5；播客 feed（297 条）60 天内 31 条。 | 已决定：作者知情 beehiiv 条款适用范围不明后，确认只读 latent.space 公开 RSS 并启用（若日后收到异议则停用）。 | 已启用 `latent.space/feed`；播客 feed 保持停用以免重复。 |
+| C37 | 钛媒体（RSS）、生物谷（HTML 列表页）。**已配置，默认停用**（§6） | 无（`enabled: false`） | **条款读不到 / 有明文限制**。钛媒体：feed HTTP 200，17 条，约覆盖 8.5 小时，17 条 0 条对口，首页两次超时没读到条款；robots.txt 对 ClaudeBot 等只禁 *.js、*.css。生物谷：页脚写「版权所有 不得转载」，著作权声明页（https://www.bioon.com/info/protocol.shtml ）无实质文本；robots.txt 禁 /news/* 与 /article/0*.html；近 15 条对口约 0。 | 是否同意两者保持停用（是/否）？ | 保持停用（先例：Drug Discovery Trends）。 |
+| C38 | 本轮中文源、播客、newsletter 核对后未启用的候选（§6 末段） | 未启用 | **已核实，不启用**（2026-11-15，项目 UA）。财联社（https://www.cls.cn/our?nav=copyright 声明未经书面授权不得转载、复制、使用，且无 RSS）；动脉网 vbdata.cn（无 RSS，列表由客户端加载）；机器之心（/rss 落到数据服务页）；DeepTech 深科技（已跳转到 mittrchina.com，壳页，该域名本轮未请求）；新浪科技（RSS 停在 2018-09）；凤凰网科技（无 RSS）；微信公众号（无公开接口、违反平台规则，不接）；The Bio Report（近 10 条对口 0，robots 声明 ai-train=no）；Timmerman Report / The Long Run（条款明禁 robot/spider/scraper，feed 500）；a16z Bio+Health（未公布 RSS）；BioWorld Insider（403，robots 禁 ClaudeBot）；Where Tech Meets Bio（未找到）；Substack 类 newsletter（Substack 条款禁止 crawl/scrape，沿用既有结论）。 | 无需回答；若你想接入其中某家，请告知。 | 不启用。 |
 
 ---
 
@@ -132,8 +144,8 @@
 | E1 | 公开论文库中两条在审的 OpenReview 双盲投稿记录 | 已处理：2026-11-15 从公开数据中移除（论文月度数据与打分缓存），不在网站展示 | 无需确认 | 已移除 |
 | E2 | `daily.yml` 的定时触发 | 默认关闭（`schedule` 为注释状态），只能手动触发。启用后每天会跑抓取与 LLM 打分，**产生 LLM API 费用**，且需要在仓库里配置 `ANTHROPIC_API_KEY` secret。 | 是否启用定时更新（是/否）？启用的话，每天预算上限是多少？ | 先手动跑几次、看清费用，再决定是否启用。 |
 | E3 | 新接入的新闻源在打分之前不会展示 | 站点只展示「有日期、已打分、相关度不低于 6」的新闻，且每家公司每周最多 3 条、30 天最多 4 条。新源条目以未打分形式入库，前端默认隐藏。 | 是否由你运行一次 `uv run python -m aivc news --days 30` 完成打分（是/否）？ | 发布前由你跑一次，再看展示条数和公司分布是否满意。 |
-| E4 | 中文媒体源尚未接入 | 本轮没有接入任何中文媒体 | 是否接入中文媒体？接入哪几家（请给名单，或回答「暂不接入」）？ | 暂不接入；等你给出名单后，逐家核对条款再决定。 |
-| E5 | 本表建议停用的新闻源汇总 | C2 STAT、C6 Genentech、C9 Drug Discovery Trends、C10 MedCity News 的条款有明文限制（自动访问、数据挖掘、缓存或存储）；C8 BiopharmaTrend 目前没有任何展示产出。 | 这五个源是否全部停用（是/否），或指定哪几个保留？ | **已处理：2026-11-15 停用，库内条目已移除** |
+| E4 | 中文媒体源接入现状 | 已接入（RSS，严格预筛）：量子位、IT之家、雷峰网、36氪，条款均未找到明文，标待核实（C31–C34）。已配置但停用：钛媒体、生物谷（C37）。未接入：财联社（条款明禁转载、复制、使用，无 RSS）、动脉网（无 RSS，列表由客户端加载）、机器之心、DeepTech 深科技、新浪科技、凤凰网科技（无可用 feed）、微信公众号（无公开接口、违反平台规则）（C38）。中文 RSS 只保留几小时到一两天的条目，60 天回填基本无效，主要靠定时运行积累。ProtCell 与摩尔线程那条报道的原稿没有查到，回填大概率抓不到。 | (1) 条款待核实的四家中文源是否保留（是/否）？36氪条款页找不到且曾遇反爬，是否停用？(2) IT之家 feed 只覆盖约 5.75 小时，每天一次的定时运行只能覆盖当天一部分稿件，是否保留（是/否）？ | 保留量子位和雷峰网；IT之家与 36氪价值有限，建议你确认前可停用。 |
+| E5 | 本表建议停用的新闻源汇总 | C2 STAT、C6 Genentech、C9 Drug Discovery Trends、C10 MedCity News 的条款有明文限制（自动访问、数据挖掘、缓存或存储）；C8 BiopharmaTrend 当时没有任何展示产出。 | 这五个源是否全部停用（是/否），或指定哪几个保留？ | **部分已处理**：STAT、Genentech、Drug Discovery Trends、MedCity News 已于 2026-11-15 停用，库内条目已移除；**BiopharmaTrend 目前仍为 `enabled: true`（sources.yaml），并新增 `date_from_article: true` 从文章页取发布日期，尚未停用，是否保留留给作者判断（见 C8）。** |
 | E6 | 条款核实的时效 | `DATA_LICENSE.md` 开头写的核实日期是 2026-11-14，新闻部分写 2026-11-15；本表核实日期为 2026-11-15。 | 回写结论后，是否统一把核实日期更新为发布当天（是/否）？ | 回写时统一更新。 |
 | E7 | 下架通道 | 当前只有仓库 issue 一个入口（DATA_LICENSE §5），没有邮箱。 | 是否接受只用 GitHub issue 作为下架联系渠道（是/否）？ | 接受；如需更稳妥，可日后在仓库 Settings 里开启 Security 联系渠道或专用说明页。 |
 
@@ -160,3 +172,10 @@
 | FierceBiotech、Endpoints、Recursion IR、GlobeNewswire 的 feed 地址 | 403 | C22 |
 | https://cellxgene.cziscience.com/docs/ 下两个猜测路径 | 404 | D2 |
 | DepMap 门户与条款页、Kaggle 竞赛页、Tabula Sapiens 门户、fonts.google.com 字体页 | 200，但内容为验证页或前端渲染，读不到条款正文 | D9、D12、D7、B2 |
+| https://www.tmtpost.com/ （钛媒体首页） | 两次请求均超时 | C37 |
+| https://www.36kr.com/about-us（猜测路径） | 404 | C34 |
+| https://latent.space/terms 、https://latent.space/tos | 404 | C36 |
+| https://www.podbean.com/terms-of-service | 404 | C38 |
+| https://www.bioworld.com/media/podcasts | 403 | C38 |
+| https://a16z.com/podcast/feed/ 、https://a16z.com/feed/（猜测路径） | 404 | C38 |
+| https://www.wheretechmeetsbio.com/ 、thebiotechpodcast.com、thelongrun.libsyn.com（猜测地址） | 连接失败 | C38 |

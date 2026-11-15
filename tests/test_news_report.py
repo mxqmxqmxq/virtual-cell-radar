@@ -93,3 +93,9 @@ def test_weekly_top_n(cfg):
 def test_weekly_no_funding(cfg):
     text = "\n".join(render_weekly_news([mk(1, event_type="other")], START, END, cfg))
     assert "本周无已收录的融资事件。" in text
+
+
+def test_weekly_excludes_related_tier_five(cfg):
+    assert cfg.pipeline.news.site_related_min_relevance == 5 and cfg.pipeline.news.site_min_relevance > 5
+    items = [mk(1, relevance=5)]
+    assert "本周暂无已收录的行业动态。" in render_weekly_news(items, START, END, cfg)

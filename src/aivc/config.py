@@ -65,6 +65,13 @@ class NewsFeed(BaseModel):
     enabled: bool = True
     # True：条目没有发布日期就丢弃（防止无日期旧闻按首次抓取日被当成新闻）
     require_date: bool = False
+    # True：RSS 条目没有发布日期时，去文章页只取发布日期（遵守 robots 与请求间隔，不存正文）
+    date_from_article: bool = False
+    # 预筛档位：default 命中任一关键词/组合规则/公司名即可；strict 必须命中严格词（泛科技媒体、泛 AI 播客用）；
+    # none 不预筛、直接交给 LLM 打分（只用于低产量且高度对口的官方新闻稿源，列表页无摘要时标题词表会误杀）
+    prefilter: Literal["default", "strict", "none"] = "default"
+    # strict 档的每源严格词；非空则覆盖 news.strict_keywords
+    strict_terms: list[str] = Field(default_factory=list)
 
 
 class NewsHtmlSource(BaseModel):
@@ -80,9 +87,17 @@ class NewsHtmlSource(BaseModel):
     min_title_chars: int = 15
     max_items: int = 30
     require_date: bool = True
-    date_scope: Literal["inside", "after", "before", "auto"] = "auto"
+    # before_nearest：日期写在卡片内、锚点之前（标题/摘要夹在中间），且两个保留锚点之间可能夹着
+    # 被过滤掉的其他卡片时使用：取锚点之前、上一个保留锚点之后、date_lookback_chars 以内「离锚点最近」的日期
+    date_scope: Literal["inside", "after", "before", "before_nearest", "auto"] = "auto"
+    # 只对 before_nearest 生效：向锚点之前回看的最大字符数
+    date_lookback_chars: int = 1500
     # 对标题候选逐个 re.sub(pattern, " ") 的正则（例如去掉标题末尾混入的日期）。默认不清洗
     title_strip_patterns: list[str] = Field(default_factory=list)
+    # 预筛档位：default 命中任一关键词/组合规则/公司名即可；strict 必须命中严格词；none 不预筛（仅限低产量、高度对口的官方新闻稿源）
+    prefilter: Literal["default", "strict", "none"] = "default"
+    # strict 档的每源严格词；非空则覆盖 news.strict_keywords
+    strict_terms: list[str] = Field(default_factory=list)
 
 
 class NewsSourceConfig(BaseModel):
@@ -94,6 +109,8 @@ class NewsSourceConfig(BaseModel):
     respect_robots: bool = True
     max_items_per_feed: int = 100
     snippet_max_chars: int = 1200
+    # 每次运行最多为多少个无日期条目请求文章页（只取发布日期）
+    max_date_lookups_per_run: int = 20
 
     @property
     def effective_delay(self) -> float:
@@ -249,6 +266,16 @@ def _default_news_keywords() -> list[str]:
     ]
 
 
+def _default_strict_keywords() -> list[str]:
+    return [
+        "虚拟细胞", "数字细胞", "细胞基础模型", "细胞大模型", "生物大模型", "生命科学大模型", "单细胞",
+        "多组学", "空间组学", "细胞图谱", "基因扰动", "扰动预测", "扰动筛选", "细胞扰动", "扰动数据",
+        "AI制药", "AI药物研发", "AI for Science", "AI4S",
+        "virtual cell", "cell foundation model", "single-cell", "perturbation", "Perturb-seq", "multi-omics",
+        "spatial transcriptomics", "cell atlas", "AI drug discovery", "computational biology", "systems biology",
+    ]
+
+
 class NewsCombo(BaseModel):
     """组合规则：all_of 的每个子列表都至少命中一个词才算命中（用于「AI 词 + 生物医药词」这类单独出现太泛的组合）。"""
     name: str
@@ -286,6 +313,8 @@ class NewsConfig(BaseModel):
     default_days: int = 7
     keywords: list[str] = Field(default_factory=_default_news_keywords)
     combos: list[NewsCombo] = Field(default_factory=_default_news_combos)
+    # 严格预筛词表：prefilter: strict 的源必须命中其一（源自带 strict_terms 时以后者为准）
+    strict_keywords: list[str] = Field(default_factory=_default_strict_keywords)
     # 公司官方 feed 的条目也必须命中关键词或组合规则才入库（避免把公关稿、活动通稿当成行业动态）
     company_feed_requires_match: bool = True
     # 网站与周报展示时，同一公司每个自然周最多展示几条（按相关度取前 N，防止一家刷屏）
@@ -297,10 +326,12 @@ class NewsConfig(BaseModel):
     max_llm_calls_per_run: int = 60
     # --rescore-stale 的独立预算：库内旧提示词版本条目的重打次数上限
     rescore_stale_max_calls: int = 40
-    prompt_version: str = "news-v5"
+    prompt_version: str = "news-v6.1"
     model: str | None = None
     cache_file: str = "cache/news_llm.jsonl"
     site_min_relevance: int = 6
+    # 网站新闻页相关动态区的最低相关度；不低于 site_min_relevance 时等于不设相关区
+    site_related_min_relevance: int = 5
     weekly_top_n: int = 8
     major: list[MajorRule] = Field(default_factory=_default_major_rules)
 

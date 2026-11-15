@@ -21,7 +21,7 @@ COMPANY_CATEGORY_LABELS: dict[str, str] = {
 NEWS_ITEM_KEYS = (
     "id", "title", "url", "source", "sources", "published", "date", "week", "quarter",
     "companies", "company_ids", "event_type", "amount_usd", "round", "investors",
-    "summary_zh", "significance_zh", "relevance", "scored", "major", "major_reasons", "first_seen",
+    "summary_zh", "significance_zh", "relevance", "scored", "tier", "major", "major_reasons", "first_seen",
 )
 
 
@@ -38,11 +38,23 @@ def _is_scored(it: NewsItem) -> bool:
     return it.llm_status == "scored" and it.relevance is not None
 
 
+def _related_min(cfg: AppConfig) -> int:
+    n = cfg.pipeline.news
+    return min(getattr(n, "site_related_min_relevance", n.site_min_relevance), n.site_min_relevance)
+
+
+def _tier(it: NewsItem, cfg: AppConfig) -> str | None:
+    """已打分且 >= site_min_relevance 为 core；已打分但在相关档为 related；未打分为 None。"""
+    if not _is_scored(it):
+        return None
+    return "core" if it.relevance >= cfg.pipeline.news.site_min_relevance else "related"
+
+
 def _included(items: list[NewsItem], cfg: AppConfig) -> list[NewsItem]:
-    """被 news.json 收录的条目：已打分且 relevance 达标，或未打分（前端默认隐藏）。"""
+    """被 news.json 收录的条目：核心与相关档（已打分且 relevance 达相关下限），或未打分（前端默认隐藏）。"""
     from .news import cap_per_company_rolling, cap_per_company_week, publishable
     # 发布日期不明的条目不展示、不进融资统计（与周报共用 publishable）
-    kept = publishable(items, cfg.pipeline.news.site_min_relevance)
+    kept = publishable(items, _related_min(cfg))
     ncfg = cfg.pipeline.news
     kept = cap_per_company_week(kept, getattr(ncfg, "max_per_company_per_week", 0))
     return cap_per_company_rolling(kept, getattr(ncfg, "max_per_company_per_30d", 0))
@@ -85,13 +97,15 @@ def export_news(items: list[NewsItem], cfg: AppConfig, *, generated_at: str) -> 
             "event_type": it.event_type, "amount_usd": it.amount_usd, "round": it.round,
             "investors": list(it.investors), "summary_zh": it.summary_zh,
             "significance_zh": it.significance_zh, "relevance": it.relevance,
-            "scored": _is_scored(it), "major": bool(it.major), "major_reasons": list(it.major_reasons),
+            "scored": _is_scored(it), "tier": _tier(it, cfg), "major": bool(it.major), "major_reasons": list(it.major_reasons),
             "first_seen": it.first_seen.isoformat(),
         })
     rows.sort(key=lambda r: (_neg_date(r["date"]), -(r["relevance"] if r["relevance"] is not None else -1), r["id"]))
 
     wk: dict[str, int] = {}
     for r in rows:
+        if r["tier"] == "related":
+            continue
         wk[r["week"]] = wk.get(r["week"], 0) + 1
     weeks = []
     for wid in sorted(wk, reverse=True):
@@ -102,7 +116,7 @@ def export_news(items: list[NewsItem], cfg: AppConfig, *, generated_at: str) -> 
 
     byq: dict[str, list[dict[str, Any]]] = {}
     for r in rows:
-        if r["event_type"] == "funding" and r["scored"]:
+        if r["event_type"] == "funding" and r["scored"] and r["tier"] != "related":
             byq.setdefault(r["quarter"], []).append(r)
     fq = []
     for q in sorted(byq):
@@ -117,8 +131,13 @@ def export_news(items: list[NewsItem], cfg: AppConfig, *, generated_at: str) -> 
             "top": [{"id": e["id"], "title": e["title"], "amount_usd": e["amount_usd"],
                      "companies": list(e["companies"])} for e in top],
         })
+    ncfg = cfg.pipeline.news
+    counts = {"core": sum(1 for r in rows if r["tier"] == "core"),
+              "related": sum(1 for r in rows if r["tier"] == "related"),
+              "unscored": sum(1 for r in rows if r["tier"] is None)}
     return {
-        "generated_at": generated_at, "count": len(rows),
+        "generated_at": generated_at, "count": len(rows), "counts": counts,
+        "min_relevance": ncfg.site_min_relevance, "related_min_relevance": _related_min(cfg),
         "event_types": [{"id": i, "label": l} for i, l in EVENT_TYPE_LABELS],
         "items": rows, "weeks": weeks, "funding_quarters": fq,
     }
@@ -138,7 +157,7 @@ def _term_re(term: str) -> re.Pattern[str] | None:
 def export_companies(items: list[NewsItem], papers: list[Paper], cfg: AppConfig, *,
                      generated_at: str) -> dict[str, Any]:
     idx = _company_index(cfg)
-    kept = [it for it in _included(items, cfg) if _is_scored(it)]
+    kept = [it for it in _included(items, cfg) if _tier(it, cfg) == "core"]
     by_co: dict[str, list[NewsItem]] = {}
     for it in kept:
         for cid in _company_ids(it, idx):

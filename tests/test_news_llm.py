@@ -204,7 +204,7 @@ def test_threaded(cfg, tmp_path):
 
 
 def test_v3_prompt_rules(cfg):
-    assert cfg.pipeline.news.prompt_version == "news-v5"
+    assert cfg.pipeline.news.prompt_version == "news-v6.1"
     system, _ = build_news_prompt(mk(1), "", cfg)
     for kw in ("泛科普", "观点/评论", "访谈", "年度盘点", "框架协议", "备忘录", "区域市场拓展",
                "研究机构", "期刊新闻栏目", "大型科技公司博客", "不因公司或机构知名而加分", "只有标题",
@@ -214,7 +214,7 @@ def test_v3_prompt_rules(cfg):
 
 def test_v5_prompt_rules(cfg):
     system, _ = build_news_prompt(mk(1), "", cfg)
-    assert "news-v5" in system
+    assert "news-v6.1" in system
     for kw in ("虚拟细胞", "细胞基础模型", "扰动", "分子生成", "临床进展", "实验室自动化", "细胞治疗",
                "无论金额多大", "封顶规则", "单细胞", "表型"):
         assert kw in system, kw
@@ -256,8 +256,18 @@ def test_version_in_cache_key_misses_old_cache(cfg, tmp_path):
     e_old = NewsExtractor(cfg, cache, client=cl)
     e_old.extract([(mk(1), SNIP)])
     assert len(cl.calls) == 1
-    cfg.pipeline.news.prompt_version = "news-v5"
+    cfg.pipeline.news.prompt_version = "news-v6.1"
     e_new = NewsExtractor(cfg, LLMCache(tmp_path / "c" / "news.jsonl"), client=cl)
     out, st = e_new.extract([(mk(1), SNIP)])
     assert st.cache_hits == 0 and st.api_calls == 1 and len(cl.calls) == 2
-    assert out[0].llm.prompt_version == "news-v5"
+    assert out[0].llm.prompt_version == "news-v6.1"
+
+
+def test_v6_prompt_tiers(cfg):
+    system, _ = build_news_prompt(mk(1), "", cfg)
+    assert "- 6：" in system and "- 5：" in system and "5-6：" not in system
+    assert "配角" in system and "重要部分" in system
+    assert "例外：" in system and "不得高于 5" in system
+    assert "纯生物学发现" in system and "最多给 5" in system and "按 0-4 处理" in system
+    assert "封顶规则" in system and "0-4：" in system
+    assert cfg.pipeline.news.site_related_min_relevance == 5

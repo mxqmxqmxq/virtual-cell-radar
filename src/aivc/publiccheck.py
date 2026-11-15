@@ -121,7 +121,7 @@ NEWS_ITEM_KEYS = frozenset({
 SITE_NEWS_ITEM_KEYS = frozenset({
     "id", "title", "url", "source", "sources", "published", "date", "week", "quarter", "companies",
     "company_ids", "event_type", "amount_usd", "round", "investors", "summary_zh", "significance_zh",
-    "relevance", "scored", "major", "major_reasons", "first_seen",
+    "relevance", "scored", "tier", "major", "major_reasons", "first_seen",
 })
 _LONG_EN_RE = re.compile(r"(?:[A-Za-z][A-Za-z'’\-]*[\s,;.]+){24}[A-Za-z][A-Za-z'’\-]*")
 MAX_TITLE, MAX_SUMMARY, MAX_SIGNIF = 300, 400, 200

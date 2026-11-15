@@ -163,3 +163,11 @@ def test_require_date_drops_undated():
     res = f.fetch(SINCE, UNTIL)
     assert res.entries and all(e.published is not None for e in res.entries)
     assert not any("undated" in e.url for e in res.entries)
+
+
+def test_parse_feed_passes_prefilter_fields():
+    feed = NewsFeed(name="Pod", url="https://pod.example.test/feed", kind="media",
+                    prefilter="strict", strict_terms=["biolog*"])
+    es = parse_feed(RSS, feed)
+    assert es and all(e.feed_prefilter == "strict" and e.feed_strict_terms == ["biolog*"] for e in es)
+    assert all(e.feed_prefilter == "default" and e.feed_strict_terms == [] for e in parse_feed(RSS, F_RSS))

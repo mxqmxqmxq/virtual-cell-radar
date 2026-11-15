@@ -2,7 +2,9 @@
  * news-data.js — 商业新闻的纯函数（无界面、无依赖）。
  * 浏览器里挂 window.AIVCNewsData；Node 下 module.exports 同一对象。
  *
- *   filterNews(items, f)     f: {type, company(id 或名称), amount, q, major, includeUnscored}
+ *   filterNews(items, f)     f: {type, company(id 或名称), amount, q, major, includeUnscored, tier}
+                            tier: "core"（默认，排除 tier=related）| "related"（只要相关）| "all"；缺 tier 视为 core
+ *   isRelated(it)            it.tier === "related"
  *                            amount: ge100m | 10m_100m | lt10m | undisclosed
  *   groupByWeek(items)       -> [{id, start, end, items}]，周倒序；组内 relevance 降序，
  *                            同分区段按主公司轮转（公司自身 date 降序），最后 id
@@ -51,12 +53,17 @@
     return arr(it.companies).some(function (n) { return str(n).toLowerCase() === low; });
   }
 
+  function isRelated(it) { return !!it && it.tier === "related"; }
+
   function filterNews(items, f) {
     f = f || {};
+    var tier = f.tier === "related" || f.tier === "all" ? f.tier : "core";
     var terms = str(f.q).trim().toLowerCase().split(/\s+/).filter(Boolean);
     return arr(items).filter(function (it) {
       if (!it || typeof it !== "object") return false;
       if (!f.includeUnscored && it.scored === false) return false;
+      if (tier === "core" && isRelated(it)) return false;
+      if (tier === "related" && !isRelated(it)) return false;
       if (f.type && it.event_type !== f.type) return false;
       if (f.company && !matchCompany(it, f.company)) return false;
       if (f.amount && !inBucket(it.amount_usd, f.amount)) return false;
@@ -166,7 +173,7 @@
   }
 
   var api = {
-    AMOUNT_BUCKETS: AMOUNT_BUCKETS, filterNews: filterNews, groupByWeek: groupByWeek, interleaveByCompany: interleaveByCompany,
+    AMOUNT_BUCKETS: AMOUNT_BUCKETS, filterNews: filterNews, isRelated: isRelated, groupByWeek: groupByWeek, interleaveByCompany: interleaveByCompany,
     fmtUsd: fmtUsd, quarterBars: quarterBars, weekRange: weekRange
   };
 

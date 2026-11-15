@@ -17,6 +17,7 @@ import httpx
 from ..config import NewsFeed, NewsSourceConfig
 from ..models import NewsEntry
 from .base import FetchError, build_client, get_with_retry
+from .news_dates import ArticleDateCache, extract_published_date
 
 log = logging.getLogger("aivc.fetchers.news_rss")
 
@@ -77,6 +78,8 @@ def parse_feed(text: str, feed: NewsFeed, *, snippet_max_chars: int = 1200) -> l
                 snippet=snippet,
                 feed_kind=feed.kind,
                 feed_company=feed.company,
+                feed_prefilter=feed.prefilter,
+                feed_strict_terms=list(feed.strict_terms),
             )
         )
     return out
@@ -88,6 +91,7 @@ class NewsFetchResult:
     per_feed: dict[str, int] = field(default_factory=dict)
     errors: dict[str, str] = field(default_factory=dict)
     requests: int = 0
+    date_lookups: int = 0
 
 
 class _Shared:
@@ -110,7 +114,9 @@ class NewsHTTPBase:
         client: httpx.Client | None = None,
         sleep: Callable[[float], None] = time.sleep,
         share_with: "NewsHTTPBase | None" = None,
+        date_cache: ArticleDateCache | None = None,
     ):
+        self.date_cache = date_cache
         self.cfg = news_cfg
         self.http = http_cfg
         self._sleep = sleep
@@ -168,6 +174,7 @@ class NewsRSSFetcher(NewsHTTPBase):
     def fetch(self, since: date, until: date) -> NewsFetchResult:
         res = NewsFetchResult()
         start = self._requests
+        lookups = 0
         for feed in self.cfg.feeds:
             if not feed.enabled:
                 continue
@@ -186,6 +193,16 @@ class NewsRSSFetcher(NewsHTTPBase):
             except Exception as e:  # 单源异常不影响其他源
                 res.errors[feed.name] = f"{type(e).__name__}: {e}"
                 continue
+            if feed.date_from_article and self.date_cache is not None:
+                filled: list[NewsEntry] = []
+                for x in entries:
+                    if x.published is None:
+                        d, did = self._article_date(x.url, lookups, until)
+                        lookups += did
+                        if d is not None:
+                            x = x.model_copy(update={"published": d})
+                    filled.append(x)
+                entries = filled
             kept = [
                 x for x in entries
                 if (x.published is None and not feed.require_date)
@@ -193,5 +210,31 @@ class NewsRSSFetcher(NewsHTTPBase):
             ][: self.cfg.max_items_per_feed]
             res.entries.extend(kept)
             res.per_feed[feed.name] = len(kept)
+        if self.date_cache is not None:
+            self.date_cache.save()
         res.requests = self._requests - start
+        res.date_lookups = lookups
         return res
+
+    def _article_date(self, url: str, done: int, until: date) -> tuple[date | None, int]:
+        """返回 (日期, 本次是否发出了请求 0/1)。页面文本只在此函数内短暂存在，用后即丢。"""
+        cache = self.date_cache
+        assert cache is not None
+        hit, d = cache.get(url, today=until)
+        if hit:
+            return d, 0
+        if done >= self.cfg.max_date_lookups_per_run:
+            return None, 0
+        if not self._allowed(url):
+            return None, 0
+        self._pace()
+        try:
+            resp = get_with_retry(
+                self._client, url, max_retries=self.http.max_retries, sleep=self._sleep
+            )
+            d = extract_published_date(resp.text[:524288], today=until)
+        except Exception as e:  # noqa: BLE001 单条失败不影响其他条目
+            log.info("article date lookup failed for %s: %s", url, type(e).__name__)
+            return None, 1
+        cache.put(url, d, today=until)
+        return d, 1

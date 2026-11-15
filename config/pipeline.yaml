@@ -47,6 +47,52 @@ news:
     - cell atlas                 # 以下三个细胞方向词：2026-11-15 诊断中分别捞回 GEN 的细胞图谱稿、Arc 的 Bolero（细胞状态条件化的基因调控模型）
     - cell state
     - gene regulat*
+    - 虚拟细胞                   # 以下中文领域词供默认档的垂直生物医药媒体使用（泛科技媒体走 strict_keywords）
+    - 数字细胞
+    - 单细胞
+    - 细胞基础模型
+    - 细胞大模型
+    - 细胞扰动
+    - 基因扰动
+    - 多组学
+    - 空间组学
+    - 细胞图谱
+    - AI制药
+    - AI药物
+    - AI4S
+  # 严格预筛词表：源设了 prefilter: strict 时，条目必须命中其中之一才入库（源的 strict_terms 非空则以其为准）
+  # 不放单独的「扰动」（财经稿里的「市场扰动」）和「人工智能」「大模型」「AI」等泛词
+  strict_keywords:
+    - 虚拟细胞
+    - 数字细胞
+    - 细胞基础模型
+    - 细胞大模型
+    - 生物大模型
+    - 生命科学大模型
+    - 单细胞
+    - 多组学
+    - 空间组学
+    - 细胞图谱
+    - 基因扰动
+    - 扰动预测
+    - 扰动筛选
+    - 细胞扰动
+    - 扰动数据
+    - AI制药
+    - AI药物研发
+    - AI for Science
+    - AI4S
+    - virtual cell
+    - cell foundation model
+    - single-cell
+    - perturbation
+    - Perturb-seq
+    - multi-omics
+    - spatial transcriptomics
+    - cell atlas
+    - AI drug discovery
+    - computational biology
+    - systems biology
   # 组合规则：每个子列表至少命中一个词才算命中（覆盖 "AI to drug development"、"automate wet labs" 这类写法）
   # 不写则用代码内置默认（ai+bio、funding+ai、roundup 三组）
   company_feed_requires_match: true   # 公司官方 feed 也必须命中关键词/组合规则才入库
@@ -56,10 +102,11 @@ news:
   merge_window_days: 5         # 同一事件跨媒体合并的日期窗
   max_llm_calls_per_run: 60    # 单次运行最多 LLM 调用数
   rescore_stale_max_calls: 40  # aivc news --rescore-stale 的独立预算：重打库内旧提示词版本条目的最多调用数
-  prompt_version: news-v5        # v5：以虚拟细胞/细胞层面 AI 建模为核心，一般 AI 药物发现（分子设计、临床进展、无细胞成分的融资合作）≤4（v4：观点/访谈/盘点稿 ≤4，融资口径收紧）
+  prompt_version: news-v6.1  # v6.1 在 v6 基础上收紧：6 分须为 AI 生物学/细胞计算模型新闻，无 AI 的纯生物学图谱最多 5，一般 AI 制药/实验室自动化即使提到细胞按 0-4；v6 相对 v5 两点：5/6 分拆开描述（6=细胞/组学成分是事件重要部分，5=只是配角）；虚拟细胞/细胞基础模型/扰动数据方向的分析、追踪、访谈稿例外给 5（封顶 5）。v5：以虚拟细胞/细胞层面 AI 建模为核心，一般 AI 药物发现（分子设计、临床进展、无细胞成分的融资合作）≤4（v4：观点/访谈/盘点稿 ≤4，融资口径收紧）
   model: null                  # null 则用 llm.yaml 的 model
   cache_file: cache/news_llm.jsonl
-  site_min_relevance: 6        # 网站与周报展示的最低相关度（6 起为有明确细胞/组学/表型成分的新闻；5 及以下的一般 AI 药物发现不展示）
+  site_min_relevance: 6        # 核心动态的最低相关度（首页、周报、公司档案、融资汇总、新闻页核心区；6 起为有明确细胞/组学/表型成分的新闻）
+  site_related_min_relevance: 5  # 网站新闻页相关动态区的最低相关度（5 = 细胞/组学成分只是配角，或虚拟细胞方向的分析/追踪稿）；首页、周报、公司档案、融资汇总仍只用 site_min_relevance
   weekly_top_n: 8              # 周报「行业动态」最多条数
   major:                       # 重大事件规则（命中任一条即置顶标注）
     - {id: big_funding, label: "融资 ≥ 1 亿美元", event_types: [funding], min_amount_usd: 100000000}

@@ -20,7 +20,8 @@
 - **商业新闻板块（Phase 3）**：
   - 数据源：配置在 `config/sources.yaml` 的 `news` 段，已启用 23 个公开源：19 个 RSS（5 个媒体，14 个机构或公司官方博客，含 CZI、Biohub、Absci、晶泰、EMBL、Wyss、MIT News、Google Research / Health / DeepMind、Microsoft Research、Valence Labs、Enveda）与 4 个 HTML 新闻列表页（Arc Institute、Wellcome Sanger、insitro、EMBL-EBI）；遵守 robots.txt、请求间隔不低于 1 秒；条款不允许或不可用的源未启用，原因记录在配置注释与 `DATA_LICENSE.md`。
   - 新闻源扩充（2026-11）：新增配置化的 HTML 列表页抓取器（`fetchers/news_html.py`，标准库解析，只取标题、链接、日期，不请求文章页、不存正文，尊重 robots，间隔不低于 1 秒，缺日期的条目丢弃，单源失败不影响其他源）；预筛增加组合规则（AI + 生物、融资 + AI、盘点汇总），公司官方源也须命中；提示词升为 `news-v3`、再升 `news-v4`（压低泛科普、访谈观点稿、品牌活动、非生物医药业务与泛稿；v4 规定观点/访谈/盘点/分析稿即使提到交易也不超过 4 分，传闻或洽谈中的融资、公益/机构资助、VC 自身募资不算融资金额）；`NewsFeed.require_date` 可在抓取时丢弃无日期条目，网站与周报共用 `news.publishable`，无日期条目不展示、不进周报、不计融资（BiopharmaTrend 已设置，其 feed 无日期，目前不产出；库内 7 条旧条目标为 `undated_excluded`），新增 `aivc news --rescore-stale`（旧版本条目在新一轮抓取中再次出现时按当前提示词重打，独立预算），`--limit` 截断时按来源轮转；展示层除每公司每周 3 条外，增加任意连续 30 天同一公司不超过 4 条的滚动上限，首页速览与新闻页周内排序在同分时按公司轮转。扩充后真实运行两次（30 天窗口；第一次抓取 225 条、预筛后 39 条、LLM 调用 37 次，v3；第二次换 v4 并重打 30 条、抓取 215 条）：最终网站展示 8 条（扩充前 7 条；第一次运行后曾为 14 条，v4 与日期规则剔除了盘点、分析、访谈与无日期稿），晶泰 3 条为最高，占 3/8 = 37.5%（此前 71%），低于 40% 目标但余量不大；门槛未调整。
-  - 流水线（`aivc news`，`aivc update` 默认一并运行，可用 `--no-news` 关闭）：关键词与公司名预筛、URL 与标题模糊去重、LLM 结构化抽取与相关度打分（提示词 `news-v1`，现为 `news-v5`，独立缓存）、跨媒体事件合并、重大事件规则，按月写入 `data/news/YYYY-MM.jsonl`。
+  - 新闻分层与日期补全（2026-11）：提示词升为 `news-v6.1`（5 与 6 分开定义，虚拟细胞方向的分析、追踪稿给 5 且封顶 5）；新增 `news.site_related_min_relevance`（默认 5），网站新闻页在核心动态（>= 6）之下增加可折叠的「相关动态」区，首页、统计、公司档案、融资汇总与周报仍只算核心；RSS 源可设 `date_from_article`，对无 pubDate 的条目请求文章页只读发布日期（遵守 robots、间隔 >= 1 秒、`max_date_lookups_per_run` 限额、缓存于 `data/cache/news_dates.json`、正文不落盘），BiopharmaTrend 已启用；新增 New York Genome Center 与 Whitehead Institute 两个 RSS 源。
+  - 流水线（`aivc news`，`aivc update` 默认一并运行，可用 `--no-news` 关闭）：关键词与公司名预筛、URL 与标题模糊去重、LLM 结构化抽取与相关度打分（提示词 `news-v1`，现为 `news-v6.1`，独立缓存）、跨媒体事件合并、重大事件规则，按月写入 `data/news/YYYY-MM.jsonl`。
   - 版权口径：只存标题、链接、来源、时间与 LLM 自写的中文摘要和要点，不存原文，RSS 片段只在内存使用；`check-public` 已扩展检查 `data/news` 与 `site/data/news.json`。
   - 报告：日报置顶当天重大事件，周报新增「行业动态」一节（重要事件与融资汇总）。
   - 网站：新闻页含时间线（按周分组，按类型、公司、金额筛选与搜索）、季度融资汇总、公司列表与公司档案页（与论文库互链）；导出 `site/data/news.json` 与 `companies.json`；公司名单 `config/companies.yaml` 现已参与流水线。
@@ -44,10 +45,10 @@
 
 ### 商业新闻板块（基础功能已完成，以下为尚未实现的部分）
 
-- 中文媒体源：目前没有接入任何中文媒体或中文新闻稿服务（未找到可用且条款允许的 RSS）。
+- 中文媒体源：已接入量子位、IT之家、雷峰网、36氪（RSS，严格预筛，条款待核实）；钛媒体、生物谷已配置但停用。剩余缺口：财联社（条款明禁、无 RSS）、动脉网（列表由客户端加载）、机器之心、DeepTech、新浪科技、凤凰网科技（无可用 feed）未接，微信公众号不接；中文 RSS 只保留几小时到一两天的条目，回填无效，依赖定时运行逐日积累。
 - 仍不可用或被禁止的来源：FierceBiotech、Endpoints、Recursion IR（HTTP 403）；BioPharma Dive、NVIDIA 博客、PR Newswire、Substack 类 newsletter、Nature 系列、Science 新闻（条款或 robots.txt 禁止自动访问）；GlobeNewswire（无法确认官方 feed）。如对方日后放开或提供授权接口，再评估接入。
 - 更多公司官方源：Owkin、Bioptimus、Noetik、Chai Discovery、Isomorphic Labs、Lila Sciences、Cellarity、Allen Institute 等已实测但因标题不干净、日期格式不支持或前端渲染而未接入 HTML 抓取器；需要扩展解析器（例如支持 dd.mm.yyyy 日期、剥离类别标签）后再逐个核对。
-- 来源覆盖与质量：30 天窗口里网站展示 8 条，仍偏少；CZI、Absci、insitro 在该窗口没有抓到新条目，insitro 的日期取自摘要文字、版式变化时可能漏条，需要定期复查；BiopharmaTrend feed 不带发布日期，设了 `require_date` 后不产出，需要换源或另找带日期的入口。
+- 来源覆盖与质量：30 天窗口里网站展示 8 条，仍偏少；CZI、Absci、insitro 在该窗口没有抓到新条目，insitro 的日期取自摘要文字、版式变化时可能漏条，需要定期复查；BiopharmaTrend feed 不带发布日期，已改为 `date_from_article` 从文章页补日期（条款仍待作者核实）。
 - 外部推送通知：重大事件目前只在日报、周报与网站上置顶标注，代码里只留了接口，没有向任何外部服务发送。
 - 融资数据库与新闻稿检索：「累计融资」目前只是库内已收录且披露了金额的事件之和，不是完整融资数据库；接入权威、许可明确的融资数据源后才能给出可靠的累计值。
 - 部分来源的条款仍标「待核实」（见 `DATA_LICENSE.md`），其中多数是没有找到条款页或条款未提自动访问。

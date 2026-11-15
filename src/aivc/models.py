@@ -121,6 +121,9 @@ class NewsEntry(BaseModel):
     snippet: str = ""
     feed_kind: str = "media"
     feed_company: str | None = None
+    # 来源的预筛档位与每源严格词（瞬时字段，不入库）
+    feed_prefilter: str = "default"
+    feed_strict_terms: list[str] = []
 
 
 _TRACKING_PARAMS = {"fbclid", "gclid", "mc_cid", "mc_eid", "igshid", "ref", "ref_src", "_hsenc", "_hsmi", "yclid", "msclkid"}

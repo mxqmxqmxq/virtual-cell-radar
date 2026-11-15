@@ -32,7 +32,8 @@ class SiteBuildResult:
     site_dir: Path
     n_papers: int
     n_weekly: int
-    n_news: int = 0
+    n_news: int = 0  # 核心档条数
+    n_news_related: int = 0
     n_resources: int = 0
     files: list[Path] = field(default_factory=list)
 
@@ -190,7 +191,7 @@ def build_meta(
     cfg: AppConfig, papers: list[Paper], weekly: list[dict[str, Any]], today: date, generated_at: str,
     news_items: list[dict[str, Any]] | None = None, resources_total: int = 0,
 ) -> dict[str, Any]:
-    news_items = [n for n in (news_items or []) if n.get("scored")]  # 未打分的前端默认隐藏，不计入
+    news_items = [n for n in (news_items or []) if n.get("scored") and n.get("tier") != "related"]  # 未打分与相关档不计入首页统计
     since = (today - timedelta(days=6)).isoformat()
     start, end = week_range(today)
     cur = [p for p in papers if start <= p.first_seen <= end]
@@ -462,7 +463,7 @@ def _build_digest(
 
     # news
     nstart14 = today - timedelta(days=13)
-    n_items = [r for r in (news_export or {}).get("items", []) if r.get("scored")]
+    n_items = [r for r in (news_export or {}).get("items", []) if r.get("scored") and r.get("tier") != "related"]
     recent = [r for r in n_items if nstart14 <= date.fromisoformat(r["date"]) <= today]
     recent.sort(key=lambda r: (not r["major"], -(r["relevance"] or 0), -date.fromisoformat(r["date"]).toordinal(), r["id"]))
     # 同（重大、相关度）区段内按公司轮转，避免单一公司占满速览
@@ -549,7 +550,7 @@ def build_site(
 
     files = sorted(p for p in site_dir.rglob("*") if p.is_file())
     return SiteBuildResult(site_dir=site_dir, n_papers=len(exported), n_weekly=len(weekly),
-                           n_news=news_json["count"], n_resources=resources_json["count"], files=files)
+                           n_news=news_json["counts"]["core"], n_news_related=news_json["counts"]["related"], n_resources=resources_json["count"], files=files)
 
 
 # ---------- serving ----------

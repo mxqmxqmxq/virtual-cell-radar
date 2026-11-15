@@ -207,7 +207,7 @@ def test_run_news_counts_html_sources(config_dir, tmp_path, monkeypatch):
     made = []
 
     class FakeComposite:
-        def __init__(self, src, http):
+        def __init__(self, src, http, **kw):
             made.append(src)
 
         def fetch(self, since, until):
@@ -313,3 +313,51 @@ def test_real_sources_yaml_regexes_compile_and_companies_exist():
     html = {s.name: s for s in cfg.sources.news.html_sources}
     for want in (S_DYNO, S_NOETIK):
         assert html[want.name] == want
+
+
+# ---- date_scope="before_nearest"（卡片内日期在锚点之前，卡片之间夹着被过滤的条目）----
+BIOHUB = (FIX / "news" / "biohub_news_list.html").read_text()
+S_BIOHUB = NewsHtmlSource(
+    name="Biohub News", list_url="https://biohub.org/news/", kind="company", company="CZI",
+    link_pattern=r"^https://biohub\.org/news/[^/?#]+/?$", date_scope="before_nearest",
+    title_strip_patterns=[r"^(?:News|Blog|Read more)\s*[–-]\s*"],
+)
+_BIOHUB_EXPECT = {
+    "https://biohub.org/news/alpha-consortium-data-release/":
+        ("Alpha consortium releases open reference dataset for cell models", date(2026, 10, 7)),
+    "https://biohub.org/news/beta-imaging-facility-opens/":
+        ("Beta institute opens new imaging facility for researchers", date(2026, 10, 14)),
+    "https://biohub.org/news/gamma-early-career-prize/":
+        ("Gamma lab announces fictional prize for early career scientists", date(2026, 8, 27)),
+}
+
+
+def test_before_nearest_biohub_cards():
+    es = parse_list_page(BIOHUB, S_BIOHUB)
+    got = by_url(es)
+    assert set(got) == set(_BIOHUB_EXPECT)  # 博客、外链、分页都不在
+    assert len(es) == 3
+    for url, (title, d) in _BIOHUB_EXPECT.items():
+        assert got[url].title == title
+        assert got[url].published == d
+        assert got[url].snippet == ""
+        assert got[url].feed_company == "CZI"
+    assert all("News –" not in e.title and "Read more –" not in e.title for e in es)
+
+
+def test_before_nearest_differs_from_auto_and_lookback_limit():
+    auto = by_url(parse_list_page(BIOHUB, S_BIOHUB.model_copy(update={"date_scope": "auto"})))
+    hero = "https://biohub.org/news/alpha-consortium-data-release/"
+    assert auto[hero].published != date(2026, 10, 7)  # auto 取到了相邻卡片的日期
+    # 回看窗口太小时，摘要把日期挤出窗口，不会误取别的卡片：要么无日期（被 require_date 丢弃）
+    tiny = parse_list_page(BIOHUB, S_BIOHUB.model_copy(update={"date_lookback_chars": 20}))
+    assert hero not in by_url(tiny)
+
+
+def test_find_date_last_and_before_unchanged():
+    assert find_date("a 2026-01-02 b 2026-03-04") == date(2026, 1, 2)
+    assert find_date("a 2026-01-02 b 2026-03-04", last=True) == date(2026, 3, 4)
+    assert find_date("nothing", last=True) is None
+    # 既有 before 场景不变
+    es = parse_list_page(BEFORE, S_BEFORE.model_copy(update={"date_scope": "before"}))
+    assert [e.published for e in es] == [date(2026, 11, 12), date(2026, 11, 4), date(2026, 10, 20)]

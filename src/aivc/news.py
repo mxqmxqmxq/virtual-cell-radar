@@ -18,6 +18,7 @@ from .termmatch import compile_term
 from .textutil import normalize_title
 
 _CJK = re.compile(r"[一-鿿]")
+_ZH_ASCII = re.compile(r"(?<=[一-鿿])(?=[A-Za-z0-9])|(?<=[A-Za-z0-9])(?=[一-鿿])")
 _MERGEABLE = {"funding", "m_and_a", "partnership", "model_or_data_release", "clinical"}
 _AMOUNT_TYPES = {"funding", "m_and_a"}
 
@@ -91,6 +92,31 @@ class NewsStore:
         return n
 
 
+# ---------------------------------------------------------------- 新闻预筛专用匹配层
+
+def spaced_text(text: str) -> str:
+    """在汉字与 ASCII 字母数字的交界处插入空格，使「用AI设计蛋白」里的 AI 能被按词边界匹配。纯英文文本不变。"""
+    return _ZH_ASCII.sub(" ", text or "")
+
+
+def compile_news_term(term: str) -> re.Pattern[str] | None:
+    """新闻预筛词项编译。含 CJK 的词项：汉字/ASCII 交界与原有空白都视为 ``\\s*``，ASCII 部分忽略大小写；
+    不含 CJK 的词项沿用 termmatch.compile_term（应对 spaced_text 过的文本匹配）。"""
+    term = (term or "").strip()
+    if not term:
+        return None
+    if not _CJK.search(term):
+        return compile_term(term)
+    parts = [p for p in re.split(r"\s+", _ZH_ASCII.sub(" ", term)) if p]
+    body = r"\s*".join(re.escape(p) for p in parts)
+    # 首/尾片段为 ASCII 字母数字时加边界，避免「MAI制药」命中「AI制药」
+    if re.match(r"[A-Za-z0-9]", parts[0]):
+        body = r"(?<![A-Za-z0-9])" + body
+    if re.search(r"[A-Za-z0-9]$", parts[-1]):
+        body += r"(?![A-Za-z0-9])"
+    return re.compile(body, re.IGNORECASE)
+
+
 # ---------------------------------------------------------------- 公司匹配
 
 def _companies(cfg):
@@ -114,10 +140,11 @@ def _name_pattern(term: str) -> re.Pattern[str] | None:
 def match_companies(text: str, cfg) -> list[str]:
     """返回命中的公司规范名（按名单顺序）。"""
     out: list[str] = []
+    text = spaced_text(text)
     for co in _companies(cfg):
         for term in [co.name, *co.aliases]:
             pat = _name_pattern(term)
-            if pat and pat.search(text or ""):
+            if pat and pat.search(text):
                 out.append(co.name)
                 break
     return out
@@ -147,7 +174,7 @@ def canonical_companies(names: list[str], cfg) -> list[str]:
 def _compiled_combos(ncfg) -> list[tuple[str, list[list]]]:
     out = []
     for c in getattr(ncfg, "combos", []) or []:
-        groups = [[p for t in sub if (p := compile_term(t))] for sub in c.all_of]
+        groups = [[p for t in sub if (p := compile_news_term(t))] for sub in c.all_of]
         if groups and all(groups):
             out.append((c.name, groups))
     return out
@@ -158,17 +185,61 @@ def match_combos(text: str, combos) -> list[str]:
             if all(any(p.search(text) for p in g) for g in groups)]
 
 
+def _build_item(e: NewsEntry, kws: list[str], cos: list[str], companies: list[str], today: date) -> NewsItem:
+    return NewsItem(
+        id=make_news_id(e.url),
+        title=e.title.strip(),
+        url=e.url,
+        source=e.source,
+        sources=[NewsSourceRef(name=e.source, url=e.url)],
+        published=e.published,
+        companies=companies,
+        keyword_score=float(len(kws) + 2 * len(cos)),
+        matched_terms=[*kws, *cos],
+        first_seen=today,
+        llm_status="unscored",
+    )
+
+
 def to_candidates(entries: list[NewsEntry], cfg, today: date) -> list[tuple[NewsItem, str]]:
     ncfg = cfg.pipeline.news
-    kw_pats = [(k, compile_term(k)) for k in ncfg.keywords]
+    kw_pats = [(k, compile_news_term(k)) for k in ncfg.keywords]
     combos = _compiled_combos(ncfg)
+    global_strict = list(getattr(ncfg, "strict_keywords", []) or [])
+    strict_cache: dict[tuple, list] = {}
     need_match = getattr(ncfg, "company_feed_requires_match", True)
     out: list[tuple[NewsItem, str]] = []
     for e in entries:
-        text = f"{e.title}\n{e.snippet}"
+        text = spaced_text(f"{e.title}\n{e.snippet}")
         kws = [k for k, p in kw_pats if p and p.search(text)]
         kws += [f"combo:{n}" for n in match_combos(text, combos)]
         cos = match_companies(text, cfg)
+        if e.feed_prefilter == "none":
+            # 不预筛：只用于低产量、高度对口的官方新闻稿源，交给 LLM 判断相关性
+            companies = list(cos)
+            if e.feed_kind == "company" and e.feed_company:
+                for c in reversed(canonical_companies([e.feed_company], cfg)):
+                    if c not in companies:
+                        companies.insert(0, c)
+            out.append((_build_item(e, kws, cos, companies, today), e.snippet))
+            continue
+        if e.feed_prefilter == "strict":
+            # 严格档：必须命中严格词（源自带的 strict_terms 优先，否则用全局表），公司名/combo/普通词都不够
+            terms = tuple(e.feed_strict_terms or global_strict)
+            pats = strict_cache.get(terms)
+            if pats is None:
+                pats = strict_cache[terms] = [(t, compile_news_term(t)) for t in terms]
+            hits = [f"strict:{t}" for t, p in pats if p and p.search(text)]
+            if not hits:
+                continue
+            kws += hits
+            companies = list(cos)
+            if e.feed_kind == "company" and e.feed_company:
+                for c in reversed(canonical_companies([e.feed_company], cfg)):
+                    if c not in companies:
+                        companies.insert(0, c)
+            out.append((_build_item(e, kws, cos, companies, today), e.snippet))
+            continue
         is_company_feed = e.feed_kind == "company"
         if is_company_feed:
             # 公司自家 feed 里出现自家公司名不说明相关；必须命中领域词或组合规则（或点名其他公司）
@@ -183,20 +254,7 @@ def to_candidates(entries: list[NewsEntry], cfg, today: date) -> list[tuple[News
             for c in reversed(canonical_companies([e.feed_company], cfg)):
                 if c not in companies:
                     companies.insert(0, c)
-        item = NewsItem(
-            id=make_news_id(e.url),
-            title=e.title.strip(),
-            url=e.url,
-            source=e.source,
-            sources=[NewsSourceRef(name=e.source, url=e.url)],
-            published=e.published,
-            companies=companies,
-            keyword_score=float(len(kws) + 2 * len(cos)),
-            matched_terms=[*kws, *cos],
-            first_seen=today,
-            llm_status="unscored",
-        )
-        out.append((item, e.snippet))
+        out.append((_build_item(e, kws, cos, companies, today), e.snippet))
     return out
 
 
@@ -319,7 +377,8 @@ def _same_title(a: str, b: str, threshold: float) -> bool:
         return False
     if na == nb:
         return True
-    if len(na) < 20 or len(nb) < 20:
+    min_len = 10 if (_CJK.search(na) or _CJK.search(nb)) else 20  # 中文标题天然更短
+    if len(na) < min_len or len(nb) < min_len:
         return False
     return fuzz.ratio(na, nb) >= threshold
 

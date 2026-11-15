@@ -1,7 +1,7 @@
 /* 商业新闻页：时间线 / 融资汇总 / 公司（含公司档案）。
  * 入口 window.AIVCNews.render(api, route) 返回根元素；所有文本经 api.el 输出。
  * 纯函数（筛选/分组/金额格式化）在 news-data.js。路由：
- *   #/news[?type=&company=&amount=&q=&major=1&unscored=1]   时间线
+ *   #/news[?type=&company=&amount=&q=&major=1&unscored=1&related=1|0]   时间线
  *   #/news?view=funding | #/news?view=companies            融资汇总 / 公司列表
  *   #/news/company/<id>                                     公司档案 */
 (function () {
@@ -15,6 +15,9 @@
   ];
   var FUNDING_NOTE = "仅统计本库已收录且披露金额的事件，不代表公司的实际累计融资。";
   var BATCH = 60;
+  var REL_BATCH = 30;
+  var REL_AUTO_OPEN_BELOW = 8;
+  var REL_HINT = "相关度 5：涉及细胞/组学数据但不是事件主体，或虚拟细胞方向的分析、追踪类文章。不计入首页、周报与融资汇总。";
 
   function render(api, route) {
     if (!ND) throw new Error("news-data.js 未加载");
@@ -87,7 +90,9 @@
 
     // ---------- 单条新闻（行式） ----------
     function itemRow(it) {
+      var rel = ND.isRelated(it);
       var tagsLine = [];
+      if (rel) tagsLine.push(tag("相关", "tag-warn"));
       tagsLine.push(tag(typeLabel[it.event_type] || str(it.event_type) || "其他", "tag-par"));
       if (it.major) tagsLine.push(tag("重大事件", "tag-hl"));
       if (typeof it.amount_usd === "number") tagsLine.push(tag(ND.fmtUsd(it.amount_usd), "tag-good"));
@@ -97,7 +102,7 @@
       if (!title) title = el("span", { class: "nw-title", text: str(it.title) || "(无标题)" });
       var chips = companyChips(it);
       var reasons = arr(it.major_reasons);
-      return el("article", { class: "nw-item" + (it.major ? " is-major" : "") }, [
+      return el("article", { class: "nw-item" + (it.major ? " is-major" : "") + (rel ? " is-related" : "") }, [
         el("div", { class: "nw-date mono", text: str(it.date) }),
         el("div", { class: "nw-body" }, [
           el("div", { class: "tags nw-tags" }, tagsLine),
@@ -123,11 +128,16 @@
     }
     function pageHead(active) {
       var gen = str(N.generated_at).replace("T", " ");
+      var minRel = typeof N.min_relevance === "number" ? N.min_relevance : 6;
+      var relMin = typeof N.related_min_relevance === "number" ? N.related_min_relevance : 5;
+      var nCore = ND.filterNews(items, {}).length;
+      var nRel = ND.filterNews(items, { tier: "related" }).length;
+      var nUnsc = items.filter(function (it) { return it && it.scored === false; }).length;
       return [
         el("div", { class: "eyebrow mono", text: "Business News" }),
         el("h1", { class: "page-title" }, ["商业", el("span", { class: "hl", text: "新闻" })]),
-        el("p", { class: "lede", text: "追踪虚拟细胞方向（细胞基础模型、扰动数据、单细胞与多组学 AI 平台）的融资、合作、并购、模型与数据发布和重要人事；只展示相关度不低于 6 的条目，一般的 AI 药物发现新闻不在此列。" }),
-        el("p", { class: "hint nw-meta mono" }, "展示 " + ND.filterNews(items, {}).length + " 条" + (items.length > ND.filterNews(items, {}).length ? "（另有 " + (items.length - ND.filterNews(items, {}).length) + " 条未打分，默认隐藏）" : "") + (gen ? " · 更新于 " + gen : "")),
+        el("p", { class: "lede", text: "追踪虚拟细胞方向（细胞基础模型、扰动数据、单细胞与多组学 AI 平台）的融资、合作、并购、模型与数据发布和重要人事。相关度不低于 " + minRel + " 的为核心动态；" + relMin + " 分的列在下方相关动态；一般的 AI 药物发现新闻不收录。" }),
+        el("p", { class: "hint nw-meta mono" }, "核心 " + nCore + " 条 · 相关 " + nRel + " 条" + (nUnsc ? "（另有 " + nUnsc + " 条未打分，默认隐藏）" : "") + (gen ? " · 更新于 " + gen : "")),
         el("div", { class: "notice" }, "摘要由 LLM 依据公开标题与摘要片段生成，可能有误，请以原文为准。每条均链接回原文并注明来源。"),
         tabs(active)
       ];
@@ -145,7 +155,10 @@
         type: params.get("type") || "", company: params.get("company") || "", amount: params.get("amount") || "",
         q: params.get("q") || "", major: params.get("major") === "1", unscored: params.get("unscored") === "1"
       };
-      var limit = BATCH;
+      var relParam = params.get("related");
+      var relOpen = null;  // null=按核心条数自动；true/false=用户或 URL 指定
+      if (relParam === "1") relOpen = true; else if (relParam === "0") relOpen = false;
+      var limit = BATCH, relLimit = REL_BATCH;
       var results = el("div", { class: "nw-results", "aria-live": "polite" });
       var countEl = el("span", { class: "count" });
       var clearBtn = el("button", { type: "button", class: "btn btn-ghost nw-clear", text: "清除筛选" });
@@ -158,24 +171,58 @@
         if (state.q.trim()) p.set("q", state.q.trim());
         if (state.major) p.set("major", "1");
         if (state.unscored) p.set("unscored", "1");
+        if (relOpen !== null) p.set("related", relOpen ? "1" : "0");
         var qs = p.toString();
         try { history.replaceState(null, "", "#/news" + (qs ? "?" + qs : "")); } catch (e) { /* ignore */ }
       }
       function hasFilter() { return !!(state.type || state.company || state.amount || state.q.trim() || state.major); }
 
+      function relSection(rel, coreN) {
+        var open = relOpen !== null ? relOpen : coreN < REL_AUTO_OPEN_BELOW;
+        var sorted = rel.slice().sort(function (x, y) {
+          var dx = str(x.date), dy = str(y.date);
+          if (dx !== dy) return dx < dy ? 1 : -1;
+          return str(x.id) < str(y.id) ? -1 : str(x.id) > str(y.id) ? 1 : 0;
+        });
+        var det = el("details", { class: "nw-related" }, [
+          el("summary", { class: "nw-relsum" }, [el("span", { class: "nw-reltitle", text: "相关动态 · " + rel.length + " 条" })]),
+          el("p", { class: "hint nw-relhint", text: REL_HINT }),
+          el("div", { class: "nw-list" }, sorted.slice(0, relLimit).map(itemRow))
+        ]);
+        if (sorted.length > relLimit) {
+          det.appendChild(el("div", { class: "more" }, el("button", { type: "button", class: "btn", text: "显示更多", onclick: function () { relLimit += REL_BATCH; draw(); } })));
+        }
+        det.open = open;
+        det.addEventListener("toggle", function () {
+          if (det.open === open) return;  // 程序设置引起的事件
+          open = det.open;
+          relOpen = open;
+          writeHash();
+        });
+        return det;
+      }
+
       function draw() {
         api.clear(results);
-        var list = ND.filterNews(items, { type: state.type, company: state.company, amount: state.amount, q: state.q, major: state.major, includeUnscored: state.unscored });
+        var base = { type: state.type, company: state.company, amount: state.amount, q: state.q, major: state.major, includeUnscored: state.unscored };
+        function withTier(t) { var o = {}; Object.keys(base).forEach(function (k) { o[k] = base[k]; }); o.tier = t; return o; }
+        var list = ND.filterNews(items, withTier("core"));
+        var rel = state.major ? [] : ND.filterNews(items, withTier("related"));
         var total = ND.filterNews(items, { includeUnscored: state.unscored }).length;
-        countEl.textContent = "匹配 " + list.length + " / " + total + " 条";
+        var totalRel = ND.filterNews(items, { includeUnscored: state.unscored, tier: "related" }).length;
+        countEl.textContent = "核心 " + list.length + " / " + total + " 条 · 相关 " + rel.length + " 条";
         clearBtn.hidden = !hasFilter();
         if (!items.length) { results.appendChild(emptyData()); return; }
         if (!list.length) {
-          results.appendChild(el("div", { class: "empty" }, [
-            el("p", { text: "没有符合当前筛选条件的新闻。" }),
-            el("button", { type: "button", class: "btn", text: "清除筛选", onclick: reset })
-          ]));
-          return;
+          if (!hasFilter() && totalRel > 0) {
+            results.appendChild(el("div", { class: "empty" }, el("p", { text: "近期暂无核心动态。" })));
+          } else if (!rel.length) {
+            results.appendChild(el("div", { class: "empty" }, [
+              el("p", { text: "没有符合当前筛选条件的新闻。" }),
+              el("button", { type: "button", class: "btn", text: "清除筛选", onclick: reset })
+            ]));
+            return;
+          }
         }
         var groups = ND.groupByWeek(list), shown = 0, more = false;
         groups.forEach(function (g) {
@@ -193,9 +240,10 @@
           ]));
         });
         if (more) results.appendChild(el("div", { class: "more" }, el("button", { type: "button", class: "btn", text: "显示更多", onclick: function () { limit += BATCH; draw(); } })));
+        if (rel.length) results.appendChild(relSection(rel, list.length));
         api.reveal(results);
       }
-      function change() { limit = BATCH; writeHash(); draw(); syncChips(); }
+      function change() { limit = BATCH; relLimit = REL_BATCH; writeHash(); draw(); syncChips(); }
       function reset() {
         state.type = ""; state.company = ""; state.amount = ""; state.q = ""; state.major = false;
         search.value = ""; companySel.value = ""; amountSel.value = ""; majorChk.checked = false;
@@ -298,7 +346,7 @@
           }))
         ]);
       });
-      var fund = items.filter(function (it) { return it.event_type === "funding"; }).sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; });
+      var fund = items.filter(function (it) { return it.event_type === "funding" && !ND.isRelated(it); }).sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; });
       var table = fund.length ? el("div", { class: "card tablewrap" }, el("table", { class: "data nw-table" }, [
         el("thead", {}, el("tr", {}, ["日期", "公司", "轮次", "金额", "投资方", "来源"].map(function (h) { return el("th", { text: h }); }))),
         el("tbody", {}, fund.map(function (it) {

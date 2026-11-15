@@ -124,3 +124,25 @@ test("quarterBars 相对高度", () => {
   assert.deepEqual(N.quarterBars(null), []);
   assert.equal(N.quarterBars([{ quarter: "x", total_usd: 1 }])[0].h, 1);
 });
+
+test("filterNews tier：默认核心，related 只要相关，all 全要；缺 tier 视为 core", () => {
+  const T = [
+    { id: "c1", relevance: 7, scored: true, tier: "core" },
+    { id: "c2", relevance: 6, scored: true },
+    { id: "r1", relevance: 5, scored: true, tier: "related" },
+    { id: "u1", relevance: 0, scored: false, tier: null }
+  ];
+  assert.deepEqual(N.filterNews(T, {}).map((x) => x.id), ["c1", "c2"]);
+  assert.deepEqual(N.filterNews(T, { tier: "core" }).map((x) => x.id), ["c1", "c2"]);
+  assert.deepEqual(N.filterNews(T, { tier: "related" }).map((x) => x.id), ["r1"]);
+  assert.deepEqual(N.filterNews(T, { tier: "all" }).map((x) => x.id), ["c1", "c2", "r1"]);
+  assert.deepEqual(N.filterNews(T, { tier: "all", includeUnscored: true }).map((x) => x.id), ["c1", "c2", "r1", "u1"]);
+  assert.deepEqual(N.filterNews(ITEMS, { tier: "related" }), []);
+});
+
+test("isRelated", () => {
+  assert.equal(N.isRelated({ tier: "related" }), true);
+  assert.equal(N.isRelated({ tier: "core" }), false);
+  assert.equal(N.isRelated({}), false);
+  assert.equal(N.isRelated(null), false);
+});
