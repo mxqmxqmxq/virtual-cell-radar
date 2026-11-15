@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-14T19:29:00Z",
+  "fetched_at": "2026-11-15T11:48:03Z",
   "repos": {
     "aaronwtr/perteval": {
       "full_name": "aaronwtr/PertEval",
@@ -154,6 +154,23 @@
         }
       ]
     },
+    "boom5426/awesome-virtual-cell": {
+      "full_name": "Boom5426/Awesome-Virtual-Cell",
+      "html_url": "https://github.com/Boom5426/Awesome-Virtual-Cell",
+      "stars": 337,
+      "pushed_at": "2026-10-28T05:14:23Z",
+      "archived": false,
+      "license": null,
+      "language": "HTML",
+      "fetched_at": "2026-11-15T11:48:03Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-15",
+          "stars": 337
+        }
+      ]
+    },
     "bowang-lab/scgpt": {
       "full_name": "bowang-lab/scGPT",
       "html_url": "https://github.com/bowang-lab/scGPT",
@@ -287,6 +304,23 @@
         {
           "date": "2026-11-14",
           "stars": 102
+        }
+      ]
+    },
+    "omicsml/awesome-foundation-model-single-cell-papers": {
+      "full_name": "OmicsML/awesome-foundation-model-single-cell-papers",
+      "html_url": "https://github.com/OmicsML/awesome-foundation-model-single-cell-papers",
+      "stars": 603,
+      "pushed_at": "2026-11-13T19:24:59Z",
+      "archived": false,
+      "license": "MIT",
+      "language": null,
+      "fetched_at": "2026-11-15T11:48:03Z",
+      "status": "ok",
+      "history": [
+        {
+          "date": "2026-11-15",
+          "stars": 603
         }
       ]
     },
