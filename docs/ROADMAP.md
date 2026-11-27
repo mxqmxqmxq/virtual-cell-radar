@@ -32,13 +32,22 @@
   - 自动发现：`discover` 从论文库（`code_url`、摘要中的 GitHub 链接、`datasets_used` 与 `new_dataset_names`）和新闻中提取候选，写入 `status=candidate`，不自动进入精选；首次发现 24 个候选（1 个仓库，23 个数据集名，细胞系名噪声较多），尚未接受任何一个。
   - 网站：`#/resources` 为真实页面，按类型分组，可按类型、任务、范式、维护状态、star 区间筛选并搜索，筛选保存在 URL；仓库卡片显示 star、最近推送、许可证与归档徽标；与数据集页、论文页互链；候选与已归档条目不公开展示；导出 `site/data/resources.json`；首页结尾区有入口。
   - 检查与文档：`check-public` 覆盖 `data/resources` 与 `site/data/resources.json`；`DATA_LICENSE.md` 与 `NOTICE.md` 补充新增新闻源与资源板块的条款结论。
+- **论文流水线 v2（2026-11）**：
+  - 新增来源：OpenAlex（期刊 ISSN 与通用查询，默认开）、Europe PMC（默认开）、HF Daily Papers（默认开）、OpenReview v2 抓取器（默认关）。
+  - 共享链接提取器 `fetchers/links.py`（代码仓库与权重/数据集链接）；arXiv 查询同时匹配标题与摘要，bioRxiv 回填已发表 DOI/期刊。
+  - 数据模型新增 pmid/pmcid/openalex_id/published_doi/published_venue/weights_url/citation_count/hf_upvotes/github_stars/matched_orgs/semantic_score/sources 与 LLM 四维分；去重时预印本→已发表晋升与多源并集。
+  - `aivc enrich`（离线机构匹配 + 可选 OpenAlex 引用刷新）。
+  - 混合预筛：关键词 + 标准库 TF-IDF 语义捞回，`semantic_rescue_threshold`。
+  - LLM：提示词 v4（新颖/严谨/影响四维分、锚点校准、推荐理由与局限）、复合排序与客观加分、openai_compat 后端（OpenAI/DeepSeek/OpenRouter/Ollama/vLLM）、API 错误指数退避。
+  - 水位线 `data/state/fetch_state.json` 与追赶窗口、积压补打 `retry_backlog_per_run`。
+  - `aivc stats`。
 
 ## 后续规划（均为计划中，尚未实现；商业新闻与知识资源板块的基础功能已在上文「已完成」中）
 
 ### 论文板块
 
-- 更多来源：期刊（Nature、Nature Methods、Nature Biotechnology、Cell、Cell Systems、Science、Genome Biology、Nature Machine Intelligence 等，经 RSS 与 PubMed 检索）、更多会议（NeurIPS、ICML、MLCB、RECOMB 等）、medRxiv。
-- 补充信号：引用数与相似论文（如 Semantic Scholar）、代码是否开源、模型权重是否发布。
+- 更多来源（剩余缺口）：期刊已通过 OpenAlex 的 ISSN 过滤与 Europe PMC 接入，ISSN 与接口字段待线上核实；ChemRxiv 与 PubMed 直连仅预留 `source` 取值，尚未接入；更多会议（NeurIPS、ICML、MLCB、RECOMB 等）尚未接入。
+- 补充信号（剩余缺口）：引用数、代码与权重链接已接入（OpenAlex、Europe PMC、链接提取器）；Semantic Scholar 未接，相似论文未做；`semantic_rescue_threshold`（初值 0.28）待用真实库校准。
 - 范式地图：建模范式 × 任务的矩阵视图，按月观察趋势。
 - 数据集与基准总表：名称、模态、规模、扰动类型、细胞系、来源论文、下载地址、许可。
 - 对高分论文自动生成精读卡。

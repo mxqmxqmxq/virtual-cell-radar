@@ -13,11 +13,11 @@ import httpx
 from ..models import Paper, make_paper_id
 from ..textutil import normalize_doi, strip_arxiv_version
 from .base import FetchError, build_client, get_with_retry
+from .links import extract_links
 
 log = logging.getLogger("aivc.fetchers.arxiv")
 
 _WS = re.compile(r"\s+")
-_GH = re.compile(r"https?://(?:www\.)?github\.com/[^\s<>\"')\]]+", re.IGNORECASE)
 _EMPTY_PAGE_RETRIES = 2
 
 
@@ -34,15 +34,10 @@ def _to_date(s: str | None) -> date | None:
         return None
 
 
-def _first_github(text: str) -> str | None:
-    m = _GH.search(text or "")
-    if not m:
-        return None
-    return m.group(0).rstrip(".,;:!?)]}'\"")
-
-
 def parse_arxiv_feed(text: str, today: date) -> tuple[list[Paper], int]:
     feed = feedparser.parse(text)
+    if not str(feed.get("version", "") or "").startswith("atom") and not feed.entries:
+        raise FetchError("arXiv 返回的不是 Atom feed")
     try:
         total = int(feed.feed.get("opensearch_totalresults", 0) or 0)
     except (TypeError, ValueError):
@@ -63,7 +58,7 @@ def parse_arxiv_feed(text: str, today: date) -> tuple[list[Paper], int]:
             cats = [primary] + [c for c in cats if c != primary]
         doi = e.get("arxiv_doi")
         # The arXiv Atom feed carries no per-paper license, so Paper.license stays None here.
-        code_url = _first_github(abstract or "")
+        links = extract_links(abstract)
         papers.append(
             Paper(
                 id=make_paper_id(arxiv_id=arxiv_id),
@@ -80,8 +75,11 @@ def parse_arxiv_feed(text: str, today: date) -> tuple[list[Paper], int]:
                 doi=normalize_doi(doi) if doi else None,
                 arxiv_id=arxiv_id,
                 categories=cats,
-                code_url=code_url,
-                has_code=bool(code_url),
+                code_url=links.code_url,
+                has_code=links.has_code,
+                weights_url=links.weights_url,
+                has_weights=True if links.has_weights else None,
+                sources=["arxiv"],
                 first_seen=today,
             )
         )
@@ -104,12 +102,20 @@ class ArxivFetcher:
         self.client = client or build_client(http_cfg)
         self.sleep = sleep
         self.today = today
+        self.last_incomplete = False
+        self.last_warning: str | None = None
+
+    def _mark_incomplete(self, msg: str) -> None:
+        self.last_incomplete = True
+        if not self.last_warning:
+            self.last_warning = msg
+        log.warning(msg)
 
     def _queries(self, since: date, until: date) -> list[str]:
         win = f"submittedDate:[{since:%Y%m%d}0000 TO {until:%Y%m%d}2359]"
         bio = "(" + " OR ".join(f"cat:{c}" for c in self.cfg.bio_categories) + ")"
         ml = "(" + " OR ".join(f"cat:{c}" for c in self.cfg.ml_categories) + ")"
-        terms = "(" + " OR ".join(f'abs:"{t}"' for t in self.cfg.query_terms) + ")"
+        terms = "(" + " OR ".join(f'(ti:"{t}" OR abs:"{t}")' for t in self.cfg.query_terms) + ")"
         qs = []
         if self.cfg.bio_categories:
             qs.append(f"{bio} AND {win}")
@@ -140,6 +146,7 @@ class ArxivFetcher:
             # arXiv occasionally returns an empty page although more results exist
             if attempt < _EMPTY_PAGE_RETRIES:
                 self.sleep(self.cfg.delay_seconds)
+        self._mark_incomplete(f"arXiv 分页在 start={start}/total={total} 处返回空页，结果可能不完整")
         return papers, total
 
     def _fetch_query(self, query: str) -> tuple[list[Paper], int]:
@@ -174,6 +181,7 @@ class ArxivFetcher:
             return left + self._fetch_window(idx, mid + timedelta(days=1), until)
         log.warning("arXiv 单日 %s 共 %d 条，超过上限 %d，只取最新的 %d 条；"
                     "可调大 sources.yaml 的 max_results_per_window", since, total, limit, limit)
+        self._mark_incomplete(f"arXiv 单日 {since} 共 {total} 条，超过上限 {limit}，仅取最新 {limit} 条，结果不完整")
         out: list[Paper] = []
         start = 0
         while start < limit:
@@ -186,6 +194,8 @@ class ArxivFetcher:
         return out
 
     def fetch(self, since: date, until: date) -> list[Paper]:
+        self.last_incomplete = False
+        self.last_warning = None
         merged: dict[str, Paper] = {}
         n_queries = len(self._queries(since, until))
         for i in range(n_queries):

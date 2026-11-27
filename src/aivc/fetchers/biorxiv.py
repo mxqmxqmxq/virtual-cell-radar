@@ -1,6 +1,7 @@
 """bioRxiv / medRxiv fetcher using the api.biorxiv.org ``details`` endpoint."""
 from __future__ import annotations
 
+import logging
 import re
 import time
 from datetime import date, datetime
@@ -11,9 +12,12 @@ import httpx
 from ..models import Paper, make_paper_id
 from ..textutil import biorxiv_id_from_doi, normalize_doi
 from .base import FetchError, build_client, get_with_retry
+from .links import extract_links
 
-_GITHUB_RE = re.compile(r"https?://(?:www\.)?github\.com/[\w.-]+/[\w.-]+", re.IGNORECASE)
-_NO_RESULT_HINTS = ("no posts", "no result", "not found")
+log = logging.getLogger("aivc.fetchers.biorxiv")
+
+_DOI_RE = re.compile(r"^10\.\d{4,9}/\S+$", re.IGNORECASE)
+_NO_RESULT_HINTS = ("no posts", "no result", "no articles", "not found")
 
 
 def _parse_date(s: Any) -> date | None:
@@ -52,9 +56,15 @@ def _entry_to_paper(e: dict, server: str, today: date) -> Paper | None:
     host = "www.medrxiv.org" if server == "medrxiv" else "www.biorxiv.org"
     url = f"https://{host}/content/{doi}v{ver}"
     abstract = " ".join((e.get("abstract") or "").split()) or None
-    gh = _GITHUB_RE.search(abstract or "")
+    links = extract_links(abstract)
     inst = (e.get("author_corresponding_institution") or "").strip()
     pub = (e.get("published") or "").strip()
+    pub_doi: str | None = None
+    venue: str | None = None
+    if pub and _DOI_RE.match(pub):
+        pub_doi = normalize_doi(pub) or None
+    elif pub and pub.upper() != "NA":
+        venue = pub
     cat = (e.get("category") or "").strip()
     lic = (e.get("license") or "").strip() or None  # raw source value, not rewritten
     return Paper(
@@ -64,7 +74,8 @@ def _entry_to_paper(e: dict, server: str, today: date) -> Paper | None:
         authors=[a.strip() for a in (e.get("authors") or "").split(";") if a.strip()],
         affiliations=[inst] if inst else [],
         source="medrxiv" if server == "medrxiv" else "biorxiv",
-        venue=pub if pub and pub.upper() != "NA" else None,
+        venue=venue,
+        published_doi=pub_doi,
         published=published,
         updated=date_v,
         version=f"v{ver}",
@@ -74,8 +85,11 @@ def _entry_to_paper(e: dict, server: str, today: date) -> Paper | None:
         license=lic,
         biorxiv_id=bid,
         categories=[cat] if cat else [],
-        code_url=gh.group(0) if gh else None,
-        has_code=True if gh else None,
+        code_url=links.code_url,
+        has_code=True if links.has_code else None,
+        weights_url=links.weights_url,
+        has_weights=True if links.has_weights else None,
+        sources=[server if server == "medrxiv" else "biorxiv"],
         first_seen=today,
     )
 
@@ -113,6 +127,9 @@ class BiorxivFetcher:
         self.sleep = sleep
         self.today = today
         self.name = cfg.server
+        self.last_published_links: dict[str, tuple[str, str]] = {}
+        self.last_incomplete = False
+        self.last_warning: str | None = None
 
     def _get_json(self, url: str, params: dict) -> dict:
         resp = get_with_retry(
@@ -125,6 +142,9 @@ class BiorxivFetcher:
             raise FetchError(f"invalid JSON from {url}") from e
 
     def fetch(self, since: date, until: date) -> list[Paper]:
+        self.last_published_links = {}
+        self.last_incomplete = False
+        self.last_warning = None
         today = self.today or date.today()
         base = self.cfg.base_url.rstrip("/")
         best: dict[str, Paper] = {}
@@ -147,4 +167,55 @@ class BiorxivFetcher:
                 cursor += n
                 if n == 0 or cursor >= total:
                     break
-        return list(best.values())
+        result = list(best.values())
+        if getattr(self.cfg, "fetch_published_links", False):
+            try:
+                self.sleep(self.cfg.delay_seconds)
+                links = self.fetch_published_links(since, until)
+            except Exception as e:  # noqa: BLE001 - enrichment must not break the main fetch
+                log.warning("bioRxiv pubs 回填失败，已跳过: %s", e)
+                links = {}
+            self.last_published_links = dict(links)
+            if links:
+                for i, p in enumerate(result):
+                    hit = links.get(normalize_doi(p.doi or ""))
+                    if not hit:
+                        continue
+                    upd = {"published_doi": hit[0], "published_venue": hit[1]}
+                    if not p.venue:
+                        upd["venue"] = hit[1]
+                    result[i] = p.model_copy(update=upd)
+        return result
+
+    def fetch_published_links(self, since: date, until: date) -> dict[str, tuple[str, str]]:
+        """biorxiv_doi -> (published_doi, published_journal) via the /pubs endpoint."""
+        base = self.cfg.base_url.rstrip("/")
+        out: dict[str, tuple[str, str]] = {}
+        cursor = 0
+        for page in range(self.cfg.max_pages_per_category):
+            if page:
+                self.sleep(self.cfg.delay_seconds)
+            url = f"{base}/pubs/{self.cfg.server}/{since.isoformat()}/{until.isoformat()}/{cursor}"
+            payload = self._get_json(url, {})
+            msgs = payload.get("messages") or [{}]
+            msg = msgs[0] if isinstance(msgs, list) and msgs else {}
+            status = str(msg.get("status", "ok")).lower()
+            if status != "ok":
+                if any(h in status for h in _NO_RESULT_HINTS):
+                    break  # page 0: nothing at all (out is empty); later page: keep accumulated
+                raise FetchError(f"bioRxiv pubs API returned status {msg.get('status')!r}")
+            coll = payload.get("collection") or []
+            for e in coll:
+                b = normalize_doi(e.get("biorxiv_doi") or "")
+                pd = normalize_doi(e.get("published_doi") or "")
+                j = (e.get("published_journal") or "").strip()
+                if b and pd and j:
+                    out[b] = (pd, j)
+            try:
+                total = int(msg.get("total") or 0)
+            except (TypeError, ValueError):
+                total = 0
+            cursor += len(coll)
+            if not coll or cursor >= total:
+                break
+        return out

@@ -1,0 +1,74 @@
+{
+ "count": 5,
+ "notes": [
+  {
+   "id": "CCC333",
+   "cdate": 1793534400000,
+   "odate": 1795348800000,
+   "content": {
+    "title": {
+     "value": "Anonymous submission on single-cell models"
+    },
+    "abstract": {
+     "value": "Weights at https://huggingface.co/acme/cellmodel."
+    },
+    "authors": {
+     "value": [
+      "Anonymous"
+     ]
+    },
+    "keywords": {
+     "value": [
+      "single-cell"
+     ]
+    }
+   },
+   "readers": [
+    "everyone"
+   ],
+   "tmdate": 1795700000000
+  },
+  {
+   "id": "DDD444",
+   "cdate": 1793534400000,
+   "pdate": 1795608000000,
+   "tmdate": 1795700000000,
+   "readers": [
+    "ICLR.cc/2027/Conference/Reviewers"
+   ],
+   "content": {
+    "title": {
+     "value": "Restricted submission"
+    },
+    "abstract": {
+     "value": "secret"
+    }
+   }
+  },
+  {
+   "id": "EEE555",
+   "cdate": 1793534400000,
+   "pdate": 1795608000000,
+   "tmdate": 1795700000000,
+   "readers": [
+    "everyone"
+   ],
+   "content": {
+    "title": {
+     "value": "Public paper with hidden authors"
+    },
+    "abstract": {
+     "value": "Public abstract."
+    },
+    "authors": {
+     "value": [
+      "Real Name"
+     ],
+     "readers": [
+      "ICLR.cc/2027/Conference/Program_Chairs"
+     ]
+    }
+   }
+  }
+ ]
+}

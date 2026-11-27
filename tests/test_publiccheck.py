@@ -117,6 +117,27 @@ def test_repo_paths(tmp_path):
     assert [(i.path, i.line) for i in issues] == [("b.md", 2)]
 
 
+def test_repo_paths_git_file_pointer(tmp_path):
+    abs_ptr = f"gitdir: {U}alice/repo/.git/worktrees/y\n"
+    # 根目录 .git 为合法 gitdir 指针 → 不报
+    _w(tmp_path / ".git", abs_ptr)
+    assert pc.check_repo_paths(tmp_path) == []
+    # 子目录 sub/.git 文件含同样路径 → 报 1 条，路径为 sub/.git
+    _w(tmp_path / "sub/.git", abs_ptr)
+    issues = pc.check_repo_paths(tmp_path)
+    assert [(i.path, i.line) for i in issues] == [("sub/.git", 1)]
+    (tmp_path / "sub/.git").unlink()
+    # 根目录 .git 不以 gitdir: 开头但含路径 → 报出
+    _w(tmp_path / ".git", "see " + U + "alice/repo\n")
+    issues = pc.check_repo_paths(tmp_path)
+    assert [(i.path, i.line) for i in issues] == [(".git", 1)]
+
+
+def test_repo_paths_uv_lock_skipped(tmp_path):
+    _w(tmp_path / "uv.lock", "" + U + "alice/repo/\n")
+    assert pc.check_repo_paths(tmp_path) == []
+
+
 # CLI
 def _cfg_dir(tmp_path, config_dir):
     import shutil
@@ -271,3 +292,56 @@ def test_topic_in_data_resources(tmp_path):
     _ry(root / "data/resources/repos.yaml", [_res(description_zh="涉及 SecretTopic 的说明")])
     issues, _ = pc.check_private_topics(root, tmp_path / "local", tmp_path / "r", tmp_path / "s")
     assert len(issues) == 1 and "repos.yaml" in issues[0].path
+
+
+# ---- v2: state 与新字段 ----
+def _state(**kw):
+    d = {"version": 1, "sources": {"arxiv": {"last_success_date": "2026-11-20", "consecutive_failures": 0}},
+         "runs": [{"run_at": "2026-11-20T00:00:00", "fetched": 3}]}
+    d.update(kw)
+    return json.dumps(d)
+
+
+def test_state_clean_and_missing(tmp_path):
+    assert pc.check_state_data(tmp_path) == []
+    _w(tmp_path / "state/fetch_state.json", _state())
+    assert pc.check_state_data(tmp_path) == []
+
+
+def test_state_dirty(tmp_path):
+    f = tmp_path / "state/fetch_state.json"
+    _w(f, _state(extra=1))
+    assert len(pc.check_state_data(tmp_path)) == 1
+    _w(f, _state(sources={"arxiv": {"bogus": 1}}))
+    assert len(pc.check_state_data(tmp_path)) == 1
+    _w(f, _state(sources={"arxiv": {"last_error": "boom at " + U + "bob/x"}}))
+    assert any("绝对路径" in i.message for i in pc.check_state_data(tmp_path))
+    _w(f, _state(runs=[{"fetched": 1}] * 31))
+    assert any("30" in i.message for i in pc.check_state_data(tmp_path))
+    _w(f, "{not json")
+    assert len(pc.check_state_data(tmp_path)) == 1
+
+
+def test_papers_new_fields(tmp_path):
+    long_en = " ".join(["word"] * 30)
+    lines = [
+        _rec(),
+        _rec(sources=["arxiv", "openalex"], weights_url="https://huggingface.co/a/b",
+             published_doi="10.1038/x", matched_orgs=["Acme"], llm={"why_it_matters_zh": "简短"}),
+        _rec(sources=["bogus"]),
+        _rec(llm={"why_it_matters_zh": long_en}),
+        _rec(weights_url="ftp://x"),
+        _rec(published_doi="notadoi"),
+        _rec(matched_orgs=["a/b"]),
+    ]
+    _w(tmp_path / "papers/2026-10.jsonl", "\n".join(lines) + "\n")
+    issues = pc.check_data(tmp_path, ALLOWED)
+    assert sorted(i.line for i in issues) == [3, 4, 5, 6, 7]
+
+
+def test_site_papers_new_fields(tmp_path):
+    long_en = " ".join(["word"] * 30)
+    _w(tmp_path / "data/papers.json", json.dumps(
+        [{"id": "a", "weights_url": "https://x.org/a", "why_it_matters_zh": "好"},
+         {"id": "b", "weights_url": "file:///x", "limitations_zh": long_en}]))
+    assert len(pc.check_site_data(tmp_path)) == 2

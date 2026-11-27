@@ -1,0 +1,142 @@
+{
+ "meta": {
+  "count": 3,
+  "next_cursor": "CUR2"
+ },
+ "results": [
+  {
+   "id": "https://openalex.org/W1001",
+   "doi": "https://doi.org/10.1038/s41592-026-00001-1",
+   "display_name": "A  foundation model for   virtual cell perturbation",
+   "type": "article",
+   "publication_date": "2026-11-10",
+   "cited_by_count": 42,
+   "ids": {
+    "openalex": "https://openalex.org/W1001",
+    "doi": "https://doi.org/10.1038/s41592-026-00001-1",
+    "pmid": "https://pubmed.ncbi.nlm.nih.gov/39000001"
+   },
+   "abstract_inverted_index": {
+    "We": [
+     0
+    ],
+    "present": [
+     1
+    ],
+    "a": [
+     2
+    ],
+    "model.": [
+     3
+    ],
+    "Code": [
+     4
+    ],
+    "at": [
+     5,
+     9
+    ],
+    "https://github.com/example-lab/vcmodel": [
+     6
+    ],
+    "and": [
+     7
+    ],
+    "weights": [
+     8
+    ],
+    "https://huggingface.co/example-lab/vcmodel-base.": [
+     10
+    ]
+   },
+   "primary_location": {
+    "landing_page_url": "https://www.nature.com/articles/s41592-026-00001-1",
+    "license": "cc-by",
+    "source": {
+     "display_name": "Nature Methods",
+     "type": "journal"
+    }
+   },
+   "best_oa_location": {
+    "pdf_url": "https://example.org/w1001.pdf"
+   },
+   "authorships": [
+    {
+     "author": {
+      "display_name": "Alice Example"
+     },
+     "institutions": [
+      {
+       "display_name": "Example University"
+      },
+      {
+       "display_name": "Example Institute"
+      }
+     ]
+    },
+    {
+     "author": {
+      "display_name": "Bob Sample"
+     },
+     "institutions": [
+      {
+       "display_name": "Example University"
+      }
+     ]
+    }
+   ],
+   "locations": [],
+   "keywords": [
+    {
+     "display_name": "perturbation"
+    }
+   ]
+  },
+  {
+   "id": "https://openalex.org/W1002",
+   "doi": "https://doi.org/10.1101/2026.01.02.000001",
+   "display_name": "Single-cell atlas preprint",
+   "type": "preprint",
+   "publication_date": "2026-11-09",
+   "cited_by_count": 3,
+   "ids": {
+    "openalex": "https://openalex.org/W1002"
+   },
+   "abstract_inverted_index": {
+    "An": [
+     0
+    ],
+    "atlas": [
+     1
+    ],
+    "of": [
+     2
+    ],
+    "cells.": [
+     3
+    ]
+   },
+   "primary_location": {
+    "landing_page_url": "https://www.biorxiv.org/content/10.1101/2026.01.02.000001",
+    "license": null,
+    "source": {
+     "display_name": "bioRxiv",
+     "type": "repository"
+    }
+   },
+   "best_oa_location": null,
+   "open_access": {
+    "oa_url": "https://www.biorxiv.org/content/10.1101/2026.01.02.000001.full.pdf"
+   },
+   "authorships": [
+    {
+     "author": {
+      "display_name": "Carol Test"
+     },
+     "institutions": []
+    }
+   ],
+   "locations": []
+  }
+ ]
+}

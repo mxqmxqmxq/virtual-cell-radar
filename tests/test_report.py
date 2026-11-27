@@ -315,3 +315,26 @@ def test_pinned_news_section_and_default_unchanged():
     assert "## 重大行业事件" in out and "**[重大] 虚构重大事件**" in out
     heads = [ln for ln in out.splitlines() if ln.startswith("## ")]
     assert heads[0] == "## 重大行业事件"
+
+
+def test_v3_papers_have_no_v4_additions():
+    md = render_daily(fixture_papers(), RUN)
+    for token in ("四维", "已发表", "[权重]", "为何重要", "局限："):
+        assert token not in md
+
+
+def test_v4_fields_render_badges_dims_and_weights():
+    llm = make_llm(novelty_score=8, rigor_score=None, impact_score=7,
+                   why_it_matters_zh="很重要", limitations_zh="样本少")
+    p = make_paper("arxiv:9", "V4 paper", llm=llm, llm_status="scored", final_score=8.5,
+                   must_read=True, published_venue="Nature Methods", citation_count=12,
+                   hf_upvotes=30, github_stars=150, weights_url="https://huggingface.co/o/m",
+                   code_url="https://github.com/o/r")
+    md = render_daily([p], RUN)
+    assert "【已发表：Nature Methods】 · 引用 12 · HF 赞 30 · GitHub ★150" in md
+    assert "- 四维：新颖 8/严谨 —/影响 7" in md
+    assert md.index("- 四维") < md.index("- 新意：")
+    assert "- 为何重要：很重要" in md and "- 局限：样本少" in md
+    assert "[代码](https://github.com/o/r) · [权重](https://huggingface.co/o/m)" in md
+    u = make_paper("arxiv:8", "Unscored", published_venue="Cell")
+    assert "· 已发表：Cell" in render_daily([u], RUN)

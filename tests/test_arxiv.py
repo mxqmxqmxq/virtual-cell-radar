@@ -92,7 +92,7 @@ def test_fetch_basic_dedup_across_groups_and_query():
     q1 = reqs[1].url.params["search_query"]
     assert "submittedDate:[202611010000 TO 202611082359]" in q0
     assert "cat:q-bio.GN OR cat:q-bio.QM" in q0 and "abs:" not in q0
-    assert 'cat:cs.LG' in q1 and 'abs:"virtual cell"' in q1 and "202611082359" in q1
+    assert 'cat:cs.LG' in q1 and 'abs:"virtual cell"' in q1 and 'ti:"virtual cell"' in q1 and "202611082359" in q1
     assert reqs[0].url.params["sortBy"] == "submittedDate"
     assert reqs[0].url.params["max_results"] == "100"
     assert sleeps and all(s == 3.0 for s in sleeps)
@@ -183,3 +183,60 @@ def test_window_over_limit_is_split():
     papers = f.fetch(date(2026, 11, 1), date(2026, 11, 4))
     assert len(papers) == 5
     assert any("202611010000 TO 202611022359" in q for q in seen)
+
+
+def test_weights_url_from_abstract():
+    xml = SAMPLE.replace("https://github.com/example-lab/scbig",
+                         "https://huggingface.co/acme/scbig-model")
+    papers, _ = parse_arxiv_feed(xml, TODAY)
+    a = papers[0]
+    assert a.weights_url == "https://huggingface.co/acme/scbig-model"
+    assert a.has_weights is True and a.sources == ["arxiv"]
+    assert papers[2].has_weights is None
+
+
+def test_html_200_raises_fetcherror():
+    f, _ = make(lambda req: httpx.Response(200, text="<html><body>Service busy</body></html>"))
+    with pytest.raises(FetchError, match="Atom"):
+        f.fetch(date(2026, 11, 1), date(2026, 11, 8))
+
+
+def test_empty_atom_feed_still_ok():
+    assert parse_arxiv_feed(EMPTY, TODAY) == ([], 0)
+
+
+def test_empty_page_exhausted_marks_incomplete_keeps_results():
+    def handler(req):
+        s = int(req.url.params["start"])
+        if s == 0:
+            return httpx.Response(200, text=feed_with(2, 5))
+        return httpx.Response(200, text=feed_with(0, 5))
+
+    f, _ = make(handler, page_size=2, ml_categories=[])
+    papers = f.fetch(date(2026, 11, 1), date(2026, 11, 8))
+    assert len(papers) == 2
+    assert f.last_incomplete is True and "start=2" in f.last_warning
+    # 下一次 fetch 复位
+    f.fetch(date(2026, 11, 1), date(2026, 11, 8))
+    assert f.last_incomplete is True  # 同样的响应再次不完整
+
+
+def test_single_day_over_limit_marks_incomplete():
+    def handler(req):
+        s = int(req.url.params["start"])
+        return httpx.Response(200, text=feed_with(2, 1000, start_id=s * 10))
+
+    f, _ = make(handler, page_size=2, max_results_per_window=4, ml_categories=[])
+    papers = f.fetch(date(2026, 11, 3), date(2026, 11, 3))
+    assert len(papers) == 4
+    assert f.last_incomplete is True and "单日" in f.last_warning
+
+
+def test_normal_pagination_not_incomplete():
+    def handler(req):
+        s = int(req.url.params["start"])
+        return httpx.Response(200, text=feed_with(2 if s == 0 else 1, 3, start_id=s * 10))
+
+    f, _ = make(handler, page_size=2, ml_categories=[])
+    assert len(f.fetch(date(2026, 11, 1), date(2026, 11, 8))) == 3
+    assert f.last_incomplete is False and f.last_warning is None

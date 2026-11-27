@@ -66,3 +66,36 @@ def test_news_item_defaults_and_no_text_fields():
 def test_news_entry_transient():
     e = NewsEntry(title="t", url="https://e.com", source="S")
     assert e.snippet == "" and e.feed_kind == "media" and e.feed_company is None
+
+
+def test_make_paper_id_pmid_openalex_fallback():
+    assert make_paper_id(pmid=" 123 ", openalex_id="W1", title="t") == "pmid:123"
+    assert make_paper_id(openalex_id="https://openalex.org/W2741", title="t") == "openalex:W2741"
+    assert make_paper_id(openreview_id="r", pmid="1") == "openreview:r"
+    assert make_paper_id(doi="10.1/x", pmid="1") == "doi:10.1/x"
+    assert make_paper_id(pmid="1", openalex_id="W9") == "pmid:1"
+
+
+def test_new_paper_fields_defaults_and_legacy_row():
+    p = Paper(id="x", title="t", source="openalex", first_seen=date(2026, 1, 1))
+    assert p.pmid is None and p.citation_count is None and p.weights_url is None
+    assert p.matched_orgs == [] and p.mentioned_orgs == [] and p.sources == [] and p.semantic_score == 0.0
+    legacy = Paper(id="y", title="t", source="arxiv", first_seen=date(2026, 1, 1)).model_dump(mode="json")
+    for k in ("pmid", "pmcid", "openalex_id", "published_doi", "published_venue", "weights_url",
+              "citation_count", "hf_upvotes", "github_stars", "matched_orgs", "mentioned_orgs", "semantic_score", "sources"):
+        legacy.pop(k)
+    q = Paper.model_validate(legacy)
+    d = q.model_dump()
+    assert d["pmid"] is None and d["sources"] == [] and d["semantic_score"] == 0.0
+
+
+def test_llm_new_scores_bounds():
+    kw = dict(relevance=5, model="m", prompt_version="v4", scored_at=datetime(2026, 1, 1))
+    a = LLMAnnotation(**kw)
+    assert a.novelty_score is None and a.why_it_matters_zh == "" and a.limitations_zh == ""
+    LLMAnnotation(novelty_score=0, rigor_score=10, impact_score=7, **kw)
+    for f in ("novelty_score", "rigor_score", "impact_score"):
+        with pytest.raises(ValidationError):
+            LLMAnnotation(**{f: 11}, **kw)
+        with pytest.raises(ValidationError):
+            LLMAnnotation(**{f: -1}, **kw)

@@ -1,0 +1,5 @@
+{"messages":[{"status":"ok","interval":"2026-11-12:2026-11-13","cursor":0,"count":2,"total":"2"}],
+"collection":[
+{"biorxiv_doi":"10.64898/2026.11.12.700001","published_doi":"10.1038/s41592-026-00002-y","published_journal":"Nature Methods","preprint_title":"Foundation model for single-cell perturbation response","preprint_date":"2026-11-12","published_date":"2026-11-13"},
+{"biorxiv_doi":"10.1101/2026.11.01.500009","published_doi":"10.1016/j.cels.2026.11.001","published_journal":"Cell Systems","preprint_title":"Other paper","preprint_date":"2026-11-01","published_date":"2026-11-13"}
+]}

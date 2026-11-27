@@ -24,6 +24,11 @@ class LLMAnnotation(BaseModel):
     relevance: int = Field(ge=0, le=10)
     novelty_zh: str = ""
     summary_zh: str = ""
+    novelty_score: int | None = Field(default=None, ge=0, le=10)
+    rigor_score: int | None = Field(default=None, ge=0, le=10)
+    impact_score: int | None = Field(default=None, ge=0, le=10)
+    why_it_matters_zh: str = ""
+    limitations_zh: str = ""
     model: str
     prompt_version: str
     scored_at: datetime
@@ -35,7 +40,10 @@ class Paper(BaseModel):
     abstract: str | None = None
     authors: list[str] = Field(default_factory=list)
     affiliations: list[str] = Field(default_factory=list)
-    source: Literal["arxiv", "biorxiv", "medrxiv", "openreview", "journal", "seed_pdf", "other"]
+    source: Literal[
+        "arxiv", "biorxiv", "medrxiv", "openreview", "journal", "seed_pdf", "other",
+        "openalex", "europepmc", "pubmed", "hf_papers", "chemrxiv",
+    ]
     venue: str | None = None
     published: date | None = None
     updated: date | None = None
@@ -54,6 +62,19 @@ class Paper(BaseModel):
     code_url: str | None = None
     has_code: bool | None = None
     has_weights: bool | None = None
+    pmid: str | None = None
+    pmcid: str | None = None
+    openalex_id: str | None = None
+    published_doi: str | None = None
+    published_venue: str | None = None
+    weights_url: str | None = None
+    citation_count: int | None = None
+    hf_upvotes: int | None = None
+    github_stars: int | None = None
+    matched_orgs: list[str] = Field(default_factory=list)  # 机构归属（来自 affiliations）
+    mentioned_orgs: list[str] = Field(default_factory=list)  # 标题/摘要提及的公司（非归属）
+    semantic_score: float = 0.0
+    sources: list[str] = Field(default_factory=list)
     local_file: str | None = None  # relative to the seed root, never absolute
     alt_ids: list[str] = Field(default_factory=list)
     alt_urls: list[str] = Field(default_factory=list)
@@ -220,6 +241,8 @@ def make_paper_id(
     biorxiv_id: str | None = None,
     doi: str | None = None,
     openreview_id: str | None = None,
+    pmid: str | None = None,
+    openalex_id: str | None = None,
     title: str | None = None,
 ) -> str:
     if arxiv_id:
@@ -230,6 +253,11 @@ def make_paper_id(
         return f"doi:{normalize_doi(doi)}"
     if openreview_id:
         return f"openreview:{openreview_id}"
+    if pmid and pmid.strip():
+        return f"pmid:{pmid.strip()}"
+    if openalex_id and openalex_id.strip():
+        oid = openalex_id.strip().rsplit("openalex.org/", 1)[-1]
+        return f"openalex:{oid}"
     if title:
         return "title:" + hashlib.sha1(normalize_title(title).encode("utf-8")).hexdigest()[:16]
     raise ValueError("make_paper_id needs at least one identifier or a title")

@@ -1,6 +1,6 @@
 model: "claude-haiku-5-5"
 max_tokens: 1024
-prompt_version: "v3"   # v3：v2 基础上放宽 9 分判据（v2 试打 9-10 为 0）
+prompt_version: "v4"   # v4：增加四维分（novelty/rigor/impact）、锚点校准与推荐理由/局限
 max_calls_per_run: 300
 concurrency: 4
 must_read_threshold: 9
@@ -11,6 +11,46 @@ cache_file: "cache/llm.jsonl"   # 相对 data_dir
 #   auto       有 ANTHROPIC_API_KEY 就走 API；没有 key 但本机装了并登录了 Claude Code，就用 `claude -p`（订阅额度）
 #   api        只用 Anthropic API（GitHub Actions 用这个）
 #   claude_cli 只用本机 Claude Code，不需要 key；只能在你自己电脑上跑，单篇约 10 秒
+#   openai_compat OpenAI 兼容接口（OpenAI/DeepSeek/OpenRouter/Ollama/vLLM），见下方 openai_*
+#   auto 探测顺序：ANTHROPIC_API_KEY -> OPENAI_API_KEY -> claude_cli
 backend: "auto"
 cli_command: "claude"
 cli_timeout: 180
+
+# OpenAI 兼容后端（backend: openai_compat，或 auto 且只有 OPENAI_API_KEY 时）
+openai_base_url: "https://api.openai.com/v1"
+openai_api_key_env: "OPENAI_API_KEY"
+# openai_compat 实际使用的模型；用 DeepSeek/Ollama 等时改成对应模型名。
+# 设为 null 时：若上面的 model 是 Claude 模型名，则该后端视为不可用（不会把 Claude 模型名发给 OpenAI 兼容接口）。
+# 缓存键含 (backend, 有效模型, prompt_version, 标题, 摘要哈希)，换后端/模型不会误用旧缓存；
+# 已打分论文只在 prompt_version 变化时重打，单纯换模型不会触发重打。
+openai_model: "gpt-4o-mini"
+
+# 复合排序：有四维分 base = 加权和，否则 base = relevance
+score_weights:
+  relevance: 0.40
+  novelty: 0.25
+  rigor: 0.15
+  impact: 0.20
+# 客观加分（仅非 none 圈），总和封顶 max_objective_bonus
+bonus_code: 0.2
+bonus_weights_or_dataset: 0.3
+bonus_impact: 0.3
+max_objective_bonus: 0.8
+top_venues:
+  - "Nature"
+  - "Nature Methods"
+  - "Nature Biotechnology"
+  - "Nature Machine Intelligence"
+  - "Nature Computational Science"
+  - "Cell"
+  - "Cell Systems"
+  - "Science"
+  - "Genome Biology"
+impact_hf_upvotes: 10
+impact_citations: 20
+impact_github_stars: 100
+
+# API 非致命错误重试（指数退避）
+api_retries: 2
+retry_backoff_seconds: 1.0

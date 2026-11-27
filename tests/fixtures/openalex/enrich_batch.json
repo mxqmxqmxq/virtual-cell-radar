@@ -1,0 +1,29 @@
+{
+ "meta": {"count": 2, "next_cursor": null},
+ "results": [
+  {
+   "id": "https://openalex.org/W2001",
+   "doi": "https://doi.org/10.1038/s41592-026-00002-2",
+   "display_name": "Enrichment target one",
+   "type": "article",
+   "publication_date": "2026-11-01",
+   "cited_by_count": 77,
+   "ids": {"openalex": "https://openalex.org/W2001", "pmid": "https://pubmed.ncbi.nlm.nih.gov/39000002"},
+   "primary_location": {"source": {"display_name": "Nature Methods", "type": "journal"}},
+   "authorships": [
+    {"author": {"display_name": "A. Author"}, "institutions": [{"display_name": "Arc Institute"}, {"display_name": "Stanford University"}]}
+   ]
+  },
+  {
+   "id": "https://openalex.org/W2002",
+   "doi": "https://doi.org/10.1101/2026.10.01.123456",
+   "display_name": "Enrichment target two",
+   "type": "preprint",
+   "publication_date": "2026-10-01",
+   "cited_by_count": 3,
+   "ids": {"openalex": "https://openalex.org/W2002"},
+   "primary_location": {"source": {"display_name": "bioRxiv", "type": "repository"}},
+   "authorships": []
+  }
+ ]
+}

@@ -116,3 +116,131 @@ def test_merge_license_fills_but_does_not_overwrite():
     assert merge_papers(a, b).license == "cc_by"
     c = mk("arxiv:1", arxiv_id="1", license="cc_no")
     assert merge_papers(c, b).license == "cc_no"
+
+
+def test_pmid_openalex_keys_dedup():
+    a = mk("pmid:1", source="europepmc", pmid="123", title="Aaa bbb")
+    b = mk("x:2", source="openalex", pmid="123", title="Totally different words here")
+    assert DedupIndex([a]).find(b) is a
+    c = mk("oa:1", source="openalex", openalex_id="W1", title="Qqq")
+    d = mk("y:3", source="openalex", openalex_id="W1", title="Zzz unrelated title entirely")
+    assert DedupIndex([c]).find(d) is c
+
+
+def test_doi_published_doi_cross_hit():
+    a = mk("arxiv:1", arxiv_id="1", doi="10.1/pre", published_doi="10.2/journal")
+    b = mk("openalex:W9", source="openalex", doi="10.2/JOURNAL", title="Unrelated other words")
+    assert DedupIndex([a]).find(b) is a
+    c = mk("arxiv:2", arxiv_id="2", doi="10.3/x", title="Foo bar baz")
+    d = mk("openalex:W8", source="openalex", doi="10.4/y", published_doi="10.3/x", title="Qux")
+    assert DedupIndex([c]).find(d) is c
+
+
+def test_merge_sources_union_and_max_counts():
+    a = mk("arxiv:1", arxiv_id="1", citation_count=3, hf_upvotes=None, github_stars=10,
+           semantic_score=0.1)
+    b = mk("hf:1", source="hf_papers", citation_count=1, hf_upvotes=5, github_stars=50,
+           semantic_score=0.3, sources=["hf_papers", "openalex"])
+    m = merge_papers(a, b)
+    assert m.sources == ["arxiv", "hf_papers", "openalex"]
+    assert (m.citation_count, m.hf_upvotes, m.github_stars) == (3, 5, 50)
+    assert m.semantic_score == 0.3
+    assert merge_papers(a, a.model_copy()) == a
+
+
+def _journal(**kw):
+    kw.setdefault("source", "openalex")
+    kw.setdefault("venue", "Nature Methods")
+    kw.setdefault("doi", "10.1038/x")
+    kw.setdefault("published_venue", kw["venue"])
+    kw.setdefault("published_doi", kw["doi"])
+    return mk("openalex:W1", openalex_id="W1", **kw)
+
+
+def test_promotion_venue_none():
+    a = mk("arxiv:1", arxiv_id="1", doi="10.1101/pre", abstract="abs", llm_status="scored")
+    m = merge_papers(a, _journal())
+    assert m.published_venue == "Nature Methods" and m.published_doi == "10.1038/x"
+    assert m.venue == "Nature Methods" and m.openalex_id == "W1"
+    assert m.llm_status == "scored"
+
+
+def test_promotion_replaces_submission_venue():
+    a = mk("arxiv:1", arxiv_id="1", venue="ICLR 2027 (submission, under review)")
+    m = merge_papers(a, _journal())
+    assert m.venue == "Nature Methods" and m.published_venue == "Nature Methods"
+
+
+def test_promotion_keeps_existing_published_and_real_venue():
+    a = mk("arxiv:1", arxiv_id="1", venue="NeurIPS 2026", published_venue="Cell",
+           published_doi="10.1016/c")
+    m = merge_papers(a, _journal())
+    assert m.published_venue == "Cell" and m.published_doi == "10.1016/c"
+    assert m.venue == "NeurIPS 2026"
+
+
+def test_non_preprint_existing_promoted_by_explicit_evidence():
+    a = mk("openreview:1", source="openreview", openreview_id="1")
+    m = merge_papers(a, _journal())
+    assert m.published_venue == "Nature Methods" and m.published_doi == "10.1038/x"
+
+
+def _pair():
+    A = mk("arxiv:1", arxiv_id="1", doi="10.1101/x", abstract="abs")
+    B = mk("openalex:W1", source="openalex", openalex_id="W1", doi="10.1038/y",
+           venue="Nature Methods", published_venue="Nature Methods", published_doi="10.1038/y")
+    return A, B
+
+
+def test_merge_both_orders_consistent():
+    A, B = _pair()
+    ab, ba = merge_papers(A, B), merge_papers(B, A)
+    assert ab.published_venue == ba.published_venue == "Nature Methods"
+    assert ab.published_doi == ba.published_doi == "10.1038/y"
+    assert set(ab.sources) == set(ba.sources) == {"arxiv", "openalex"}
+    assert ab.doi == "10.1101/x" and ba.doi == "10.1038/y"
+    ids_ab = (set(ab.alt_ids) | {ab.id}) - {"doi:10.1038/y", "doi:10.1101/x"}
+    ids_ba = (set(ba.alt_ids) | {ba.id}) - {"doi:10.1038/y", "doi:10.1101/x"}
+    assert ids_ab == ids_ba == {"arxiv:1", "openalex:W1"}
+    assert "doi:10.1038/y" in ab.alt_ids and "doi:10.1101/x" in ba.alt_ids
+
+
+def test_replay_idempotent():
+    A, B = _pair()
+    ab = merge_papers(A, B)
+    assert merge_papers(ab, B) == ab
+    ba = merge_papers(B, A)
+    assert merge_papers(ba, A) == ba
+
+
+def test_dedup_batch_both_orders_single_record():
+    A, B = _pair()
+    for batch in ([A, B], [B, A]):
+        r = dedup_batch(batch, [])
+        got = r.new + r.updated
+        assert len(got) == 1 and got[0].published_doi == "10.1038/y"
+
+
+def test_existing_published_doi_not_overwritten():
+    A, B = _pair()
+    A = A.model_copy(update={"published_doi": "10.1016/c", "published_venue": "Cell"})
+    m = merge_papers(A, B)
+    assert m.published_doi == "10.1016/c" and m.published_venue == "Cell"
+
+
+def test_repository_record_does_not_promote():
+    # OpenAlex preprint record: venue is a preprint server, no published_* set.
+    a = mk("biorxiv:1", source="biorxiv", biorxiv_id="1", doi="10.1101/pre")
+    inc = mk("openalex:W2", source="openalex", openalex_id="W2", venue="bioRxiv", doi="10.1101/pre")
+    m = merge_papers(a, inc)
+    assert m.published_venue is None and m.published_doi is None
+
+
+def test_preprint_server_venue_replaced_on_promotion():
+    existing = mk("biorxiv:10.1101/2026.01.01.000001", source="biorxiv", venue="bioRxiv")
+    incoming = existing.model_copy(update={"source": "openalex", "venue": "Nature Methods",
+                                           "published_venue": "Nature Methods",
+                                           "published_doi": "10.1038/s41592-026-00001-1"})
+    merged = merge_papers(existing, incoming)
+    assert merged.published_venue == "Nature Methods"
+    assert merged.venue == "Nature Methods"

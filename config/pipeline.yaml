@@ -1,6 +1,13 @@
 update:
   default_days: 3
   backfill_chunk_days: 30
+  retry_backlog_per_run: 20   # 有剩余 LLM 预算时，每次 update 最多补打 N 篇 error/未打分的积压论文
+  # 水位线（data/state/fetch_state.json）：未传 --days 时，默认天数是窗口下限，
+  # 水位线只会把窗口向前拉长（回溯到 上次成功日 - overlap_days），最多追赶 max_catchup_days 天；
+  # 显式传 --days 时严格按天数，不看水位线。
+  overlap_days: 1
+  max_catchup_days: 14
+  state_file: state/fetch_state.json   # 相对 data 目录
 dedup:
   title_threshold: 93
 report:

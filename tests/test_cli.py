@@ -378,3 +378,87 @@ def test_news_rescore_dry_run_smoke(config_dir, tmp_path, capsys):
     rc = cli.main(base(config_dir, tmp_path) + ["news-rescore", "--dry-run", "--no-fetch"])
     out = capsys.readouterr().out
     assert rc == 0 and "LLM 真实请求数：0" in out and "7 → -" in out and "stored_summary" in out
+
+
+def _write_papers(tmp_path, papers):
+    from aivc.storage import PaperStore
+    PaperStore(tmp_path / "data").upsert(papers)
+
+
+def test_help_lists_stats_enrich():
+    h = cli._build_parser().format_help()
+    assert "stats" in h and "enrich" in h
+
+
+def test_stats_cmd(config_dir, tmp_path, capsys):
+    _write_papers(tmp_path, [mk(1), mk(2)])
+    assert cli.main(base(config_dir, tmp_path) + ["stats"]) == 0
+    assert "总数：2" in capsys.readouterr().out
+    assert cli.main(base(config_dir, tmp_path) + ["stats", "--json"]) == 0
+    import json
+    assert json.loads(capsys.readouterr().out)["total"] == 2
+    assert not (tmp_path / "data" / "state").exists()
+
+
+def _arc_paper():
+    p = mk(5)
+    return p.model_copy(update={"affiliations": ["Arc Institute, Palo Alto, CA"]})
+
+
+def test_enrich_offline_dry_run_no_write(config_dir, tmp_path, capsys):
+    _write_papers(tmp_path, [_arc_paper()])
+    f = next((tmp_path / "data" / "papers").glob("*.jsonl"))
+    before = f.read_bytes()
+    assert cli.main(base(config_dir, tmp_path) + ["enrich", "--offline-only", "--dry-run"]) == 0
+    assert f.read_bytes() == before
+
+
+def test_enrich_offline_writes_orgs(config_dir, tmp_path):
+    from aivc.storage import PaperStore
+    _write_papers(tmp_path, [_arc_paper()])
+    assert cli.main(base(config_dir, tmp_path) + ["enrich", "--offline-only"]) == 0
+    got = PaperStore(tmp_path / "data").load_all()[0]
+    assert any("Arc" in o for o in got.matched_orgs)
+
+
+def _scored_paper():
+    from datetime import datetime
+    from aivc.models import LLMAnnotation
+    ann = LLMAnnotation(circle="core", relevance=7, novelty_score=6, rigor_score=6, impact_score=6,
+                        model="m", prompt_version="v4", scored_at=datetime(2026, 11, 1))
+    return mk(7).model_copy(update={
+        "doi": "10.1038/S41592-026-00002-2", "llm": ann, "llm_status": "scored"})
+
+
+def test_enrich_all_batches_fail_returns_1(config_dir, tmp_path, monkeypatch, capsys):
+    import httpx
+    from aivc import enrich as en
+    _write_papers(tmp_path, [mk(8).model_copy(update={"doi": "10.1101/2026.10.01.123456"})])
+    real = en.enrich_via_openalex
+    monkeypatch.setattr(en, "enrich_via_openalex", lambda papers, cfg, **kw: real(
+        papers, cfg, client=httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(500))),
+        sleep=lambda s: None, **kw))
+    assert cli.main(base(config_dir, tmp_path) + ["enrich"]) == 1
+
+
+def test_enrich_recomputes_final_score(config_dir, tmp_path, monkeypatch):
+    import json
+    from pathlib import Path
+    import httpx
+    from aivc import enrich as en
+    from aivc.config import load_config
+    from aivc.llm import recompute_final_score
+    from aivc.storage import PaperStore
+    cfg = load_config(config_dir)
+    p = recompute_final_score(_scored_paper(), cfg)
+    _write_papers(tmp_path, [p])
+    body = json.loads((Path(__file__).parent / "fixtures" / "openalex" / "enrich_batch.json").read_text())
+    body["results"][0]["primary_location"]["source"]["display_name"] = "Nature"
+    real = en.enrich_via_openalex
+    monkeypatch.setattr(en, "enrich_via_openalex", lambda papers, cfg, **kw: real(
+        papers, cfg, client=httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(200, json=body))),
+        sleep=lambda s: None, **kw))
+    assert cli.main(base(config_dir, tmp_path) + ["enrich"]) == 0
+    got = PaperStore(tmp_path / "data").load_all()[0]
+    assert got.published_venue == "Nature"
+    assert got.final_score > (p.final_score or 0)

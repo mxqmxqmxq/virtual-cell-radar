@@ -21,7 +21,10 @@ groups:
   - name: grn
     circle: core
     weight: 2.0
-    terms: ["gene regulatory network", "GRN inference", "regulatory network inference", "transcription factor network"]
+    terms: ["GRN inference", "regulatory network inference"]
+    all_of:
+      - ["gene regulatory network", "transcription factor network"]
+      - ["inference", "infer*", "deep learning", "machine learning", "single-cell", "scRNA-seq", "predict*", "foundation model", "causal", "perturbation"]
   - name: cell_fate
     circle: core
     weight: 2.0
@@ -82,14 +85,40 @@ groups:
   - name: protein_design
     circle: peripheral
     weight: 1.5
-    terms: ["protein design", "protein language model", "protein structure generation", "de novo protein"]
+    terms: ["protein design", "protein structure generation", "de novo protein"]
+  # protein language model / spatial transcriptomics 单独出现误报高，需计算/AI 语境
+  - name: protein_language_model_combo
+    circle: peripheral
+    weight: 1.5
+    terms: []
+    all_of:
+      - ["protein language model"]
+      - ["generat*", "design", "predict*", "fine-tun*", "zero-shot", "benchmark", "cell*", "perturbation"]
   - name: spatial_transcriptomics
     circle: peripheral
     weight: 1.5
-    terms: ["spatial transcriptomics", "spatial omics", "spatially resolved transcriptomics"]
+    terms: []
+    all_of:
+      - ["spatial transcriptomics", "spatial omics", "spatially resolved transcriptomics", "Visium", "MERFISH", "Xenium"]
+      - ["deep learning", "machine learning", "neural network", "foundation model", "generative", "diffusion", "transformer", "graph neural", "representation learning", "predict*", "computational", "in silico", "benchmark"]
   - name: multi_omics
     circle: peripheral
     weight: 1.5
     terms: ["multi-omics integration", "multiomics integration", "single-cell multi-omics", "scATAC-seq", "CITE-seq"]
 
 exclude_terms: ["quantum computing", "cryptocurrency", "stock price"]
+
+# 软排除：非核心圈命中则扣 soft_exclude_penalty 分（扣到 0 则 circle=none）
+soft_exclude_terms: ["plant", "Arabidopsis", "maize", "rice genome", "wheat", "soil", "microbiome", "metagenom*", "ecolog*", "wastewater", "epidemiolog*", "radiolog*", "MRI", "CT scan", "electronic health record", "clinical trial"]
+soft_exclude_penalty: 1.0
+# 语义捞回阈值（2026-11-28 二次校准）。分数 = 与原型文档（scope + 关键词组 + 冻结 exemplars）余弦的
+# Top-3 均值，IDF 冻结于原型语料；评估时每篇排除自身 exemplar。
+# 防「通用 ML 词袋」：kw: 原型文档剔除 all_of 中的通用 ML 修饰词（deep learning / diffusion /
+# transformer / foundation model ...），kw 文档相似度 x0.7，全由通用 ML 词构成的 token 权重 x0.3。
+# 样本：data/papers 共 289 篇（exemplar=core 且 final>=8 共 97 篇；LLM circle core 169 / peripheral 21 / none 36 / 未打分 63）。
+# 分位数 p10/p50/p90：core 0.085/0.116/0.147；none 0.092/0.117/0.151；peripheral 0.090/0.112/0.141；未打分 0.094/0.126/0.154。
+# 对照探针（无关论文）：图像扩散 0.079、MRI 分割 0.081、传染病 GNN 0.070、LLM 代码生成 0.089、分子构象扩散 0.140、湿实验 0.138、临床试验 0.071。
+# 注意：库内论文均已通过关键词预筛，故 none 组与 core 组题材接近、分布几乎重合，库内无法区分；
+# 阈值仅用于 keyword 判 none 的新论文。选取规则：none 误捞比例 <=25% 且高于全部无关探针，
+# 取 0.145（none >=阈值约 16%，core 约 10%；分子构象扩散探针 0.140 仍在阈值下）。`aivc stats` 可复核分位数。
+semantic_rescue_threshold: 0.145

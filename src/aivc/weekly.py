@@ -13,15 +13,20 @@ from .models import NewsItem, Paper
 from .news_report import render_weekly_news
 from .report import (
     _CIRCLE_CN,
+    _badges,
     _circle_cn,
     _date_str,
+    _extra_llm_lines,
     _is_scored,
+    _limitations_line,
     _links_line,
     _one_line,
+    _score_line,
     _scored_key,
     _unscored_key,
     title_with_topics,
 )
+from .stats import DIRECT_JOURNAL_SOURCES, enabled_source_ids
 from .storage import PaperStore
 from .topics import Topic, match_topics, report_topics
 
@@ -99,11 +104,13 @@ def _top_entry(n: int, p: Paper, tasks_l: dict, par_l: dict, topics: list[Topic]
     lines = [
         f"### {n}. {title}",
         "",
-        f"- 分数：{score:.1f}（{_circle_cn(p)}）｜ 来源：{p.source} ｜ 日期：{_date_str(p)}",
+        _score_line(p, score),
         f"- 任务：{_label_list(llm.tasks, tasks_l)} ｜ 范式：{_label_list(llm.paradigms, par_l)}",
+        *_extra_llm_lines(llm),
     ]
     if llm.novelty_zh:
         lines.append(f"- 新意：{_line(llm.novelty_zh)}")
+    lines.extend(_limitations_line(llm))
     links = _links_line(p)
     if links:
         lines.append(links)
@@ -199,6 +206,8 @@ def render_weekly(
     # overview numbers
     circ = Counter(_circle_of(p) for p in papers)
     src = Counter(p.source for p in papers)
+    for sid in enabled_source_ids(cfg):
+        src.setdefault(sid, 0)
     src_str = "，".join(f"{k} {v}" for k, v in sorted(src.items(), key=lambda kv: (-kv[1], kv[0])))
     n_must = sum(1 for p in scored if p.must_read)
     out += [
@@ -210,8 +219,12 @@ def render_weekly(
         f"- 打分：已打分 {len(scored)} ｜ 未打分 {len(unscored)}",
         f"- 必读（≥{cfg.llm.must_read_threshold:g} 分）：{n_must} 篇",
         f"- 来源：{src_str}",
-        "",
     ]
+    n_direct = sum(1 for p in papers if p.published_venue and p.source in DIRECT_JOURNAL_SOURCES)
+    n_promoted = sum(1 for p in papers if p.published_venue and p.source not in DIRECT_JOURNAL_SOURCES)
+    if n_direct + n_promoted > 0:
+        out.append(f"- 正式发表：直接抓到的期刊论文 {n_direct} 篇，由预印本晋升 {n_promoted} 篇")
+    out.append("")
 
     if overview and overview.strip():
         out += ["## 本周综述", "", _line(overview), ""]

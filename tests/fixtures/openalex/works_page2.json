@@ -1,0 +1,33 @@
+{
+ "meta": {
+  "count": 3,
+  "next_cursor": null
+ },
+ "results": [
+  {
+   "id": "https://openalex.org/W1003",
+   "doi": "https://doi.org/10.9999/example.3",
+   "display_name": "Flow matching for cell states",
+   "type": "preprint",
+   "publication_date": "2026-11-08",
+   "cited_by_count": 0,
+   "ids": {
+    "openalex": "https://openalex.org/W1003"
+   },
+   "abstract_inverted_index": null,
+   "primary_location": {
+    "landing_page_url": "https://example.org/w3",
+    "source": {
+     "display_name": "Some Repo",
+     "type": "repository"
+    }
+   },
+   "authorships": [],
+   "locations": [
+    {
+     "landing_page_url": "https://arxiv.org/abs/2611.01234v2"
+    }
+   ]
+  }
+ ]
+}

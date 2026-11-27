@@ -3,19 +3,25 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
-from . import prefilter, report
+from . import enrich, prefilter, report, semantic
 from .config import AppConfig
-from .dedup import dedup_batch
+from .dedup import _SUBMISSION_RE, dedup_batch
 from .fetchers.arxiv import ArxivFetcher
 from .fetchers.base import Fetcher
 from .fetchers.biorxiv import BiorxivFetcher
-from .llm import LLMCache, LLMScorer, ScoreStats
+from .fetchers.europepmc import EuropePMCFetcher
+from .fetchers.hf_papers import HFPapersFetcher
+from .fetchers.openalex import OpenAlexFetcher
+from .fetchers.openreview import OpenReviewFetcher
+from .llm import LLMCache, LLMScorer, ScoreStats, recompute_final_score
 from .models import Paper
 from .seed import collect_seed
+from .state import FetchState
 from .storage import PaperStore, load_overlay
+from .textutil import normalize_doi
 from .topics import Topic, report_topics
 
 log = logging.getLogger("aivc.pipeline")
@@ -41,6 +47,11 @@ class RunSummary:
     report_path: Path | None = None
     notes: list[str] = field(default_factory=list)
     attempted: list[str] = field(default_factory=list)  # 本次尝试的源名
+    windows_by_source: dict[str, tuple[date, date]] = field(default_factory=dict)
+    n_semantic_rescued: int = 0
+    n_backlog_scored: int = 0
+    touched_ids: set[str] = field(default_factory=set)  # 本窗口 new/updated 的 id
+    incomplete: dict[str, str] = field(default_factory=dict)  # 抓取不完整的源 -> 原因
 
     @property
     def all_sources_failed(self) -> bool:
@@ -56,6 +67,14 @@ def build_fetchers(cfg: AppConfig) -> list[Fetcher]:
         out.append(BiorxivFetcher(s.biorxiv, s.http))
     if s.medrxiv.enabled:
         out.append(BiorxivFetcher(s.medrxiv, s.http))
+    if s.openalex.enabled:
+        out.append(OpenAlexFetcher(s.openalex, s.http))
+    if s.europepmc.enabled:
+        out.append(EuropePMCFetcher(s.europepmc, s.http))
+    if s.hf_papers.enabled:
+        out.append(HFPapersFetcher(s.hf_papers, s.http))
+    if s.openreview.enabled:
+        out.append(OpenReviewFetcher(s.openreview, s.http))
     return out
 
 
@@ -67,7 +86,7 @@ def _add_stats(a: ScoreStats | None, b: ScoreStats) -> ScoreStats:
     if a is None:
         return b
     for k in ("scored", "cache_hits", "api_calls", "errors", "skipped_no_key",
-              "skipped_no_abstract", "skipped_budget", "skipped_already"):
+              "skipped_no_abstract", "skipped_budget", "skipped_already", "papers_attempted"):
         setattr(a, k, getattr(a, k) + getattr(b, k))
     a.disabled_reason = b.disabled_reason or a.disabled_reason
     return a
@@ -89,6 +108,40 @@ def _score(cfg: AppConfig, scorer: LLMScorer, papers: list[Paper], used_calls: i
     return scorer.score_papers(papers, max_calls=budget)
 
 
+def _overlay_pubs(base: Paper, pub: Paper) -> Paper:
+    upd = {"published_doi": pub.published_doi, "published_venue": pub.published_venue}
+    if pub.venue != base.venue and (not base.venue or _SUBMISSION_RE.search(base.venue)):
+        upd["venue"] = pub.venue
+    return base.model_copy(update=upd)
+
+
+def _apply_pubs(cfg: AppConfig, fetchers: list[Fetcher], existing: list[Paper],
+                s: RunSummary) -> dict[str, Paper]:
+    """把抓取器本轮拿到的 bioRxiv /pubs 映射应用于库内存量预印本，返回 id -> 更新后的论文。"""
+    links: dict[str, tuple[str, str]] = {}
+    for f in fetchers:
+        got = getattr(f, "last_published_links", None)
+        if got:
+            links.update(got)
+    if not links:
+        return {}
+    out: dict[str, Paper] = {}
+    for p in existing:
+        hit = links.get(normalize_doi(p.doi or ""))
+        if not hit:
+            continue
+        pd, pv = normalize_doi(hit[0]), hit[1]
+        if p.published_doi and normalize_doi(p.published_doi) == pd and p.published_venue == pv:
+            continue
+        upd = {"published_doi": pd, "published_venue": pv}
+        if not p.venue or _SUBMISSION_RE.search(p.venue):
+            upd["venue"] = pv
+        out[p.id] = recompute_final_score(p.model_copy(update=upd), cfg)
+    if out:
+        s.notes.append(f"/pubs 回填库内 {len(out)} 篇已发表预印本")
+    return out
+
+
 def _run_window(
     cfg: AppConfig,
     store: PaperStore,
@@ -97,26 +150,53 @@ def _run_window(
     since: date,
     until: date,
     used_calls: int = 0,
+    *,
+    since_by_source: dict[str, date] | None = None,
+    labs: list[str] | None = None,
+    state: FetchState | None = None,
+    now: datetime | None = None,
 ) -> tuple[RunSummary, list[Paper]]:
-    """Single window: fetch -> prefilter -> dedup -> score -> upsert. Returns summary and new papers."""
+    """Single window: fetch -> enrich -> prefilter -> dedup -> score -> upsert. Returns summary and new papers."""
     s = RunSummary(window=(since, until))
+    now = now or datetime.now(timezone.utc)
     incoming: list[Paper] = []
     for f in fetchers:
         s.attempted.append(f.name)
+        since_i = (since_by_source or {}).get(f.name, since)
+        s.windows_by_source[f.name] = (since_i, until)
         try:
-            got = f.fetch(since, until)
+            got = f.fetch(since_i, until)
         except Exception as e:  # noqa: BLE001  one failing source must not stop the others
             log.warning("源 %s 抓取失败: %s", f.name, e)
             s.fetch_errors[f.name] = f"{type(e).__name__}: {e}"
             s.fetched[f.name] = 0
+            if state is not None:
+                state.record_failure(f.name, s.fetch_errors[f.name], now)
             continue
         s.fetched[f.name] = len(got)
+        inc = getattr(f, "last_incomplete", False)
+        warn = getattr(f, "last_warning", None)
+        if inc:
+            s.incomplete[f.name] = warn or "抓取不完整"
+            s.notes.append(f"源 {f.name} 抓取不完整，未推进水位线：{warn or '抓取不完整'}")
+            if state is not None:
+                state.record_incomplete(f.name, len(got), warn or "抓取不完整", now)
+        elif state is not None:
+            state.record_success(f.name, until, len(got), now)
         incoming.extend(got)
-    kept = prefilter.filter_relevant(incoming, cfg)
+    existing = store.load_all()
+    pubs_updated = _apply_pubs(cfg, fetchers, existing, s)
+    incoming = enrich.enrich_offline(incoming, cfg, labs)
+    # 本批已在库内的论文不充当自己的正样本，否则重复运行时语义分会漂移、造成无意义的更新
+    in_ids = {p.id for p in incoming}
+    exemplars = [e for e in semantic.select_exemplars(existing) if e.id not in in_ids]
+    kept = prefilter.filter_relevant(incoming, cfg, exemplars)
     s.kept_after_filter = len(kept)
-    result = dedup_batch(kept, store.load_all(), cfg.pipeline.dedup.title_threshold)
+    s.n_semantic_rescued = sum(1 for p in kept if "semantic:rescue" in p.matched_keywords)
+    result = dedup_batch(kept, existing, cfg.pipeline.dedup.title_threshold)
     s.n_duplicates = result.n_duplicates
-    new = result.new
+    result.updated = [recompute_final_score(p, cfg) for p in result.updated]
+    new = [recompute_final_score(p, cfg) for p in result.new]
     if scorer is None:
         new = [p.model_copy(update={"llm_status": "unscored", "llm_skip_reason": "no_llm_flag"})
                for p in new]
@@ -132,9 +212,19 @@ def _run_window(
         result.updated = [by_id.get(p.id, p) for p in result.updated]
         s.llm = stats
         s.notes.extend(_llm_notes(scorer, stats))
+    if pubs_updated:
+        # 同 id 以 dedup 结果为底，再套用 /pubs 的发表信息
+        merged = {p.id: p for p in result.updated}
+        for pid, q in pubs_updated.items():
+            base = merged.get(pid)
+            if base is not None:
+                q = recompute_final_score(_overlay_pubs(base, q), cfg)
+            merged[pid] = q
+        result.updated = list(merged.values())
     store.upsert(new + result.updated)
     s.n_new = len(new)
     s.n_updated = len(result.updated)
+    s.touched_ids = {p.id for p in new} | {p.id for p in result.updated}
     return s, new
 
 
@@ -161,17 +251,71 @@ def run_update(
     pinned_news: list | None = None,
 ) -> RunSummary:
     until = today or date.today()
-    # --days N 表示含今天在内共 N 天
-    since = until - timedelta(days=(days or cfg.pipeline.update.default_days) - 1)
+    upd = cfg.pipeline.update
     fetchers = build_fetchers(cfg) if fetchers is None else fetchers
     store = PaperStore(data_dir)
     sc = None
     if use_llm:
         sc = scorer or _make_scorer(cfg, data_dir)
-    s, new = _run_window(cfg, store, fetchers, sc, since, until)
+    now = datetime.now(timezone.utc)
+    state = FetchState.load(Path(data_dir) / upd.state_file)
+    catchup_notes: list[str] = []
+    since_by_source: dict[str, date] | None = None
+    if days is not None:
+        # --days N 表示含今天在内共 N 天，所有源同一窗口，不看水位线
+        since = until - timedelta(days=days - 1)
+    else:
+        default_since = until - timedelta(days=upd.default_days - 1)
+        since_by_source = {
+            f.name: state.window_for(f.name, until, upd.default_days, upd.overlap_days,
+                                     upd.max_catchup_days)
+            for f in fetchers
+        }
+        since = min(since_by_source.values(), default=default_since)
+        for name, si in since_by_source.items():
+            if si != default_since:
+                catchup_notes.append(f"水位线追赶：{name} 自 {si}")
+    labs = enrich.load_lab_names(Path(data_dir))
+    s, new = _run_window(cfg, store, fetchers, sc, since, until, since_by_source=since_by_source,
+                         labs=labs, state=state, now=now)
+    s.window = (since, until)
+    s.notes.extend(catchup_notes)
+    if sc is not None and sc.available and upd.retry_backlog_per_run > 0:
+        used = s.llm.api_calls if s.llm else 0
+        if used < cfg.llm.max_calls_per_run:
+            fresh = s.touched_ids
+            cands = [
+                p for p in store.load_all()
+                if (p.abstract or "").strip()
+                and p.id not in fresh
+                and (p.llm_status == "error"
+                     or (p.llm_status == "unscored"
+                         and p.llm_skip_reason not in ("no_abstract", "no_llm_flag")))
+            ]
+            cands.sort(key=lambda p: (-prefilter.rank_score(p), p.id))
+            cands = cands[:upd.retry_backlog_per_run]
+            if cands:
+                scored, st = _score(cfg, sc, cands, used_calls=used)
+                changed = [q for p, q in zip(cands, scored) if p != q]
+                store.upsert(changed)
+                s.llm = _add_stats(s.llm, st)
+                s.n_backlog_scored = sum(
+                    1 for p, q in zip(cands, scored)
+                    if p.llm_status != "scored" and q.llm_status == "scored")
+                s.notes.append(f"补打积压 {s.n_backlog_scored} 篇")
     s.notes = _dedup_notes(s.notes)
     if s.fetch_errors:
         s.notes.append("抓取失败的源：" + "、".join(sorted(s.fetch_errors)))
+    state.add_run({
+        "run_at": now.isoformat(), "since": since.isoformat(), "until": until.isoformat(),
+        "fetched": dict(s.fetched), "kept_after_filter": s.kept_after_filter,
+        "n_new": s.n_new, "n_updated": s.n_updated, "n_duplicates": s.n_duplicates,
+        "llm_api_calls": s.llm.api_calls if s.llm else 0,
+        "llm_errors": s.llm.errors if s.llm else 0,
+        "fetch_errors": dict(s.fetch_errors),
+        "incomplete": dict(s.incomplete),
+    })
+    state.save()
     if write_report:
         # 同一天多次运行：日报包含当天所有新入库论文，而不只是本次新增
         same_day = {p.id: p for p in store.load_all() if p.first_seen == until}
@@ -218,6 +362,7 @@ def run_backfill(
     fetchers = build_fetchers(cfg) if fetchers is None else fetchers
     store = PaperStore(data_dir)
     sc = (scorer or _make_scorer(cfg, data_dir)) if use_llm else None
+    labs = enrich.load_lab_names(Path(data_dir))
 
     total = RunSummary(window=(since, until))
     total.attempted = [f.name for f in fetchers]
@@ -227,7 +372,7 @@ def run_backfill(
     for lo, hi in _windows(since, until, cfg.pipeline.update.backfill_chunk_days):
         n_win += 1
         log.info("回填窗口 %s ~ %s", lo, hi)
-        w, new = _run_window(cfg, store, fetchers, sc, lo, hi,
+        w, new = _run_window(cfg, store, fetchers, sc, lo, hi, labs=labs,
                              used_calls=total.llm.api_calls if total.llm else 0)
         for k, v in w.fetched.items():
             total.fetched[k] = total.fetched.get(k, 0) + v
@@ -313,18 +458,33 @@ def run_reindex(cfg: AppConfig, *, data_dir: Path, prune: bool = False) -> RunSu
     s = RunSummary()
     store = PaperStore(data_dir)
     papers = store.load_all()
+    # 与 filter_relevant 一致的混合判定：以库内高分核心样本建一次冻结原型，评分时排除自身
+    proto = semantic.build_prototype(cfg, semantic.select_exemplars(papers))
     changed = []
     to_drop: list[str] = []
+    n_rescued = 0
     for p in papers:
         q = prefilter.apply_keywords(p, cfg)
-        if prune and q.circle == "none" and q.source not in ("seed_pdf", "openreview"):
-            to_drop.append(q.id)
-        elif q != p:
-            changed.append(q)
+        q = q.model_copy(update={"semantic_score": semantic.score_text(
+            semantic._paper_text(q), proto, exclude_ids=frozenset({q.id}))})
+        r = prefilter.classify(q, cfg)
+        if r is None:
+            if (prune and q.source not in ("seed_pdf", "openreview")
+                    and "seed_pdf" not in q.sources):
+                to_drop.append(q.id)
+                continue
+            r = q
+        elif "semantic:rescue" in r.matched_keywords:
+            n_rescued += 1
+        r = recompute_final_score(r, cfg)
+        if r != p:
+            changed.append(r)
     _, n_upd = store.upsert(changed)
     n_drop = store.delete(to_drop) if to_drop else 0
     s.n_updated = n_upd
-    s.notes.append(f"共 {len(papers)} 条，重算后变化 {n_upd} 条" + (f"，删除 {n_drop} 条不再相关的抓取条目" if prune else ""))
+    s.n_semantic_rescued = n_rescued
+    s.notes.append(f"共 {len(papers)} 条，重算后变化 {n_upd} 条，语义捞回 {n_rescued} 条"
+                   + (f"，删除 {n_drop} 条不再相关的抓取条目" if prune else ""))
     return s
 
 
@@ -345,7 +505,8 @@ def run_score(
     todo = [p for p in store.load_all()
             if (p.abstract or "").strip()
             and (p.llm_status != "scored" or p.llm is None or p.llm.prompt_version != pv)]
-    todo.sort(key=lambda p: (-p.keyword_score, p.id))
+    todo.sort(key=lambda p: (0 if p.llm_status in ("unscored", "error") else 1,
+                             -prefilter.rank_score(p), p.id))
     if limit is not None:
         todo = todo[:max(0, limit)]
     scored, stats = _score(cfg, sc, todo)

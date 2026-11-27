@@ -34,3 +34,10 @@ def _local_profile_tmp(monkeypatch, tmp_path):
     """默认不启用 --local，且私有目录指到临时目录：测试不会写进项目的 ./local，也不受本机 .env 影响。"""
     monkeypatch.setenv("AIVC_LOCAL", "0")
     monkeypatch.setenv("AIVC_LOCAL_DIR", str(tmp_path / "local"))
+
+
+@pytest.fixture(autouse=True)
+def _no_api_keys(monkeypatch):
+    """开发机上的真实 key 不得影响后端探测与抓取器行为。"""
+    for name in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "OPENALEX_API_KEY", "OPENREVIEW_TOKEN"):
+        monkeypatch.delenv(name, raising=False)

@@ -1,5 +1,6 @@
 """Command line entry: python -m aivc {update,news,backfill,seed,reindex,score,weekly,build-site,serve,...}.
 
+`stats` 离线统计库内概况/积压/误报/水位线（--json）；`enrich` 离线补全机构与链接，可选 OpenAlex 刷新引用（--limit/--dry-run/--offline-only）。
 `resources` 管理知识资源（list/check/refresh）；`news` 抓取并处理行业新闻（--days/--no-llm/--limit/--no-site）；`news-rescore` 只重打库内已有条目（--ids/--include-unscored/--max-requests/--dry-run）；`update` 默认也会先跑新闻（--no-news 关闭）。
 """
 from __future__ import annotations
@@ -13,12 +14,14 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from . import news_pipeline, pipeline, publiccheck, resources as resources_mod, site, weekly
+from . import enrich as enrich_mod, llm as llm_mod, news_pipeline, pipeline, publiccheck, resources as resources_mod, site, weekly
 from .config import load_config
 from .fetchers.github import GitHubClient, build_github_client
 from .news import NewsStore
 from .pipeline import PipelineError, RunSummary
 from .resources import KIND_ORDER
+from .state import FetchState
+from .stats import compute_stats, render_stats
 from .storage import PaperStore, load_overlay
 from .topics import load_topics, merge_topics, report_topics
 
@@ -121,6 +124,14 @@ def _build_parser() -> argparse.ArgumentParser:
     rr = rsub.add_parser("refresh", help="用 GitHub API 刷新精选仓库的 star、最近推送、归档、许可证、主语言（需联网）")
     rr.add_argument("--force", action="store_true", help="忽略 refresh_min_interval_days，重新抓取所有仓库")
     rr.add_argument("--limit", type=int, default=None, help="本次最多请求 N 次")
+
+    st = sub.add_parser("stats", help="离线统计：来源分布/产率、LLM 积压、分数直方图、关键词误报、水位线健康")
+    st.add_argument("--json", action="store_true", help="输出 JSON")
+
+    en = sub.add_parser("enrich", help="补全库内论文：离线匹配机构/抽链接；可选 OpenAlex 刷新引用数与发表信息")
+    en.add_argument("--limit", type=int, default=None, help="OpenAlex 最多查询篇数")
+    en.add_argument("--dry-run", action="store_true", help="只统计将发生的变化，不写盘")
+    en.add_argument("--offline-only", action="store_true", help="只做离线增强，不请求 OpenAlex")
 
     sub.add_parser("check-public", help="发布前自查：检查公开库、报告、网站与仓库是否含私有信息（只读）")
 
@@ -427,6 +438,42 @@ def _run_resources(cfg, args, data_dir) -> int:
     return 1 if rep.errors else 0
 
 
+def _run_stats(cfg, args, data_dir) -> int:
+    import json
+    papers = (load_overlay(data_dir, Path(args.local_dir) / "data") if args.local
+              else PaperStore(data_dir).load_all())
+    state = FetchState.load(Path(data_dir) / cfg.pipeline.update.state_file)
+    d = compute_stats(papers, state, cfg, date.today())
+    print(json.dumps(d, ensure_ascii=False, indent=2, default=str) if args.json else render_stats(d))
+    return 0
+
+
+def _run_enrich(cfg, args, data_dir) -> int:
+    store = PaperStore(data_dir)
+    papers = store.load_all()
+    labs = enrich_mod.load_lab_names(data_dir)
+    cur = enrich_mod.enrich_offline(papers, cfg, labs)
+    n_requests, notes, rc = 0, [], 0
+    if not args.offline_only:
+        try:
+            res = enrich_mod.enrich_via_openalex(cur, cfg, limit=args.limit, dry_run=args.dry_run)
+            cur, n_requests, notes = res.papers, res.n_requests, res.notes
+            if res.n_batches > 0 and res.n_failed_batches == res.n_batches:
+                print(f"错误：OpenAlex 全部 {res.n_batches} 个批次失败", file=sys.stderr)
+                rc = 1
+        except Exception as e:  # noqa: BLE001
+            print(f"警告：OpenAlex 增强失败：{e}", file=sys.stderr)
+            rc = 1
+    cur = [llm_mod.recompute_final_score(p, cfg) for p in cur]
+    changed = [n for o, n in zip(papers, cur) if n != o]
+    if changed and not args.dry_run:
+        store.upsert(changed)
+    print(f"变化 {len(changed)} 篇{'（dry-run，未写入）' if args.dry_run else ''}；OpenAlex 请求数 {n_requests}")
+    for n in notes:
+        print(f"备注：{n}")
+    return rc
+
+
 def main(argv: list[str] | None = None) -> int:
     load_dotenv()  # 读取当前目录 .env，不覆盖已有环境变量
     parser = _build_parser()
@@ -496,6 +543,10 @@ def main(argv: list[str] | None = None) -> int:
             return _run_resources(cfg, args, data_dir)
         elif args.command == "refresh-openreview":
             return _run_refresh_openreview(cfg, args, data_dir)
+        elif args.command == "stats":
+            return _run_stats(cfg, args, data_dir)
+        elif args.command == "enrich":
+            return _run_enrich(cfg, args, data_dir)
         elif args.command == "check-public":
             return _run_check_public(cfg, args, data_dir, reports_dir)
         elif args.command == "build-site":

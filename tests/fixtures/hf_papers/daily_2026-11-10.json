@@ -1,0 +1,35 @@
+[
+  {
+    "paper": {
+      "id": "2611.01001",
+      "title": "CellFlow: Flow Matching for Perturbation Response",
+      "summary": "We model cell perturbation responses with flow matching. Weights at https://huggingface.co/example-lab/cellflow-base and code at https://github.com/abstract-owner/abstract-repo.",
+      "authors": [{"name": "Alice Zhang"}, {"name": "Bob Li"}],
+      "upvotes": 42,
+      "githubRepo": "https://github.com/example-lab/cellflow.",
+      "githubStars": 310,
+      "publishedAt": "2026-11-09T18:00:00.000Z"
+    },
+    "title": "CellFlow: Flow Matching for Perturbation Response",
+    "publishedAt": "2026-11-10T01:00:00.000Z"
+  },
+  {
+    "paper": {
+      "id": "2611.01002",
+      "title": "Virtual Cell Transformer",
+      "summary": "A transformer for virtual cell modeling. Code: https://github.com/vc-lab/vct).",
+      "authors": [{"name": "Carol Wu"}],
+      "upvotes": 3,
+      "publishedAt": "2026-11-09T12:00:00.000Z"
+    }
+  },
+  {
+    "paper": {
+      "id": "2611.01003v2",
+      "title": "Atlas Scale Single-Cell Foundation Model",
+      "summary": "No links here.",
+      "authors": ["Dan Roe", {"name": "Eve Poe"}],
+      "publishedAt": "2026-11-08T09:00:00.000Z"
+    }
+  }
+]

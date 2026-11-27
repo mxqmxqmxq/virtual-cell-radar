@@ -316,3 +316,28 @@ def test_run_weekly_reads_news_store(cfg, tmp_path):
     assert "## 行业动态" in r.path.read_text(encoding="utf-8")
     r2 = run_weekly(cfg, data_dir=tmp_path / "empty", reports_dir=tmp_path / "r2", week="2026-W44", today=TODAY)
     assert "行业动态" not in r2.path.read_text(encoding="utf-8")
+
+
+def test_weekly_v4_fields(cfg):
+    p = paper(1, date(2026, 10, 27), score=9, novelty="新意A")
+    p = p.model_copy(update={
+        "published_venue": "Nature", "citation_count": 5, "weights_url": "https://zenodo.org/records/1",
+        "llm": p.llm.model_copy(update={"novelty_score": 8, "rigor_score": 7, "impact_score": 9,
+                                        "why_it_matters_zh": "理由", "limitations_zh": "局限X"}),
+    })
+    md = render(cfg, [p])
+    assert "正式发表：直接抓到的期刊论文 0 篇，由预印本晋升 1 篇" in md
+    assert "【已发表：Nature】 · 引用 5" in md
+    assert "- 四维：新颖 8/严谨 7/影响 9" in md and "- 为何重要：理由" in md and "- 局限：局限X" in md
+    assert "[权重](https://zenodo.org/records/1)" in md
+    plain = render(cfg, [paper(2, date(2026, 10, 27), score=9)])
+    assert "正式发表" not in plain and "四维" not in plain
+
+
+def test_weekly_direct_and_promoted_and_zero_sources(cfg):
+    a = paper(1, date(2026, 10, 27), score=9).model_copy(update={"published_venue": "Nature"})
+    b = paper(2, date(2026, 10, 27), score=9).model_copy(update={"source": "openalex", "published_venue": "Cell"})
+    cfg.sources.hf_papers.enabled = True
+    md = render(cfg, [a, b])
+    assert "- 正式发表：直接抓到的期刊论文 1 篇，由预印本晋升 1 篇" in md
+    assert "hf_papers 0" in md

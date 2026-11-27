@@ -25,6 +25,11 @@ class KeywordsConfig(BaseModel):
     groups: list[KeywordGroup]
     exclude_terms: list[str] = Field(default_factory=list)
     min_keyword_score: float = 1.0
+    # 软排除词：命中后非核心圈扣分（不直接丢弃）
+    soft_exclude_terms: list[str] = Field(default_factory=list)
+    soft_exclude_penalty: float = 1.0
+    # 关键词未过但语义分达到该阈值时捞回（初值，需用真实库校准）
+    semantic_rescue_threshold: float = 0.28
 
 
 class ArxivConfig(BaseModel):
@@ -45,6 +50,8 @@ class RxivConfig(BaseModel):
     categories: list[str]
     delay_seconds: float = 1.0
     max_pages_per_category: int = 400
+    # 抓取后用 /pubs 端点回填「预印本 -> 已发表」的 DOI 与期刊
+    fetch_published_links: bool = False
 
 
 class FeedItem(BaseModel):
@@ -118,12 +125,56 @@ class NewsSourceConfig(BaseModel):
         return max(1.0, self.delay_seconds)
 
 
+class JournalIssn(BaseModel):
+    name: str
+    issn: list[str] = Field(default_factory=list)
+
+
+class OpenAlexConfig(BaseModel):
+    enabled: bool = True
+    base_url: str = "https://api.openalex.org/works"
+    journal_issns: list[JournalIssn] = Field(default_factory=list)
+    domain_terms: list[str] = Field(default_factory=list)
+    queries: list[str] = Field(default_factory=list)
+    mailto: str = ""
+    api_key_env: str = "OPENALEX_API_KEY"
+    per_page: int = 50
+    delay_seconds: float = 0.5
+    max_pages: int = 10
+
+
+class EuropePMCConfig(BaseModel):
+    enabled: bool = True
+    base_url: str = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
+    queries: list[str] = Field(default_factory=list)
+    page_size: int = 100
+    delay_seconds: float = 1.0
+    max_pages: int = 10
+
+
+class HFPapersConfig(BaseModel):
+    enabled: bool = True
+    base_url: str = "https://huggingface.co/api/daily_papers"
+    delay_seconds: float = 1.0
+    max_days: int = 31
+
+
+class OpenReviewVenue(BaseModel):
+    name: str
+    venueid: str | None = None
+    invitation: str | None = None
+
+
 class OpenReviewConfig(BaseModel):
     enabled: bool = False
-    venues: list[str] = Field(default_factory=list)
+    # 纯字符串仅作标签（不参与抓取）；OpenReviewVenue 对象带 venueid / invitation 才会被抓取
+    venues: list[str | OpenReviewVenue] = Field(default_factory=list)
     # refresh-openreview 使用的官方 API v2 地址与请求间隔（秒；实际不会低于 1 秒）
     api_base_url: str = "https://api2.openreview.net"
     delay_seconds: float = 1.0
+    token_env: str = "OPENREVIEW_TOKEN"
+    page_size: int = 100
+    max_notes_per_venue: int = 1000
 
 
 class HttpConfig(BaseModel):
@@ -145,6 +196,9 @@ class SourcesConfig(BaseModel):
     medrxiv: RxivConfig
     journals_rss: FeedsConfig = Field(default_factory=FeedsConfig)
     openreview: OpenReviewConfig = Field(default_factory=OpenReviewConfig)
+    openalex: OpenAlexConfig = Field(default_factory=OpenAlexConfig)
+    europepmc: EuropePMCConfig = Field(default_factory=EuropePMCConfig)
+    hf_papers: HFPapersConfig = Field(default_factory=HFPapersConfig)
     news: NewsSourceConfig = Field(default_factory=NewsSourceConfig)
     http: HttpConfig = Field(default_factory=HttpConfig)
     seed: SeedConfig = Field(default_factory=SeedConfig)
@@ -200,6 +254,22 @@ class ScopeConfig(BaseModel):
     taxonomy: Taxonomy
 
 
+class ScoreWeights(BaseModel):
+    relevance: float = 0.40
+    novelty: float = 0.25
+    rigor: float = 0.15
+    impact: float = 0.20
+
+    @model_validator(mode="after")
+    def _check(self) -> "ScoreWeights":
+        vals = [self.relevance, self.novelty, self.rigor, self.impact]
+        if any(v < 0 for v in vals):
+            raise ValueError("score_weights 各项必须 >= 0")
+        if sum(vals) <= 0:
+            raise ValueError("score_weights 之和必须 > 0")
+        return self
+
+
 class LLMConfig(BaseModel):
     model: str = "claude-haiku-5-5"
     max_tokens: int = 1024
@@ -210,15 +280,49 @@ class LLMConfig(BaseModel):
     abstract_max_chars: int = 6000
     cache_file: str = "cache/llm.jsonl"
     # 打分后端：auto = 有 ANTHROPIC_API_KEY 用 API，否则有 claude 命令就用本机 Claude Code；
-    # api = 只用 API；claude_cli = 只用本机 Claude Code（订阅额度，不需要 key）
+    # api = 只用 API；claude_cli = 只用本机 Claude Code（订阅额度，不需要 key）；
+    # openai_compat = OpenAI 兼容接口（OpenAI/DeepSeek/OpenRouter/Ollama/vLLM）。
+    # auto 探测顺序：ANTHROPIC_API_KEY -> OPENAI_API_KEY -> claude_cli
     backend: str = "auto"
     cli_command: str = "claude"
     cli_timeout: int = 180
+    # 复合排序：有四维分时 base = 加权和，否则 base = relevance
+    score_weights: ScoreWeights = Field(default_factory=ScoreWeights)
+    bonus_code: float = 0.2
+    bonus_weights_or_dataset: float = 0.3
+    bonus_impact: float = 0.3
+    max_objective_bonus: float = 0.8
+    top_venues: list[str] = Field(default_factory=lambda: [
+        "Nature", "Nature Methods", "Nature Biotechnology", "Nature Machine Intelligence",
+        "Nature Computational Science", "Cell", "Cell Systems", "Science", "Genome Biology",
+    ])
+    impact_hf_upvotes: int = 10
+    impact_citations: int = 20
+    impact_github_stars: int = 100
+    # API 非致命错误的重试次数与退避基数（秒，指数退避）
+    api_retries: int = 2
+    retry_backoff_seconds: float = 1.0
+    openai_base_url: str = "https://api.openai.com/v1"
+    openai_api_key_env: str = "OPENAI_API_KEY"
+    openai_model: str | None = None
+    # 提示词可配置片段（v4）：评分细则与 few-shot 锚点；空则用内置默认
+    rubric_lines: list[str] = Field(default_factory=list)
+    anchor_lines: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _check_threshold(self) -> "LLMConfig":
+        if not 0 <= self.must_read_threshold <= 10:
+            raise ValueError("must_read_threshold 必须在 [0, 10]")
+        return self
 
 
 class UpdateConfig(BaseModel):
     default_days: int = 3
     backfill_chunk_days: int = 30
+    retry_backlog_per_run: int = 20
+    overlap_days: int = 1
+    max_catchup_days: int = 14
+    state_file: str = "state/fetch_state.json"  # 相对 data_dir
 
 
 class DedupConfig(BaseModel):

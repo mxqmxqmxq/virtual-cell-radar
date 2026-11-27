@@ -25,6 +25,7 @@ class _Compiled:
             for g in kw.groups
         ]
         self.exclude = [(t, p) for t in kw.exclude_terms if (p := _compile_term(t))]
+        self.soft = [(t, p) for t in kw.soft_exclude_terms if (p := _compile_term(t))]
 
 
 _CACHE: dict[int, _Compiled] = {}
@@ -78,6 +79,13 @@ def apply_keywords(paper: Paper, cfg: AppConfig) -> Paper:
     circle = "core" if core_hit else "peripheral" if peripheral_hit else "none"
     if not core_hit and any(p.search(body) for _, p in c.exclude):
         circle, score = "none", 0.0
+    elif circle != "core" and c.soft:
+        hits = [t for t, p in c.soft if p.search(body)]
+        if hits:
+            score = max(0.0, score - c.kw.soft_exclude_penalty)
+            matched.extend(f"soft_exclude:{t}" for t in hits)
+            if score <= 0:
+                circle, score = "none", 0.0
 
     return paper.model_copy(
         update={
@@ -88,11 +96,42 @@ def apply_keywords(paper: Paper, cfg: AppConfig) -> Paper:
     )
 
 
-def filter_relevant(papers: list[Paper], cfg: AppConfig) -> list[Paper]:
-    out = [apply_keywords(p, cfg) for p in papers]
-    out = [
-        p for p in out
-        if p.circle != "none" and p.keyword_score >= cfg.keywords.min_keyword_score
-    ]
-    out.sort(key=lambda p: p.keyword_score, reverse=True)
+def rank_score(p: Paper) -> float:
+    return (
+        p.keyword_score
+        + p.semantic_score * 5.0
+        + (0.5 if p.hf_upvotes else 0.0)
+        + (0.5 if p.published_venue else 0.0)
+    )
+
+
+def classify(p: Paper, cfg: AppConfig) -> Paper | None:
+    """混合判定（输入已带 keyword_score / circle / semantic_score）。
+
+    关键词达标 -> 原样保留；否则语义分达标且未命中硬排除词 -> 以 peripheral 捞回并追加
+    "semantic:rescue"；其余返回 None。filter_relevant 与 run_reindex 共用。
+    """
+    c = _compiled(cfg)
+    if p.circle != "none" and p.keyword_score >= cfg.keywords.min_keyword_score:
+        return p
+    if p.semantic_score < cfg.keywords.semantic_rescue_threshold:
+        return None
+    body = " \n ".join([p.title or "", p.abstract or "", " ; ".join(p.keywords)])
+    if any(pat.search(body) for _, pat in c.exclude):
+        return None
+    matched = list(p.matched_keywords)
+    if "semantic:rescue" not in matched:
+        matched.append("semantic:rescue")
+    return p.model_copy(update={"circle": "peripheral", "matched_keywords": matched})
+
+
+def filter_relevant(
+    papers: list[Paper], cfg: AppConfig, exemplars: list[Paper] | None = None
+) -> list[Paper]:
+    from .semantic import score_semantic
+
+    annotated = [apply_keywords(p, cfg) for p in papers]
+    scored = score_semantic(annotated, cfg, exemplars)
+    out = [r for p in scored if (r := classify(p, cfg)) is not None]
+    out.sort(key=lambda p: (-rank_score(p), p.id))
     return out

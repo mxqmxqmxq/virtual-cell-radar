@@ -60,6 +60,41 @@ def _must_read_heading(threshold: float | None) -> str:
     return f"{_SECTION_MUST_READ}（≥{threshold:g} 分）"
 
 
+def _badges(p: Paper) -> str:
+    parts: list[str] = []
+    if p.published_venue:
+        parts.append(f"【已发表：{p.published_venue}】")
+    if (p.citation_count or 0) > 0:
+        parts.append(f"引用 {p.citation_count}")
+    if p.hf_upvotes:
+        parts.append(f"HF 赞 {p.hf_upvotes}")
+    if p.github_stars:
+        parts.append(f"GitHub ★{p.github_stars}")
+    return " · ".join(parts)
+
+
+def _extra_llm_lines(llm: LLMAnnotation) -> list[str]:
+    """Optional v4 lines (four-dim scores / why it matters / limitations); empty for v3 papers."""
+    out: list[str] = []
+    dims = (llm.novelty_score, llm.rigor_score, llm.impact_score)
+    if any(d is not None for d in dims):
+        n, r, i = ("—" if d is None else str(d) for d in dims)
+        out.append(f"- 四维：新颖 {n}/严谨 {r}/影响 {i}")
+    if llm.why_it_matters_zh:
+        out.append(f"- 为何重要：{_one_line(llm.why_it_matters_zh)}")
+    return out
+
+
+def _limitations_line(llm: LLMAnnotation) -> list[str]:
+    return [f"- 局限：{_one_line(llm.limitations_zh)}"] if llm.limitations_zh else []
+
+
+def _score_line(p: Paper, score: float) -> str:
+    line = f"- 分数：{score:.1f}（{_circle_cn(p)}）｜ 来源：{p.source} ｜ 日期：{_date_str(p)}"
+    badges = _badges(p)
+    return f"{line} ｜ {badges}" if badges else line
+
+
 def _links_line(p: Paper) -> str | None:
     parts: list[str] = []
     if p.url:
@@ -68,6 +103,8 @@ def _links_line(p: Paper) -> str | None:
         parts.append(f"[PDF]({p.pdf_url})")
     if p.code_url:
         parts.append(f"[代码]({p.code_url})")
+    if p.weights_url:
+        parts.append(f"[权重]({p.weights_url})")
     if not parts:
         return None
     return "- 链接：" + " · ".join(parts)
@@ -85,12 +122,14 @@ def _scored_entry(n: int, p: Paper, topics: list[Topic] | None = None) -> list[s
     lines = [
         f"### {n}. {title_with_topics(p, topics)}",
         "",
-        f"- 分数：{score:.1f}（{_circle_cn(p)}）｜ 来源：{p.source} ｜ 日期：{_date_str(p)}",
+        _score_line(p, score),
         f"- 作者：{_authors(p)}",
         f"- 任务：{_join_or_dash(llm.tasks)} ｜ 范式：{_join_or_dash(llm.paradigms)}",
         f"- 数据：{_join_or_dash(llm.datasets_used)} ｜ **新数据集/基准**：{new_ds}",
+        *_extra_llm_lines(llm),
         f"- 新意：{llm.novelty_zh}",
         f"- 摘要：{llm.summary_zh}",
+        *_limitations_line(llm),
     ]
     links = _links_line(p)
     if links:
@@ -104,6 +143,8 @@ def _unscored_line(p: Paper, topics: list[Topic] | None = None) -> str:
         f"关键词分 {p.keyword_score:.1f}（{_circle_cn(p)}）"
         f"· 命中：{_join_or_dash(p.matched_keywords)}"
     )
+    if p.published_venue:
+        line += f" · 已发表：{p.published_venue}"
     if p.url:
         line += f" · [原文]({p.url})"
     return line

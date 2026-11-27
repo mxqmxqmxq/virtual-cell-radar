@@ -13,7 +13,7 @@ from datetime import date
 
 ANN = {"tasks": ["perturbation_response_prediction"], "paradigms": ["flow_matching_diffusion_ot"], "datasets_used": ["Norman"],
        "releases_new_dataset": False, "new_dataset_names": [], "circle": "core", "relevance": 9,
-       "novelty_zh": "新", "summary_zh": "摘要"}
+       "novelty_zh": "新", "summary_zh": "摘要", "novelty_score": 8, "rigor_score": 8, "impact_score": 8}
 
 
 @pytest.fixture(autouse=True)

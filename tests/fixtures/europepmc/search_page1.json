@@ -1,0 +1,47 @@
+{
+  "version": "6.9",
+  "hitCount": 3,
+  "nextCursorMark": "AoIIP4AAACgxMjM0",
+  "request": {"queryString": "(virtual cell) AND FIRST_PDATE:[2026-11-01 TO 2026-11-10]", "resultType": "core", "cursorMark": "*", "pageSize": 2},
+  "resultList": {
+    "result": [
+      {
+        "id": "39000001",
+        "source": "MED",
+        "pmid": "39000001",
+        "pmcid": "PMC9000001",
+        "doi": "10.1038/s41592-026-00001-x",
+        "title": "A foundation model for virtual cell perturbation prediction",
+        "authorString": "Doe J, Roe R.",
+        "authorList": {"author": [
+          {"fullName": "Doe J", "affiliation": "Example Institute, Cambridge, UK.",
+           "authorAffiliationDetailsList": {"authorAffiliation": [{"affiliation": "Example Institute, Cambridge, UK."}]}},
+          {"fullName": "Roe R", "affiliation": "Example Institute, Cambridge, UK.",
+           "authorAffiliationDetailsList": {"authorAffiliation": [{"affiliation": "Example Institute, Cambridge, UK."}, {"affiliation": "Other University, Boston, USA."}]}}
+        ]},
+        "journalInfo": {"journal": {"title": "Nature Methods"}},
+        "abstractText": "<h4>Background</h4>We present a model.  Code is at https://github.com/example-lab/vcell-model. <h4>Results</h4>It works well.",
+        "citedByCount": 12,
+        "firstPublicationDate": "2026-11-05",
+        "license": "cc by",
+        "pubTypeList": {"pubType": ["research-article", "Journal Article"]},
+        "fullTextUrlList": {"fullTextUrl": [
+          {"availability": "Open access", "documentStyle": "html", "url": "https://europepmc.org/articles/PMC9000001"},
+          {"availability": "Open access", "documentStyle": "pdf", "url": "https://europepmc.org/articles/PMC9000001?pdf=render"}
+        ]}
+      },
+      {
+        "id": "PPR900001",
+        "source": "PPR",
+        "doi": "10.1101/2026.11.03.700123",
+        "title": "Single-cell perturbation atlas",
+        "authorString": "Smith A, Lee B",
+        "authorList": {"author": [{"fullName": "Smith A"}, {"fullName": "Lee B"}]},
+        "abstractText": "An atlas of perturbations.",
+        "citedByCount": 0,
+        "firstPublicationDate": "2026-11-04",
+        "pubTypeList": {"pubType": ["Preprint"]}
+      }
+    ]
+  }
+}

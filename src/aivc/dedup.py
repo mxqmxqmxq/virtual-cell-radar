@@ -30,8 +30,14 @@ def id_keys(p: Paper) -> set[str]:
         keys.add(f"biorxiv:{bid}")
     if p.doi:
         keys.add(f"doi:{normalize_doi(p.doi)}")
+    if p.published_doi:
+        keys.add(f"doi:{normalize_doi(p.published_doi)}")
     if p.openreview_id:
         keys.add(f"openreview:{p.openreview_id}")
+    if p.pmid:
+        keys.add(f"pmid:{p.pmid}")
+    if p.openalex_id:
+        keys.add(f"openalex:{p.openalex_id}")
     return keys
 
 
@@ -124,8 +130,42 @@ def _is_newer(existing: Paper, incoming: Paper) -> bool:
 _FILL = (
     "abstract", "doi", "license", "arxiv_id", "biorxiv_id", "openreview_id", "url", "pdf_url",
     "venue", "published", "updated", "version", "code_url", "has_code", "has_weights",
+    "pmid", "pmcid", "openalex_id", "weights_url",
 )
-_LISTS = ("affiliations", "categories", "keywords", "tags")
+_LISTS = ("affiliations", "categories", "keywords", "tags", "matched_orgs")
+_MAXES = ("citation_count", "hf_upvotes", "github_stars")
+PREPRINT_SOURCES = ("arxiv", "biorxiv", "medrxiv", "chemrxiv")
+PUBLISHED_SOURCES = ("openalex", "europepmc", "journal", "pubmed")
+_SUBMISSION_RE = re.compile(r"(?i)submission|under review|preprint|arxiv|biorxiv|medrxiv|chemrxiv")
+
+
+def _promote(existing: Paper, incoming: Paper, upd: dict) -> None:
+    """Preprint -> Published: record the journal version found by another source.
+
+    Order-independent: any explicit published_* evidence on ``incoming`` promotes,
+    regardless of ``existing.source``. The existing DOI is never overwritten; a
+    different published DOI is kept in published_doi and alt_ids.
+    """
+    from_pub = incoming.source in PUBLISHED_SOURCES
+    # Trust only explicit published_* markers: a venue alone may be a preprint server.
+    if not (incoming.published_venue or incoming.published_doi):
+        return
+    pv = incoming.published_venue
+    pd = incoming.published_doi
+    if not pd and from_pub and incoming.doi and incoming.doi != existing.doi:
+        pd = incoming.doi
+    if pd and existing.doi and normalize_doi(pd) != normalize_doi(existing.doi):
+        key = f"doi:{normalize_doi(pd)}"
+        cur = upd.get("alt_ids", existing.alt_ids)
+        if key != existing.id and key not in cur:
+            upd["alt_ids"] = [*cur, key]
+    if pv and not existing.published_venue:
+        upd["published_venue"] = pv
+    if pd and not existing.published_doi:
+        upd["published_doi"] = pd
+    new_pv = upd.get("published_venue") or existing.published_venue
+    if new_pv and (not existing.venue or _SUBMISSION_RE.search(existing.venue)):
+        upd["venue"] = new_pv
 
 
 def merge_papers(existing: Paper, incoming: Paper) -> Paper:
@@ -140,15 +180,30 @@ def merge_papers(existing: Paper, incoming: Paper) -> Paper:
     if not existing.authors and incoming.authors:
         upd["authors"] = list(incoming.authors)
 
+    for f in _MAXES:
+        vals = [v for v in (getattr(existing, f), getattr(incoming, f)) if v is not None]
+        if vals and max(vals) != getattr(existing, f):
+            upd[f] = max(vals)
+    if incoming.semantic_score > existing.semantic_score:
+        upd["semantic_score"] = incoming.semantic_score
+    srcs = _union(existing.sources or [existing.source], incoming.sources or [incoming.source])
+    srcs = _union(srcs, [existing.source, incoming.source])
+    if srcs != existing.sources and not (not existing.sources and srcs == [existing.source]):
+        upd["sources"] = srcs
+    _promote(existing, incoming, upd)
+
     if incoming.source == existing.source and _is_newer(existing, incoming):
         for f in ("title", "abstract", "updated", "version", "url", "pdf_url"):
             v = getattr(incoming, f)
             if v not in (None, ""):
                 upd[f] = v
 
-    alt_ids = _union(existing.alt_ids, incoming.alt_ids)
+    alt_ids = _union(upd.get("alt_ids", existing.alt_ids), incoming.alt_ids)
     if incoming.id != existing.id:
         alt_ids = _union(alt_ids, [incoming.id])
+    if incoming.doi and existing.doi and normalize_doi(incoming.doi) != normalize_doi(existing.doi):
+        # Reverse order (journal existing, preprint incoming): remember the other DOI.
+        alt_ids = _union(alt_ids, [f"doi:{normalize_doi(incoming.doi)}"])
     alt_ids = [x for x in alt_ids if x != existing.id]
     if alt_ids != existing.alt_ids:
         upd["alt_ids"] = alt_ids

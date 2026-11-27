@@ -1,0 +1,20 @@
+{
+  "version": "6.9",
+  "hitCount": 3,
+  "nextCursorMark": "AoIIP4AAACgxMjM0",
+  "resultList": {
+    "result": [
+      {
+        "id": "39000003",
+        "source": "MED",
+        "pmid": "39000003",
+        "title": "Transcriptome response modelling",
+        "authorString": "Kim C, Park D",
+        "journalInfo": {"journal": {"title": "Cell Systems"}},
+        "abstractText": "Short abstract.",
+        "citedByCount": 3,
+        "firstPublicationDate": "2026-11-07"
+      }
+    ]
+  }
+}

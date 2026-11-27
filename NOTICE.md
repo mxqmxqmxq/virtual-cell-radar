@@ -14,6 +14,7 @@ Preprint metadata comes from the bioRxiv/medRxiv API (https://api.biorxiv.org/),
 ## OpenReview
 
 Submission metadata for ICLR comes from OpenReview (https://openreview.net). Submissions remain the property of their authors; they may be under review, rejected or withdrawn. Terms: https://openreview.net/legal/terms. No required acknowledgement wording was found: 待核实.
+An optional fetcher (`fetchers/openreview.py`, disabled by default) uses API v2 with an optional `OPENREVIEW_TOKEN`.
 
 ## Anthropic (Claude)
 
@@ -49,3 +50,15 @@ The business-news board links to articles from the feeds below. This project is 
 The knowledge-resources board links to third-party repositories, tool libraries, data portals, benchmarks, courses, reviews, tutorials and blogs, maintained by many institutions and individuals. This project is not affiliated with or endorsed by any of them and is grateful to their authors and maintainers. It stores only each resource's name, a link and its own Chinese description; the content, code and data behind the links belong to their respective owners and remain under their own licenses (see `DATA_LICENSE.md`, section 7).
 
 Repository metrics (stars, last push time, archived flag, license identifier, main language) are fetched from the GitHub REST API (https://api.github.com) with `aivc resources refresh`, anonymously or with an optional `GITHUB_TOKEN`; no required acknowledgement wording was found, and whether GitHub's terms set further conditions for this use: 待核实.
+
+## OpenAlex
+
+OpenAlex data, CC0 1.0 as stated by OpenAlex (the statement is taken from the project design brief; OpenAlex's own pages were not re-read in this change). The polite-pool `mailto` parameter is optional and is set by the operator; no contact address is stored in this repository. Required acknowledgement wording: 待核实.
+
+## Europe PMC
+
+Europe PMC, EMBL-EBI. Records are retrieved through its public REST search API; API use is subject to its terms: 待核实.
+
+## Hugging Face Daily Papers
+
+Daily paper listings come from the public JSON endpoint of Hugging Face Daily Papers. Paper metadata originates from arXiv. This project is not affiliated with or endorsed by Hugging Face or arXiv. Terms for the endpoint: 待核实.

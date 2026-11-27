@@ -2,7 +2,7 @@ arxiv:
   enabled: true
   base_url: "https://export.arxiv.org/api/query"
   bio_categories: ["q-bio.GN", "q-bio.QM", "q-bio.MN", "q-bio.CB", "q-bio.BM"]  # 全收，本地预筛
-  ml_categories: ["cs.LG", "cs.AI", "stat.ML"]  # 查询时必须带关键词
+  ml_categories: ["cs.LG", "cs.AI", "stat.ML", "cs.CV", "cs.CL", "stat.ME"]  # 查询时必须带关键词
   query_terms:
     - "virtual cell"
     - "perturbation prediction"
@@ -16,6 +16,13 @@ arxiv:
     - "CRISPR screen"
     - "cell fate"
     - "transcriptomic"
+    - "scRNA-seq"
+    - "spatial transcriptomics"
+    - "RNA velocity"
+    - "cell state"
+    - "flow matching"
+    - "cell painting"
+    - "multi-omics"
   page_size: 100
   delay_seconds: 3.0
   max_results_per_window: 2000
@@ -27,6 +34,7 @@ biorxiv:
   categories: ["bioinformatics", "systems biology", "genomics", "synthetic biology"]
   delay_seconds: 1.0
   max_pages_per_category: 400
+  fetch_published_links: true   # 用 /pubs 端点回填已发表的 DOI 与期刊
 
 medrxiv:
   enabled: false
@@ -35,6 +43,50 @@ medrxiv:
   categories: ["health informatics", "genetic and genomic medicine"]
   delay_seconds: 1.0
   max_pages_per_category: 400
+  fetch_published_links: false
+
+# OpenAlex（CC0 1.0；许可条款待核实）
+openalex:
+  enabled: true
+  # ISSN 待核实（上线前对照期刊官网或 ISSN Portal 核对）
+  journal_issns:
+    - {name: "Nature", issn: ["0028-0836", "1476-4687"]}
+    - {name: "Nature Methods", issn: ["1548-7091", "1548-7105"]}
+    - {name: "Nature Biotechnology", issn: ["1087-0156", "1546-1696"]}
+    - {name: "Nature Machine Intelligence", issn: ["2522-5839"]}
+    - {name: "Nature Computational Science", issn: ["2662-8457"]}
+    - {name: "Cell", issn: ["0092-8674", "1097-4172"]}
+    - {name: "Cell Systems", issn: ["2405-4712"]}
+    - {name: "Science", issn: ["0036-8075", "1095-9203"]}
+    - {name: "Genome Biology", issn: ["1474-760X"]}
+  domain_terms: ["single-cell", "virtual cell", "perturbation", "foundation model", "gene expression", "transcriptomic", "cell state"]
+  queries:
+    - '"virtual cell"'
+    - '"single-cell foundation model"'
+    - '"perturbation prediction"'
+    - '"Perturb-seq"'
+  mailto: ""   # 由使用者填写联系邮箱，可进入 OpenAlex polite pool；仓库中不要提交真实邮箱
+  per_page: 100
+  delay_seconds: 0.5
+  max_pages: 10
+
+# Europe PMC（条款待核实）
+europepmc:
+  enabled: true
+  queries:
+    - '"virtual cell"'
+    - '"single-cell" AND ("foundation model" OR "deep learning")'
+    - '"perturbation prediction"'
+    - '"Perturb-seq"'
+    - '"cell foundation model"'
+  page_size: 100
+  delay_seconds: 1.0
+  max_pages: 10
+
+# Hugging Face Daily Papers（条款待核实；抓取结果仍需经 prefilter）
+hf_papers:
+  enabled: true
+  delay_seconds: 1.0
 
 # 以下为 Phase 2+ 占位，未启用。RSS URL 未核实的留空，待确认。
 journals_rss:
@@ -51,7 +103,16 @@ journals_rss:
 
 openreview:
   enabled: false
-  venues: ["ICLR", "NeurIPS", "ICML", "MLCB", "RECOMB"]  # 具体 venue id 待确认
+  # 对象带 venueid / invitation 才会被抓取；纯字符串仅作占位标签。venueid 待核实。
+  venues:
+    - {name: "ICLR 2027", venueid: "ICLR.cc/2027/Conference/Submission"}
+    - "NeurIPS"
+    - "ICML"
+    - "MLCB"
+    - "RECOMB"
+  token_env: "OPENREVIEW_TOKEN"
+  page_size: 100
+  max_notes_per_venue: 1000
   # refresh-openreview（核验并覆盖公开库里的 ICLR 条目）用的官方 API v2 地址与请求间隔（秒，最小按 1 秒）
   api_base_url: "https://api2.openreview.net"
   delay_seconds: 1.0

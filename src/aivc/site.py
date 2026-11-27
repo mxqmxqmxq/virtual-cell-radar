@@ -20,6 +20,7 @@ from .news import NewsStore, interleave_by_company
 from .news_site import export_companies, export_news
 from .resources import MetricsStore, ResourceStore
 from .resources_site import export_resources
+from .stats import DIRECT_JOURNAL_SOURCES, SOURCE_ORDER, enabled_source_ids
 from .storage import PaperStore
 from .topics import Topic
 
@@ -75,6 +76,9 @@ def _paper_date(p: Paper) -> date:
     return p.published or p.first_seen
 
 
+_UNDER_REVIEW_RE = re.compile(r"(?i)submission|under review")
+
+
 def export_papers(papers: list[Paper], *, include_local: bool = False) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for p in papers:
@@ -85,7 +89,8 @@ def export_papers(papers: list[Paper], *, include_local: bool = False) -> list[d
             "id": p.id,
             "title": p.title,
             "abstract": p.abstract,
-            "authors": list(p.authors),
+            # 防御：OpenReview 在审（双盲）稿件不公开作者；数据层已由抓取器剥离
+            "authors": [] if (p.source == "openreview" and _UNDER_REVIEW_RE.search(p.venue or "")) else list(p.authors),
             "source": p.source,
             "venue": p.venue,
             "published": p.published.isoformat() if p.published else None,
@@ -116,6 +121,20 @@ def export_papers(papers: list[Paper], *, include_local: bool = False) -> list[d
             "new_dataset_names": list(llm.new_dataset_names) if llm else [],
             "novelty_zh": llm.novelty_zh if llm else "",
             "summary_zh": llm.summary_zh if llm else "",
+            "published_venue": p.published_venue,
+            "published_doi": p.published_doi,
+            "weights_url": p.weights_url,
+            "citation_count": p.citation_count,
+            "hf_upvotes": p.hf_upvotes,
+            "github_stars": p.github_stars,
+            "matched_orgs": list(p.matched_orgs),
+            "sources": list(p.sources),
+            "semantic_score": p.semantic_score,
+            "novelty_score": llm.novelty_score if llm else None,
+            "rigor_score": llm.rigor_score if llm else None,
+            "impact_score": llm.impact_score if llm else None,
+            "why_it_matters_zh": llm.why_it_matters_zh if llm else "",
+            "limitations_zh": llm.limitations_zh if llm else "",
         }
         if include_local:
             row["local_file"] = p.local_file
@@ -215,6 +234,9 @@ def build_meta(
             "news_total": len(news_items),
             "resources_total": resources_total,
             "news_7d": sum(1 for n in news_items if since <= n["date"] <= today.isoformat()),
+            "promoted": sum(1 for p in papers if p.published_venue),
+            "with_code": sum(1 for p in papers if p.code_url or p.has_code),
+            "with_weights": sum(1 for p in papers if p.weights_url or p.has_weights),
             "by_source": dict(Counter(p.source for p in papers)),
             "by_circle": dict(Counter((p.llm.circle if _is_scored(p) and p.llm else p.circle) for p in papers)),
         },
@@ -234,6 +256,8 @@ def build_meta(
 SOURCE_LABELS = {
     "arxiv": "arXiv", "biorxiv": "bioRxiv", "medrxiv": "medRxiv", "openreview": "OpenReview",
     "journal": "期刊", "seed_pdf": "本地种子 PDF", "other": "其他",
+    "openalex": "OpenAlex", "europepmc": "Europe PMC", "pubmed": "PubMed",
+    "hf_papers": "HF Daily Papers", "chemrxiv": "ChemRxiv",
 }
 _MD_LINK_RE = re.compile(r"\[([^\]]*)\]\([^)]*\)")
 _MD_LIST_RE = re.compile(r"^(?:[-*+]\s+|\d+[.)]\s+)")
@@ -298,18 +322,20 @@ def build_home(
         "new_datasets": sum(1 for p in scored if p.llm and p.llm.releases_new_dataset),
         "core": circles.get("core", 0), "peripheral": circles.get("peripheral", 0), "none": circles.get("none", 0),
         "this_week_new": sum(1 for p in papers if wstart <= p.first_seen <= wend),
+        "published_direct": sum(1 for p in papers
+                                if p.published_venue and p.source in DIRECT_JOURNAL_SOURCES),
+        "published_promoted": sum(1 for p in papers
+                                  if p.published_venue and p.source not in DIRECT_JOURNAL_SOURCES),
     }
     digest = _build_digest(cfg, papers, weekly, today, news_export)
     progress["news_7d"] = digest["n_news_7d"]
 
     # sources
     src_counts = Counter(p.source for p in papers)
-    for k in ("arxiv", "biorxiv", "medrxiv", "openreview"):
+    for k in SOURCE_ORDER:
         src_counts.setdefault(k, 0)
-    cfg_enabled = {
-        "arxiv": cfg.sources.arxiv.enabled, "biorxiv": cfg.sources.biorxiv.enabled,
-        "medrxiv": cfg.sources.medrxiv.enabled, "openreview": cfg.sources.openreview.enabled,
-    }
+    enabled_ids = set(enabled_source_ids(cfg))
+    cfg_enabled = {k: (k in enabled_ids) for k in SOURCE_ORDER}
     active: list[dict[str, Any]] = []
     planned: list[dict[str, Any]] = []
     for sid, n in src_counts.items():
@@ -323,6 +349,7 @@ def build_home(
             {"id": f.name, "label": f.name, "kind": "journal",
              "status": "active" if cfg.sources.journals_rss.enabled else "planned", "count": 0})
     for v in cfg.sources.openreview.venues:
+        v = v if isinstance(v, str) else v.name
         (active if cfg.sources.openreview.enabled else planned).append(
             {"id": v, "label": v, "kind": "venue",
              "status": "active" if cfg.sources.openreview.enabled else "planned", "count": 0})

@@ -22,6 +22,12 @@ def test_real_config_loads(config_dir):
     assert all(co.id for co in c.companies.companies)
     assert c.pipeline.dedup.title_threshold == 93
     assert c.sources.seed.source_dir is None
+    from aivc.config import OpenReviewVenue
+    assert c.sources.openalex.enabled and c.sources.europepmc.enabled and c.sources.hf_papers.enabled
+    assert c.sources.openreview.enabled is False
+    assert isinstance(c.sources.openreview.venues[0], OpenReviewVenue)
+    assert "cs.CV" in c.sources.arxiv.ml_categories
+    assert c.pipeline.update.retry_backlog_per_run == 20
 
 
 def test_missing_file(config_dir, tmp_path):
@@ -86,3 +92,19 @@ def test_news_strict_keywords_loaded(config_dir):
     assert "AI制药" in n.keywords
     assert "AI for Science" not in n.keywords and "AI for Science" in n.strict_keywords
     assert "扰动" not in n.keywords and "细胞扰动" in n.keywords and "基因扰动" in n.keywords
+
+
+@pytest.mark.parametrize("edit", [
+    "score_weights:\n  relevance: -0.1\n",
+    "score_weights:\n  relevance: 0\n  novelty: 0\n  rigor: 0\n  impact: 0\n",
+    "must_read_threshold: 11\n",
+    "must_read_threshold: -1\n",
+])
+def test_llm_config_validation(config_dir, tmp_path, edit):
+    shutil.copytree(config_dir, tmp_path / "c")
+    f = tmp_path / "c" / "llm.yaml"
+    f.write_text(f.read_text() + "\n" + edit if edit.startswith("must") is False else
+                 "\n".join(l for l in f.read_text().splitlines()
+                           if not l.startswith("must_read_threshold")) + "\n" + edit)
+    with pytest.raises(ValueError, match="llm.yaml"):
+        load_config(tmp_path / "c")

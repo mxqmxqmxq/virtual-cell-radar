@@ -12,6 +12,8 @@ ABS_PATH_RE = re.compile(r"/(Users|home)/[A-Za-z0-9._-]+/")
 _REPORT_PATH_RE = re.compile(r"(/Users/|/home/)")
 EXCLUDE_DIRS = {".git", ".venv", "local", "site", ".shots", ".backup", "node_modules",
                 "__pycache__", ".pytest_cache"}
+# EXCLUDE_FILES 仅含 uv.lock。仓库根目录的 .git 文件（git worktree 的 gitdir 指针，
+# 内容以 "gitdir:" 开头）在 check_repo_paths 中单独跳过；其他位置的 .git 文件照常扫描。
 EXCLUDE_FILES = {"uv.lock"}
 TOPIC_SCAN_DIRS = ("config", "src", "tests", "docs", "data/resources")
 
@@ -41,6 +43,44 @@ class Issue:
         return f"{self.path}:{self.line} {self.message}"
 
 
+_VALID_SOURCES = frozenset({"arxiv", "biorxiv", "medrxiv", "openreview", "journal", "seed_pdf", "other",
+                            "openalex", "europepmc", "pubmed", "hf_papers", "chemrxiv"})
+MAX_LLM_ZH = 400
+_DOI_RE = re.compile(r"10\.\d{4,9}/\S+$")
+
+
+def _check_paper_new_fields(d: dict, path: str, line: int, pid, llm_obj) -> list[Issue]:
+    """v2 新增可选字段的卫生检查；旧格式行（无这些字段）不报。"""
+    issues: list[Issue] = []
+    orgs = d.get("matched_orgs")
+    if isinstance(orgs, list):
+        for o in orgs:
+            if isinstance(o, str) and ("/" in o or len(o) > 120):
+                issues.append(Issue(path, line, f"matched_orgs 含异常值（{pid}）"))
+                break
+    srcs = d.get("sources")
+    if isinstance(srcs, list):
+        bad = [x for x in srcs if x not in _VALID_SOURCES]
+        if bad:
+            issues.append(Issue(path, line, f"sources 含非法取值 {bad}（{pid}）"))
+    wu = d.get("weights_url")
+    if wu not in (None, "") and not _http(wu):
+        issues.append(Issue(path, line, f"weights_url 不是 http(s) 链接（{pid}）"))
+    pd_ = d.get("published_doi")
+    if pd_ not in (None, "") and not (_http(pd_) or (isinstance(pd_, str) and _DOI_RE.match(pd_))):
+        issues.append(Issue(path, line, f"published_doi 不是 DOI 或 http(s) 链接（{pid}）"))
+    if isinstance(llm_obj, dict):
+        for key in ("why_it_matters_zh", "limitations_zh"):
+            v = llm_obj.get(key)
+            if not isinstance(v, str):
+                continue
+            if len(v) > MAX_LLM_ZH:
+                issues.append(Issue(path, line, f"{key} 超过 {MAX_LLM_ZH} 字（{pid}）"))
+            if _LONG_EN_RE.search(v):
+                issues.append(Issue(path, line, f"{key} 疑似长段引用原文（连续 ≥25 个英文单词）（{pid}）"))
+    return issues
+
+
 def check_data(data_dir: Path, allowed_tags: list[str]) -> list[Issue]:
     """(a) 公开库 papers/*.jsonl 逐行按原始 JSON 检查。"""
     issues: list[Issue] = []
@@ -66,6 +106,7 @@ def check_data(data_dir: Path, allowed_tags: list[str]) -> list[Issue]:
             bad = [t for t in (d.get("tags") or []) if t not in allowed]
             if bad:
                 issues.append(Issue(str(f), i, f"tags 含不在白名单的值 {bad}（{pid}）"))
+            issues += _check_paper_new_fields(d, str(f), i, pid, d.get("llm"))
     return issues
 
 
@@ -109,6 +150,70 @@ def check_site_data(site_dir: Path) -> list[Issue]:
             issues.append(Issue(str(f), line, f"local_file 非空（{pid}）"))
         if "highlight" in p:
             issues.append(Issue(str(f), line, f"存在 highlight 键（{pid}）"))
+        issues += _check_site_paper_new(p, str(f), line, pid)
+    return issues
+
+
+def _check_site_paper_new(p: dict, path: str, line: int, pid) -> list[Issue]:
+    issues: list[Issue] = []
+    wu = p.get("weights_url")
+    if wu not in (None, "") and not _http(wu):
+        issues.append(Issue(path, line, f"weights_url 不是 http(s) 链接（{pid}）"))
+    for key in ("why_it_matters_zh", "limitations_zh"):
+        v = p.get(key)
+        if not isinstance(v, str):
+            continue
+        if len(v) > MAX_LLM_ZH:
+            issues.append(Issue(path, line, f"{key} 超过 {MAX_LLM_ZH} 字（{pid}）"))
+        if _LONG_EN_RE.search(v):
+            issues.append(Issue(path, line, f"{key} 疑似长段引用原文（连续 ≥25 个英文单词）（{pid}）"))
+    return issues
+
+
+def check_state_data(data_dir: Path) -> list[Issue]:
+    """data/state/fetch_state.json：键白名单、绝对路径、runs 长度。"""
+    from .state import RUN_KEYS, SOURCE_KEYS
+    f = Path(data_dir) / "state" / "fetch_state.json"
+    if not f.is_file():
+        return []
+    try:
+        d = json.loads(f.read_text(encoding="utf-8"))
+    except ValueError:
+        return [Issue(str(f), 1, "fetch_state.json 无法解析")]
+    if not isinstance(d, dict):
+        return [Issue(str(f), 1, "fetch_state.json 顶层不是对象")]
+    issues: list[Issue] = []
+    extra = sorted(set(d) - {"version", "sources", "runs"})
+    if extra:
+        issues.append(Issue(str(f), 1, f"state 含白名单外的键 {extra}"))
+    srcs = d.get("sources")
+    if isinstance(srcs, dict):
+        for name, rec in srcs.items():
+            if isinstance(rec, dict):
+                ex = sorted(set(rec) - set(SOURCE_KEYS))
+                if ex:
+                    issues.append(Issue(str(f), 1, f"state.sources[{name}] 含白名单外的键 {ex}"))
+    runs = d.get("runs")
+    if isinstance(runs, list):
+        if len(runs) > 30:
+            issues.append(Issue(str(f), 1, f"state.runs 超过 30 条（{len(runs)}）"))
+        for n, r in enumerate(runs):
+            if isinstance(r, dict):
+                ex = sorted(set(r) - set(RUN_KEYS))
+                if ex:
+                    issues.append(Issue(str(f), 1, f"state.runs[{n}] 含白名单外的键 {ex}"))
+
+    def walk(v) -> bool:
+        if isinstance(v, str):
+            return ABS_PATH_RE.search(v) is not None
+        if isinstance(v, dict):
+            return any(walk(x) for x in v.values())
+        if isinstance(v, list):
+            return any(walk(x) for x in v)
+        return False
+
+    if walk(d):
+        issues.append(Issue(str(f), 1, "state 含本机绝对路径"))
     return issues
 
 
@@ -385,6 +490,9 @@ def check_repo_paths(root: Path) -> list[Issue]:
         txt = _read_text(p)
         if txt is None:
             continue
+        # 仅根目录 .git 文件且为合法 gitdir 指针时跳过；子目录或非指针形式的 .git 照常扫描
+        if rel.parts == (".git",) and txt.startswith("gitdir:"):
+            continue
         for i, line in enumerate(txt.splitlines(), 1):
             if _has_path_hit(ABS_PATH_RE, line):
                 issues.append(Issue(str(rel), i, "含本机绝对路径"))
@@ -396,6 +504,7 @@ def run_checks(*, root: Path, data_dir: Path, reports_dir: Path, site_dir: Path,
     notes: list[str] = []
     issues = check_data(data_dir, allowed_tags)
     issues += check_reports_generic(reports_dir)
+    issues += check_state_data(data_dir)
     issues += check_site_data(site_dir)
     issues += check_news_data(data_dir)
     issues += check_site_news(site_dir)

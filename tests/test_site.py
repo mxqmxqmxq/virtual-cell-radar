@@ -69,9 +69,13 @@ def test_papers_json(env):
     keys = {"id", "title", "abstract", "authors", "source", "venue", "published", "first_seen", "date", "month", "week",
             "url", "pdf_url", "code_url", "doi", "license", "categories", "keywords", "tags", "matched_keywords",
             "keyword_score", "circle", "scored", "llm_status", "final_score", "must_read", "relevance",
-            "tasks", "paradigms", "datasets_used", "releases_new_dataset", "new_dataset_names", "novelty_zh", "summary_zh"}
+            "tasks", "paradigms", "datasets_used", "releases_new_dataset", "new_dataset_names", "novelty_zh", "summary_zh",
+            "published_venue", "published_doi", "weights_url", "citation_count", "hf_upvotes", "github_stars",
+            "matched_orgs", "sources", "semantic_score", "novelty_score", "rigor_score", "impact_score",
+            "why_it_matters_zh", "limitations_zh"}
     assert all(set(p) == keys for p in d["papers"])
     p1, p3 = by["p1"], by["p3"]
+    assert p1["novelty_score"] is None and p1["matched_orgs"] == [] and p1["sources"] == []
     assert p1["scored"] is True and p1["circle"] == "core" and p1["week"] == "2026-W46"
     assert p1["date"] == "2026-11-10" and p1["month"] == "2026-11" and p1["tasks"] == ["perturbation_prediction"]
     assert p3["scored"] is False and p3["date"] == "2026-12-31" and p3["published"] is None
@@ -206,7 +210,8 @@ def test_home_json_keys(env):
     assert set(h) == {"generated_at", "featured", "progress", "sources", "heat", "keywords_top", "weeks", "demo", "weekly", "digest"}
     assert set(h["featured"]) == {"mode", "week", "items"} and h["featured"]["week"] == "2026-W46"
     assert set(h["progress"]) == {"total", "scored", "unscored", "must_read", "new_datasets", "core", "peripheral",
-                                  "none", "this_week_new", "news_7d"}
+                                  "none", "this_week_new", "news_7d", "published_direct",
+                                  "published_promoted"}
     assert all(isinstance(v, int) for v in h["progress"].values())
     assert h["progress"]["total"] == 4 and h["progress"]["scored"] == 3 and h["progress"]["this_week_new"] == 2
     assert set(h["heat"]) == {"paradigms", "tasks", "cells", "max", "n_scored"}
@@ -497,3 +502,38 @@ def test_resources_json_empty_without_files(env):
     rj = _j(env[4], "resources.json")
     assert r.n_resources == 0 and rj["count"] == 0 and rj["items"] == []
     assert _j(env[4], "meta.json")["stats"]["resources_total"] == 0
+
+
+def test_home_sources_all_enabled_listed_even_when_zero(env):
+    cfg = env[0]
+    cfg.sources.hf_papers.enabled = True
+    cfg.sources.medrxiv.enabled = False
+    _build(env)
+    h = _j(env[4], "home.json")
+    rows = {r["id"]: r for r in h["sources"]}
+    assert set(rows["hf_papers"]) == {"id", "label", "kind", "status", "count"}
+    assert rows["hf_papers"]["status"] == "active" and rows["hf_papers"]["count"] == 0
+    assert rows["medrxiv"]["status"] == "planned" and rows["medrxiv"]["count"] == 0
+
+
+def test_home_progress_published_split(env):
+    cfg, data = env[0], env[1]
+    PaperStore(data).upsert([
+        Paper(id="d1", title="direct", source="openalex", first_seen=date(2026, 11, 10), published_venue="Nature"),
+        Paper(id="d2", title="promoted", source="biorxiv", first_seen=date(2026, 11, 10), published_venue="Cell"),
+    ])
+    _build(env)
+    h = _j(env[4], "home.json")
+    assert h["progress"]["published_direct"] == 1 and h["progress"]["published_promoted"] == 1
+
+
+def test_openreview_under_review_authors_blank(env):
+    PaperStore(env[1]).upsert([
+        Paper(id="o1", title="in review", source="openreview", first_seen=date(2026, 11, 10),
+              venue="ICLR 2027 Conference Submission", authors=["Alice"]),
+        Paper(id="o2", title="accepted", source="openreview", first_seen=date(2026, 11, 10),
+              venue="ICLR 2026 Poster", authors=["Bob"]),
+    ])
+    _build(env)
+    by = {p["id"]: p for p in _j(env[4], "papers.json")["papers"]}
+    assert by["o1"]["authors"] == [] and by["o2"]["authors"] == ["Bob"]
