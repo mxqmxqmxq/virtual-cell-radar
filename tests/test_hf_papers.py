@@ -102,6 +102,19 @@ def test_400_future_utc_date_skipped():
     assert f.last_incomplete is False
 
 
+def test_400_weekend_today_skipped():
+    # TODAY=2026-11-14 is Saturday; HF daily_papers returns 400 on weekends
+    def h(req):
+        if req.url.params["date"] == "2026-11-14":
+            return httpx.Response(400, json={"error": "date must be <= 2026-11-13"})
+        return httpx.Response(200, json=DAILY)
+
+    f, _ = make(h)
+    papers = f.fetch(date(2026, 11, 13), date(2026, 11, 14))
+    assert len(papers) == 3
+    assert f.last_incomplete is False
+
+
 def test_400_historical_date_raises():
     def h(req):
         if req.url.params["date"] == "2026-11-10":
@@ -171,21 +184,21 @@ def test_400_utc_not_local_today_skipped():
     """本机「今天」在 UTC 下仍是未来（如 UTC+8 早晨）：400 应跳过而非抛错；比较基准为 UTC。"""
     from datetime import datetime, timezone
 
-    local_today = date(2026, 11, 15)  # 本地日期；UTC 此刻仍为 11-14
+    local_today = date(2026, 11, 13)  # 周五；UTC 此刻仍为周四 11-12
 
     def h(req):
-        if req.url.params["date"] == "2026-11-15":
+        if req.url.params["date"] == "2026-11-13":
             return httpx.Response(400, json={"error": "date must be <= today UTC"})
         return httpx.Response(200, json=DAILY)
 
     cfg = SimpleNamespace(base_url="https://huggingface.co/api/daily_papers", delay_seconds=0, max_days=31)
     client = httpx.Client(transport=httpx.MockTransport(h))
     f = HFPapersFetcher(cfg, HTTP, client=client, sleep=lambda s: None,
-                        now=lambda: datetime(2026, 11, 14, 23, 0, tzinfo=timezone.utc))
-    papers = f.fetch(date(2026, 11, 14), local_today)
+                        now=lambda: datetime(2026, 11, 12, 23, 0, tzinfo=timezone.utc))
+    papers = f.fetch(date(2026, 11, 12), local_today)
     assert len(papers) == 3 and f.last_incomplete is False
-    # 反例：UTC 已到 11-15 时，同一 400 属历史日期 -> 抛错
+    # 反例：UTC 已到工作日 11-13 时，同一 400 不应跳过 -> 抛错
     f2 = HFPapersFetcher(cfg, HTTP, client=client, sleep=lambda s: None,
-                         now=lambda: datetime(2026, 11, 15, 1, 0, tzinfo=timezone.utc))
-    with pytest.raises(FetchError, match="2026-11-15"):
-        f2.fetch(date(2026, 11, 14), local_today)
+                         now=lambda: datetime(2026, 11, 13, 1, 0, tzinfo=timezone.utc))
+    with pytest.raises(FetchError, match="2026-11-13"):
+        f2.fetch(date(2026, 11, 12), local_today)

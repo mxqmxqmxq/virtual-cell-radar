@@ -29,7 +29,7 @@
     news: { items: [], count: 0, event_types: [], weeks: [], funding_quarters: [] }, companies: { categories: {}, companies: [], paper_companies: {} },
     companyById: {}, paperCompanies: {},
     resources: { items: [], kinds: [], sections: [], tasks: [], paradigms: [], count: 0 }, resByPaper: {}, resByDataset: {} };
-  var byId = {};
+  var byId = Object.create(null);
   var app = document.getElementById("app");
 
   function el(tag, attrs, children) {
@@ -60,7 +60,12 @@
   function T(s) { return document.createTextNode(s == null ? "" : String(s)); }
   function arr(x) { return Array.isArray(x) ? x : []; }
   function str(x) { return typeof x === "string" ? x : (x == null ? "" : String(x)); }
-  function safeUrl(u) { return typeof u === "string" && /^https?:\/\//i.test(u) ? u : null; }
+  function safeUrl(u) {
+    var P = PD();
+    if (P) return P.httpUrl(u);
+    if (typeof u !== "string" || !/^https?:\/\//i.test(u)) return null;
+    try { return new URL(u).href; } catch (e) { return null; }
+  }
   function extLink(url, label, cls) {
     var u = safeUrl(url);
     if (!u) return null;
@@ -200,6 +205,19 @@
   // ---------- 通用小部件 ----------
   function tag(text, cls) { return el("span", { class: "tag" + (cls ? " " + cls : ""), text: text }); }
 
+  // ---------- 论文数据模块（可选：papers-data.js 缺失时降级） ----------
+  function PD() { try { return window.AIVCPapersData || null; } catch (e) { return null; } }
+  function srcLabel(id) { var P = PD(); return P && typeof P.sourceLabel === "function" ? (P.sourceLabel(id) || "未知来源") : (str(id) || "未知来源"); }
+  function sourcesOf(p) { var P = PD(); if (P && P.allSourcesOf) return P.allSourcesOf(p); return Array.from(new Set([p.source].concat(arr(p.sources)).filter(Boolean))); }
+  function pubOf(p) {
+    var P = PD(); if (P && P.pubInfo) return P.pubInfo(p);
+    var v = str(p.published_venue).trim();
+    return { published: !!v, venue: v, doi: str(p.published_doi) || str(p.doi), isPromoted: false };
+  }
+  function orgsOf(p) { return PD() ? PD().orgsOf(p) : arr(p.matched_orgs).filter(Boolean); }
+  function rubricOf(p) { var P = PD(); return P && P.rubricDims ? P.rubricDims(p) : null; }
+  function posNum(x) { return typeof x === "number" && isFinite(x) && x > 0 ? x : 0; }
+
   // ---------- 我的课题（可选模块：topics.js / topics-ui.js 缺失或出错时一律降级为“没有课题”） ----------
   function TP() { try { return window.AIVCTopics || null; } catch (e) { return null; } }
   function TUI() { try { return window.AIVCTopicsUI || null; } catch (e) { return null; } }
@@ -307,9 +325,10 @@
   }
 
   function scoreBadge(p) {
-    if (p.scored && typeof p.final_score === "number") {
+    if (p.scored && Number.isFinite(p.final_score)) {
       return el("span", { class: "score" + (p.must_read ? " must" : ""), text: (p.must_read ? "必读 " : "") + fmtScore(p.final_score) });
     }
+    if (p.scored) return el("span", { class: "score un", text: "暂无最终分" });
     return el("span", { class: "score un", text: "未打分 · 关键词分 " + fmtScore(p.keyword_score) });
   }
 
@@ -320,14 +339,45 @@
     topicsOf(p).slice(0, 2).forEach(function (h) { tags.push(tag("课题 · " + str(h.name), "tag-hl")); });
     if (p.releases_new_dataset) tags.push(tag("新数据集", "tag-good"));
     var nov = str(p.novelty_zh);
+    var srcs = sourcesOf(p), pub = pubOf(p);
+    var metaKids = [el("span", { class: "pcard-src", text: srcLabel(p.source) })];
+    if (srcs.length > 1) {
+      var allNames = srcs.map(srcLabel).join(" · ");
+      metaKids.push(el("span", { class: "pcard-multi", title: allNames, "aria-label": "共 " + srcs.length + " 个来源：" + allNames, text: "+" + (srcs.length - 1) }));
+    }
+    if (pub.published) {
+      var pubText = "已发表" + (pub.venue ? " · " + pub.venue : "");
+      metaKids.push(el("span", { class: "pcard-pub", title: pubText, text: pubText }));
+    }
+    metaKids.push(el("span", { text: str(p.date) }), el("span", { text: circleLabel(p.circle) }));
+    var rubricEl = null;
+    var dims = rubricOf(p);
+    if (dims && dims.length) {
+      var items = dims.filter(function (d) { return d.key === "novelty" || d.key === "rigor" || d.key === "impact"; });
+      if (items.length) {
+        var kids = [];
+        items.forEach(function (d, i) {
+          kids.push(el("span", { class: "pcard-rubric-i", text: d.short + " " + fmtScore(d.value) }));
+          if (i < items.length - 1) kids.push(el("span", { class: "pcard-rubric-sep", "aria-hidden": "true", text: "·" }));
+        });
+        rubricEl = el("div", { class: "pcard-rubric mono", "aria-label": "评分维度：" + items.map(function (d) { return d.label + " " + fmtScore(d.value); }).join("，") + "（满分 10）" }, kids);
+      }
+    }
+    var sigs = [];
+    if (safeUrl(p.code_url)) sigs.push(el("span", { class: "sig", text: posNum(p.github_stars) ? "Code ★ " + p.github_stars : "Code" }));
+    if (safeUrl(p.weights_url)) sigs.push(el("span", { class: "sig", text: "权重" }));
+    if (posNum(p.citation_count)) sigs.push(el("span", { class: "sig", text: "引用 " + p.citation_count }));
+    if (posNum(p.hf_upvotes)) sigs.push(el("span", { class: "sig", text: "HF ▲" + p.hf_upvotes }));
+    var orgs = orgsOf(p);
+    orgs.slice(0, 2).forEach(function (o) { sigs.push(el("span", { class: "sig sig-org", text: o })); });
+    if (orgs.length > 2) sigs.push(el("span", { class: "sig sig-more", title: orgs.slice(2).join("、"), text: "+" + (orgs.length - 2) }));
     var node = el("button", { type: "button", class: "card pcard reveal", "aria-haspopup": "dialog" }, [
-      el("div", { class: "pcard-meta" }, [
-        el("span", { text: str(p.source) || "未知来源" }), el("span", { text: str(p.date) }),
-        el("span", { text: circleLabel(p.circle) })
-      ]),
+      el("div", { class: "pcard-meta" }, metaKids),
       el("div", { class: "pcard-title", text: str(p.title) || "(无标题)" }),
       nov ? el("p", { class: "pcard-nov", text: nov }) :
         (p.scored ? null : el("p", { class: "pcard-nov hint", text: p.abstract ? "尚未打分，暂无中文创新点。" : "尚未打分，且该条目没有摘要。" })),
+      rubricEl,
+      sigs.length ? el("div", { class: "pcard-signals" }, sigs) : null,
       el("div", { class: "pcard-foot" }, [el("div", {}, scoreBadge(p)), tags.length ? el("div", { class: "tags" }, tags) : null])
     ]);
     node.addEventListener("click", function () { openDrawer(p, node); });
@@ -336,9 +386,11 @@
 
   // ---------- 详情抽屉 ----------
   var dlg = null, lastOpener = null;
-  var closeTimer = 0;
+  var closeTimer = 0, closeListener = null;
   function endClosing() {
     clearTimeout(closeTimer); closeTimer = 0;
+    if (closeListener && dlg) dlg.removeEventListener("animationend", closeListener);
+    closeListener = null;
     if (dlg) dlg.classList.remove("closing");
   }
   // 关闭走同一函数：先播退场动画，animationend（带超时兜底）后再 close()；reduced 时立即关闭
@@ -351,11 +403,11 @@
     var done = false;
     function fin() {
       if (done) return; done = true;
-      d.removeEventListener("animationend", onEnd);
       endClosing();
       if (d.open) d.close();
     }
     function onEnd(ev) { if (ev.target === d) fin(); }
+    closeListener = onEnd;
     d.addEventListener("animationend", onEnd);
     closeTimer = setTimeout(fin, 320);
   }
@@ -365,6 +417,7 @@
     dlg.addEventListener("click", function (ev) { if (ev.target === dlg) closeDrawer(); });
     dlg.addEventListener("cancel", function (ev) { ev.preventDefault(); closeDrawer(); });
     dlg.addEventListener("close", function () {
+      if (dlg.open) return;
       endClosing();
       if (lastOpener && document.contains(lastOpener)) { try { lastOpener.focus(); } catch (e) { /* ignore */ } }
     });
@@ -396,8 +449,39 @@
     endClosing();
     lastOpener = opener || null;
     clear(d);
-    var links = [extLink(p.url, "原文 ↗", "btn btn-primary"), extLink(p.pdf_url, "PDF ↗"), extLink(p.code_url, "代码 ↗")].filter(Boolean);
-    var doi = str(p.doi);
+    var doi = str(p.doi), pubDoi = str(p.published_doi);
+    var pub = pubOf(p);
+    var hasPubDoi = !!pubDoi && pubDoi !== doi;
+    var pubUrl = PD() ? PD().doiUrl(pubDoi) : null;
+    var codeLabel = posNum(p.github_stars) ? "代码 ★" + p.github_stars + " ↗" : "代码 ↗";
+    var links = [extLink(p.url, "原文 ↗", "btn btn-primary"), extLink(p.pdf_url, "PDF ↗"),
+      hasPubDoi ? extLink(pubUrl, "正式发表 ↗") : null,
+      extLink(p.code_url, codeLabel), extLink(p.weights_url, "模型权重 ↗")].filter(Boolean);
+    var doiSpans = [];
+    if (hasPubDoi) {
+      if (doi) doiSpans.push(el("span", { class: "kv", text: "预印本 DOI: " + doi }));
+      doiSpans.push(el("span", { class: "kv", text: "发表 DOI: " + pubDoi }));
+    } else if (doi) doiSpans.push(el("span", { class: "kv", text: "DOI: " + doi }));
+    var dims = rubricOf(p);
+    var rubricCard = dims && dims.length ? el("div", { class: "rubric-card", role: "group", "aria-label": "v4 四维评分" }, dims.map(function (dm) {
+      var v = Math.max(0, Math.min(10, dm.value));
+      var fill = el("div", { class: "rubric-fill" });
+      fill.style.width = (v * 10) + "%";
+      return el("div", { class: "rubric-row" }, [
+        el("span", { class: "rubric-label", text: dm.label }),
+        el("div", { class: "rubric-track", role: "meter", "aria-valuemin": "0", "aria-valuemax": "10", "aria-valuenow": String(v), "aria-label": dm.label + " " + fmtScore(dm.value) + " / 10" }, fill),
+        el("span", { class: "rubric-val mono", text: fmtScore(dm.value) + " / 10" })
+      ]);
+    })) : null;
+    var mItems = [];
+    if (posNum(p.citation_count)) mItems.push({ l: "引用数", v: String(p.citation_count) });
+    if (posNum(p.hf_upvotes)) mItems.push({ l: "HF 热度", v: "▲" + p.hf_upvotes });
+    if (posNum(p.github_stars)) mItems.push({ l: "GitHub Stars", v: "★ " + p.github_stars });
+    if (posNum(p.semantic_score)) mItems.push({ l: "语义分", v: p.semantic_score.toFixed(3) });
+    var metricStrip = mItems.length ? el("div", { class: "metric-strip" }, mItems.map(function (i) {
+      return el("div", { class: "metric" }, [el("span", { class: "metric-l", text: i.l }), el("span", { class: "metric-v mono", text: i.v })]);
+    })) : null;
+    var orgs = orgsOf(p);
     var tags = [];
     arr(p.tasks).forEach(function (t) { tags.push(tag(taskLabel(t), "tag-task")); });
     arr(p.paradigms).forEach(function (t) { tags.push(tag(parLabel(t), "tag-par")); });
@@ -405,23 +489,34 @@
     var inner = el("div", { class: "drawer-in" }, [
       el("button", { type: "button", class: "btn drawer-close", text: "关闭 Esc", onclick: closeDrawer }),
       el("div", { class: "pcard-meta" }, [
-        el("span", { text: str(p.source) }), el("span", { text: str(p.venue) }), el("span", { text: str(p.date) }),
+        el("span", { text: sourcesOf(p).map(srcLabel).join(" · ") || "未知来源" }),
+        pub.isPromoted ? el("span", { class: "drawer-pub", text: "预印本 → 已发表：" + pub.venue })
+          : (pub.published ? el("span", { class: "drawer-pub", text: "已发表：" + pub.venue }) : null),
+        str(p.venue) && str(p.venue) !== pub.venue ? el("span", { text: str(p.venue) }) : null,
+        el("span", { text: str(p.date) }),
         el("span", { text: circleLabel(p.circle) })
       ]),
       el("h2", { text: str(p.title) || "(无标题)" }),
       el("div", { class: "tags" }, [scoreBadge(p), p.releases_new_dataset ? tag("新数据集", "tag-good") : null]),
+      rubricCard,
+      metricStrip,
       p.scored ? null : el("div", { class: "notice", style: "margin-top:16px", text: "该论文尚未经 LLM 打分：没有最终分、任务/范式标签和中文总结。可运行 uv run python -m aivc score 打分。" }),
       tags.length ? el("div", { class: "tags", style: "margin-top:12px" }, tags) : null,
+      section("为何重要", str(p.why_it_matters_zh) ? el("p", { class: "drawer-callout", text: p.why_it_matters_zh }) : null),
       section("创新点", str(p.novelty_zh) ? el("p", { text: p.novelty_zh }) : null),
       section("中文总结", str(p.summary_zh) ? el("p", { text: p.summary_zh }) : null),
+      section("局限性", str(p.limitations_zh) ? el("p", { class: "drawer-caveat", text: p.limitations_zh }) : null),
       section("摘要", el("p", { text: str(p.abstract) || "（该条目没有摘要）" })),
       section("作者", arr(p.authors).length ? el("p", { text: arr(p.authors).join(", ") }) : null),
+      section("机构 / 实验室", orgs.length ? el("div", { class: "tags" }, orgs.map(function (o) {
+        return el("a", { class: "tag tag-org", href: "#/papers?org=" + encodeURIComponent(str(o)), "aria-label": "按机构筛选：" + str(o), text: str(o), onclick: function () { closeDrawer(); } });
+      })) : null),
       section("相关公司", relatedCompanies(p)),
       section("使用的数据集", arr(p.datasets_used).length ? el("div", { class: "tags" }, arr(p.datasets_used).map(function (n) { return tag(n); })) : null),
       section("新发布的数据集", arr(p.new_dataset_names).length ? el("div", { class: "tags" }, arr(p.new_dataset_names).map(function (n) { return tag(n, "tag-good"); })) : null),
       section("关键词", arr(p.matched_keywords).length || arr(p.keywords).length ?
         el("div", { class: "tags" }, arr(p.matched_keywords).map(function (n) { return tag(n, "tag-task"); }).concat(arr(p.keywords).map(function (n) { return tag(n); }))) : null),
-      section("链接", links.length || doi ? el("div", { class: "links" }, links.concat(doi ? [el("span", { class: "kv", text: "DOI: " + doi })] : [])) : null),
+      section("链接", links.length || doi || pubDoi ? el("div", { class: "links" }, links.concat(doiSpans)) : null),
       section("本地文件", str(p.local_file) ? el("span", { class: "kv", text: p.local_file }) : null),
       section("相关资源", resourceLinks(arr(D.resByPaper[p.id]))),
       section("条目", el("span", { class: "kv", text: str(p.id) + " · 入库 " + str(p.first_seen) + " · " + str(p.week) }))
@@ -542,25 +637,27 @@
   window.addEventListener("resize", queueNav, { passive: true });
 
   function rank(p) {
-    if (p.scored && typeof p.final_score === "number") return 1000 + p.final_score;
-    return typeof p.keyword_score === "number" ? p.keyword_score : 0;
+    if (p.scored && Number.isFinite(p.final_score)) return 1000 + p.final_score;
+    return Number.isFinite(p.keyword_score) ? p.keyword_score : 0;
   }
 
   // ---------- 视图：论文流 ----------
-  var FKEYS = ["q", "circle", "source", "scored", "must", "newds", "task", "paradigm", "topic", "from", "to", "sort"];
+  var FKEYS = ["q", "circle", "source", "org", "scored", "must", "newds", "pub", "code", "weights", "task", "paradigm", "topic", "from", "to", "sort"];
   var BATCH = 30;
   function haystack(p) {
-    if (p._h) return p._h;
-    p._h = [p.title, p.abstract, arr(p.authors).join(" "), arr(p.keywords).join(" "), arr(p.matched_keywords).join(" "),
-      arr(p.datasets_used).join(" "), arr(p.new_dataset_names).join(" ")].map(str).join("\n").toLowerCase();
-    return p._h;
+    return [p.title, p.abstract, arr(p.authors).join(" "), arr(p.keywords).join(" "), arr(p.matched_keywords).join(" "),
+      arr(p.datasets_used).join(" "), arr(p.new_dataset_names).join(" "), orgsOf(p).join(" "), p.venue, p.published_venue, p.summary_zh, p.novelty_zh, p.why_it_matters_zh].map(str).join("\n").toLowerCase();
   }
   function filterPapers(f) {
     var q = (f.q || "").trim().toLowerCase();
     var terms = q ? q.split(/\s+/) : [];
     var out = D.papers.filter(function (p) {
       if (f.circle && p.circle !== f.circle) return false;
-      if (f.source && p.source !== f.source) return false;
+      if (f.org && orgsOf(p).indexOf(f.org) < 0) return false;
+      if (f.pub === "1" && !pubOf(p).published) return false;
+      if (f.code === "1" && !safeUrl(p.code_url)) return false;
+      if (f.weights === "1" && !safeUrl(p.weights_url)) return false;
+      if (f.source && sourcesOf(p).indexOf(f.source) < 0) return false;
       if (f.scored === "1" && !p.scored) return false;
       if (f.scored === "0" && p.scored) return false;
       if (f.must === "1" && !p.must_read) return false;
@@ -583,7 +680,7 @@
     var sort = f.sort || "date";
     out.sort(function (a, b) {
       if (sort === "final") {
-        var as = a.scored && typeof a.final_score === "number", bs = b.scored && typeof b.final_score === "number";
+        var as = a.scored && Number.isFinite(a.final_score), bs = b.scored && Number.isFinite(b.final_score);
         if (as !== bs) return as ? -1 : 1;
         if (as && bs && a.final_score !== b.final_score) return b.final_score - a.final_score;
         return (b.keyword_score || 0) - (a.keyword_score || 0) || cmpDate(a, b);
@@ -592,6 +689,14 @@
       return cmpDate(a, b);
     });
     return out;
+  }
+  function queryPapers(f) {
+    var P = PD();
+    if (P && typeof P.filterAndSortPapers === "function") {
+      try { return P.filterAndSortPapers(D.papers, f, { topicsOf: topicsOf }); }
+      catch (e) { recordError("papers-data: " + ((e && e.message) || e)); }
+    }
+    return filterPapers(f);
   }
   function cmpDate(a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; }
 
@@ -611,6 +716,10 @@
     var shown = BATCH;
     var inputs = {};
     if (!topicsAvailable()) delete state.topic;
+    if (!PD() && ["novelty", "citations", "hf"].indexOf(state.sort) >= 0) {
+      delete state.sort;
+      syncHash();
+    }
 
     var results = el("div", { class: "results" });
     var countEl = el("span", { class: "count" });
@@ -630,10 +739,11 @@
       return ok ? null : "课题「" + state.topic + "」不存在或未启用，所以没有匹配的论文。可在「我的课题」里检查，或清除筛选。";
     }
     function renderResults(prevShown) {
-      var list = filterPapers(state);
+      var list = queryPapers(state);
       clear(results);
       var nUn = list.filter(function (p) { return !p.scored; }).length;
-      countEl.textContent = "共 " + list.length + " 篇" + (list.length ? " · 其中 " + nUn + " 篇未打分" : "");
+      var nPub = list.filter(function (p) { return pubOf(p).published; }).length;
+      countEl.textContent = "共 " + list.length + " 篇" + (list.length ? " · 其中 " + nUn + " 篇未打分" : "") + (nPub ? " · " + nPub + " 篇已发表" : "");
       var any = FKEYS.some(function (k) { return state[k] && k !== "sort"; });
       clearBtn.style.display = any ? "" : "none";
       if (!list.length) {
@@ -663,21 +773,27 @@
     }
 
     var timer = null;
-    var search = el("input", { type: "search", class: "search", id: "f-q", placeholder: "搜索标题 / 摘要 / 作者 / 关键词…", "aria-label": "搜索论文", autocomplete: "off" });
+    onCleanup(function () { clearTimeout(timer); });
+    var search = el("input", { type: "search", class: "search", id: "f-q", placeholder: "搜索标题 / 摘要 / 机构 / 期刊 / 作者 / 关键词…", "aria-label": "搜索论文", autocomplete: "off" });
     search.value = state.q || "";
     search.addEventListener("input", function () { clearTimeout(timer); timer = setTimeout(function () { change("q", search.value.trim()); }, 220); });
     inputs.q = search;
 
-    var sources = Object.keys((m.stats && m.stats.by_source) || {}).sort().map(function (s) { return [s, s]; });
+    var PDm = PD();
+    var sources = PDm && typeof PDm.collectSources === "function" ? PDm.collectSources(D.papers, m) :
+      Object.keys((m.stats && m.stats.by_source) || {}).sort().map(function (s) { return [s, s]; });
+    var orgList = PDm && typeof PDm.collectOrgs === "function" ? PDm.collectOrgs(D.papers) : [];
     var circles = Object.keys(m.circle_labels || {}).map(function (c) { return [c, m.circle_labels[c]]; });
     var fCircle = selectField("圈层", "circle", circles, state, change);
     var fSource = selectField("来源", "source", sources, state, change);
+    var fOrg = selectField("机构", "org", orgList.map(function (o) { return [o.name, o.name + " (" + o.count + ")"]; }), state, change);
+    if (!orgList.length && !state.org) fOrg.node.hidden = true;
     var fTask = selectField("任务", "task", arr(m.taxonomy && m.taxonomy.tasks).map(function (t) { return [t.id, t.label]; }), state, change);
     var fPar = selectField("范式", "paradigm", arr(m.taxonomy && m.taxonomy.paradigms).map(function (t) { return [t.id, t.label]; }), state, change);
-    var fSort = selectField("排序", "sort", [["date", "日期（新→旧）"], ["final", "最终分（未打分在后）"], ["keyword", "关键词分"]], state, change);
+    var fSort = selectField("排序", "sort", [["date", "日期（新→旧）"], ["final", "最终分（未打分在后）"], ["keyword", "关键词分"]].concat(PDm ? [["novelty", "新颖度（v4）"], ["citations", "引用数"], ["hf", "HF 热度"]] : []), state, change);
     fSort.input.firstChild.textContent = "默认";
     // 若 URL 里带了不在选项里的值（如手写的 task=x），补一个选项以保持筛选可见
-    [["circle", fCircle], ["source", fSource], ["task", fTask], ["paradigm", fPar]].forEach(function (pair) {
+    [["circle", fCircle], ["source", fSource], ["org", fOrg], ["task", fTask], ["paradigm", fPar]].forEach(function (pair) {
       var v = state[pair[0]];
       if (v && pair[1].input.value !== v) { pair[1].input.appendChild(el("option", { value: v, text: v })); pair[1].input.value = v; }
     });
@@ -713,7 +829,7 @@
       renderResults(shown); // 已显示的卡片就位，不重播入场动画
       if (window.scrollY !== y) window.scrollTo(0, y);
     });
-    inputs.circle = fCircle.input; inputs.source = fSource.input; inputs.task = fTask.input; inputs.paradigm = fPar.input; inputs.sort = fSort.input;
+    inputs.circle = fCircle.input; inputs.source = fSource.input; inputs.org = fOrg.input; inputs.task = fTask.input; inputs.paradigm = fPar.input; inputs.sort = fSort.input;
 
     function dateField(label, key) {
       var i = el("input", { type: "date", id: "f-" + key, min: "2000-01-01", max: "2100-12-31" });
@@ -735,6 +851,7 @@
     inputs.scored = scoredSel;
 
     clearBtn.addEventListener("click", function () {
+      clearTimeout(timer);
       FKEYS.forEach(function (k) { if (k !== "sort") delete state[k]; });
       search.value = "";
       Object.keys(inputs).forEach(function (k) {
@@ -753,11 +870,11 @@
       el("div", { class: "card filters" }, [
         search,
         el("div", { class: "fgrid" }, [
-          fCircle.node, fSource.node, fTask.node, fPar.node, topicBox,
+          fCircle.node, fSource.node, fOrg.node, fTask.node, fPar.node, topicBox,
           el("div", { class: "field" }, [el("label", { for: "f-scored", text: "打分状态" }), scoredSel]),
           dateField("起始日期", "from"), dateField("截止日期", "to"), fSort.node
         ]),
-        el("div", { class: "checks" }, [check("仅必读", "must", "1"), check("发布新数据集", "newds", "1")]),
+        el("div", { class: "checks" }, [check("仅必读", "must", "1"), check("发布新数据集", "newds", "1"), check("已正式发表", "pub", "1"), check("有代码", "code", "1"), check("有权重", "weights", "1")]),
         el("div", { class: "fbar" }, [countEl, clearBtn])
       ]),
       results
@@ -921,14 +1038,14 @@
         if (!hits.length) return;
         any = true;
         hits.sort(function (a, b) {
-          var as = a.scored && typeof a.final_score === "number" ? a.final_score : -1, bs = b.scored && typeof b.final_score === "number" ? b.final_score : -1;
+          var as = a.scored && Number.isFinite(a.final_score) ? a.final_score : -1, bs = b.scored && Number.isFinite(b.final_score) ? b.final_score : -1;
           return bs - as || cmpDate(a, b);
         });
         box.appendChild(el("h3", { class: "wk-tg-h" }, [str(t.name), el("span", { class: "wk-tg-n", text: hits.length + " 篇" })]));
         box.appendChild(el("ul", { class: "wk-tg" }, hits.map(function (p) {
           var b = el("button", { type: "button", class: "wk-tp", "aria-haspopup": "dialog" }, [
             el("span", { class: "wk-tp-title", text: str(p.title) || "(无标题)" }),
-            el("span", { class: "score" + (p.scored ? (p.must_read ? " must" : "") : " un"), text: p.scored && typeof p.final_score === "number" ? fmtScore(p.final_score) : "未打分" })
+            el("span", { class: "score" + (p.scored ? (p.must_read ? " must" : "") : " un"), text: p.scored && Number.isFinite(p.final_score) ? fmtScore(p.final_score) : "未打分" })
           ]);
           b.addEventListener("click", function () { openDrawer(p, b); });
           return el("li", {}, b);
@@ -1168,7 +1285,7 @@
   function init() {
     Promise.all([getJSON("data/papers.json"), getJSON("data/meta.json"), getJSON("data/datasets.json"), getJSON("data/weekly.json"), getJSONSoft("data/home.json"), getJSONSoft("data/topics.json"), getJSONSoft("data/news.json"), getJSONSoft("data/companies.json"), getJSONSoft("data/resources.json")]).then(function (res) {
       D.home = (res[4] && typeof res[4] === "object") ? res[4] : null;
-      D.papers = arr(res[0] && res[0].papers);
+      D.papers = arr(res[0] && res[0].papers).filter(function (p) { return p && typeof p.id === "string" && p.id; });
       D.meta = res[1] || {};
       D.meta.stats = D.meta.stats || {};
       D.meta.taxonomy = D.meta.taxonomy || { tasks: [], paradigms: [] };

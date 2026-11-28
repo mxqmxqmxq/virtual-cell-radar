@@ -172,6 +172,18 @@ def test_anonymous_cursor_401_keeps_first_page():
     assert "OPENALEX_API_KEY" in f.last_warning
 
 
+def test_large_issn_list_chunked():
+    reqs = []
+    issns = [JournalIssn(name=f"J{i}", issn=[f"1000-{i:04d}"]) for i in range(20)]
+    f, _ = fetcher(lambda req: (reqs.append(req), httpx.Response(200, json=load("works_empty.json")))[1],
+                   journal_issns=issns)
+    f.fetch(date(2026, 11, 1), date(2026, 11, 14))
+    assert len(reqs) == 2
+    assert "1000-0000" in reqs[0].url.params["filter"]
+    assert "1000-0019" in reqs[1].url.params["filter"]
+    assert f.last_incomplete is False
+
+
 def test_max_pages_truncates():
     reqs = []
     f, _ = fetcher(paged(reqs), max_pages=1)

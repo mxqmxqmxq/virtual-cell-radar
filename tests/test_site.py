@@ -1,5 +1,6 @@
 import json
 from datetime import date, datetime, timedelta
+from pathlib import Path
 
 import pytest
 
@@ -7,6 +8,8 @@ from aivc.config import load_config
 from aivc.models import LLMAnnotation, Paper
 from aivc.site import build_site, make_server, week_id
 from aivc.storage import PaperStore
+
+WEB_DIR = Path(__file__).resolve().parent.parent / "src" / "aivc" / "web"
 
 
 def _llm(**kw):
@@ -174,6 +177,18 @@ def test_missing_assets(env, tmp_path):
     cfg, data, reports, _, site = env
     with pytest.raises(FileNotFoundError, match="静态资源"):
         build_site(cfg, data_dir=data, reports_dir=reports, site_dir=site, assets_dir=tmp_path / "missing")
+
+
+def test_real_assets_include_papers_data(env):
+    """真实前端目录：index.html 在 app.js 之前引用 papers-data.js，且 build-site 会复制它。"""
+    cfg, data, reports, _, site = env
+    html = (WEB_DIR / "index.html").read_text(encoding="utf-8")
+    assert (WEB_DIR / "assets" / "papers-data.js").is_file()
+    i_pd, i_app = html.index('src="assets/papers-data.js"'), html.index('src="assets/app.js"')
+    assert 0 <= i_pd < i_app
+    build_site(cfg, data_dir=data, reports_dir=reports, site_dir=site, assets_dir=WEB_DIR)
+    assert (site / "assets" / "papers-data.js").is_file()
+    assert 'assets/papers-data.js' in (site / "index.html").read_text(encoding="utf-8")
 
 
 def test_make_server(tmp_path):

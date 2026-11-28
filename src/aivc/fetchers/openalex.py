@@ -22,7 +22,7 @@ from typing import Any, Callable
 import httpx
 
 from ..models import Paper, make_paper_id
-from ..textutil import biorxiv_id_from_doi, normalize_doi, strip_arxiv_version
+from ..textutil import biorxiv_id_from_doi, is_valid_doi, normalize_doi, strip_arxiv_version
 from .base import FetchError, build_client, get_with_retry
 from .links import extract_links
 
@@ -95,7 +95,8 @@ def work_signals(work: dict) -> dict:
     pmid_raw = ids.get("pmid") or ""
     pmid_digits = "".join(re.findall(r"\d+", str(pmid_raw).rstrip("/").rsplit("/", 1)[-1])) or None
     doi_raw = work.get("doi") or ids.get("doi")
-    doi = normalize_doi(doi_raw) if doi_raw else None
+    doi_norm = normalize_doi(doi_raw) if doi_raw else None
+    doi = doi_norm if is_valid_doi(doi_norm) else None
     affs: list[str] = []
     for a in work.get("authorships") or []:
         for inst in (a or {}).get("institutions") or []:
@@ -190,6 +191,9 @@ def _prefer(cur: Paper, new: Paper) -> Paper:
     return new if _richness(new) > _richness(cur) else cur
 
 
+MAX_ISSNS_PER_QUERY = 15
+
+
 class OpenAlexFetcher:
     name = "openalex"
 
@@ -234,10 +238,13 @@ class OpenAlexFetcher:
                 if i not in issns:
                     issns.append(i)
         if issns:
-            p = {"filter": f"primary_location.source.issn:{'|'.join(issns)},{window}"}
-            if self.cfg.domain_terms:
-                p["search"] = " OR ".join(f'"{t}"' for t in self.cfg.domain_terms)
-            specs.append(p)
+            search = " OR ".join(f'"{t}"' for t in self.cfg.domain_terms) if self.cfg.domain_terms else None
+            for i in range(0, len(issns), MAX_ISSNS_PER_QUERY):
+                chunk = issns[i : i + MAX_ISSNS_PER_QUERY]
+                p = {"filter": f"primary_location.source.issn:{'|'.join(chunk)},{window}"}
+                if search:
+                    p["search"] = search
+                specs.append(p)
         for q in self.cfg.queries:
             specs.append({"search": q, "filter": window})
         return specs

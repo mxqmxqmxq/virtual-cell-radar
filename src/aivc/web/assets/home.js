@@ -152,7 +152,7 @@
           el("span", { text: "AIVC · Virtual Cell Radar" })
         ]),
         h1,
-        el("p", { class: "hm-lede hm-rise", text: "每日抓取 arXiv、bioRxiv、OpenReview 等来源，经关键词预筛、去重与 LLM 打分，归类到任务与范式；并跟踪行业融资、合作与模型发布，汇总成论文流、范式地图、数据集表、行业动态与每周简报。" }),
+        el("p", { class: "hm-lede hm-rise", text: "每日抓取 arXiv、bioRxiv、OpenAlex、Europe PMC、HF Daily Papers、OpenReview 等来源，经关键词预筛、去重与 LLM 打分，归类到任务与范式；并跟踪行业融资、合作与模型发布，汇总成论文流、范式地图、数据集表、行业动态与每周简报。" }),
         ctas, kpiRow, prog_el
       ]);
       sv(inner.children[2], "--i", 3);
@@ -242,6 +242,11 @@
         ];
         if (planned) kids.push(el("span", { class: "hm-chip-n mono", text: "计划中" }));
         else if (num(s.count) > 0) kids.push(el("span", { class: "hm-chip-n mono", text: fmt(s.count) + " 篇" }));
+        var kind = s.kind || "source";
+        if (!planned && kind === "source" && s.id) {
+          var lbl = String(s.label || s.id || "");
+          return el("span", { class: "hm-chip-wrap", role: "listitem" }, [el("a", { class: "hm-chip hm-chip-link", href: "#/papers?source=" + encodeURIComponent(String(s.id)), title: "在论文流中筛选来源：" + lbl }, kids)]);
+        }
         return el("span", { class: "hm-chip" + (planned ? " is-planned" : ""), role: "listitem" }, kids);
       })), { delay: 0 });
     }

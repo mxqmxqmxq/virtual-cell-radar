@@ -45,20 +45,41 @@ medrxiv:
   max_pages_per_category: 400
   fetch_published_links: false
 
-# OpenAlex（CC0 1.0；许可条款待核实）
+# OpenAlex（CC0 1.0；以下 27 本期刊 ISSN 均于 2026-11-28 核对自 OpenAlex Sources API）
 openalex:
   enabled: true
-  # ISSN 待核实（上线前对照期刊官网或 ISSN Portal 核对）
   journal_issns:
+    # Nature 系列
     - {name: "Nature", issn: ["0028-0836", "1476-4687"]}
     - {name: "Nature Methods", issn: ["1548-7091", "1548-7105"]}
     - {name: "Nature Biotechnology", issn: ["1087-0156", "1546-1696"]}
     - {name: "Nature Machine Intelligence", issn: ["2522-5839"]}
     - {name: "Nature Computational Science", issn: ["2662-8457"]}
+    - {name: "Nature Genetics", issn: ["1061-4036", "1546-1718"]}
+    - {name: "Nature Communications", issn: ["2041-1723"]}
+    - {name: "Nature Cell Biology", issn: ["1465-7392", "1476-4679"]}
+    - {name: "Nature Medicine", issn: ["1078-8956", "1546-170X"]}
+    - {name: "npj Systems Biology and Applications", issn: ["2056-7189"]}
+    # Cell 系列
     - {name: "Cell", issn: ["0092-8674", "1097-4172"]}
-    - {name: "Cell Systems", issn: ["2405-4712"]}
+    - {name: "Cell Systems", issn: ["2405-4712", "2405-4720"]}
+    - {name: "Cell Genomics", issn: ["2666-979X"]}
+    - {name: "Cell Reports", issn: ["2211-1247"]}
+    - {name: "Cell Reports Methods", issn: ["2667-2375"]}
+    - {name: "Patterns", issn: ["2666-3899"]}
+    # Science & 综合顶刊
     - {name: "Science", issn: ["0036-8075", "1095-9203"]}
-    - {name: "Genome Biology", issn: ["1474-760X"]}
+    - {name: "Science Advances", issn: ["2375-2548"]}
+    - {name: "Proceedings of the National Academy of Sciences", issn: ["0027-8424", "1091-6490"]}
+    - {name: "eLife", issn: ["2050-084X"]}
+    # 生信与系统生物学主力刊
+    - {name: "Genome Biology", issn: ["1465-6906", "1474-760X"]}
+    - {name: "Molecular Systems Biology", issn: ["1744-4292"]}
+    - {name: "Genome Research", issn: ["1088-9051", "1549-5469"]}
+    - {name: "Nucleic Acids Research", issn: ["0305-1048", "1362-4962"]}
+    - {name: "Bioinformatics", issn: ["1367-4803", "1367-4811"]}
+    - {name: "PLOS Computational Biology", issn: ["1553-734X", "1553-7358"]}
+    - {name: "Briefings in Bioinformatics", issn: ["1467-5463", "1477-4054"]}
   domain_terms: ["single-cell", "virtual cell", "perturbation", "foundation model", "gene expression", "transcriptomic", "cell state"]
   queries:
     - '"virtual cell"'

@@ -327,12 +327,12 @@ def test_papers_new_fields(tmp_path):
     lines = [
         _rec(),
         _rec(sources=["arxiv", "openalex"], weights_url="https://huggingface.co/a/b",
-             published_doi="10.1038/x", matched_orgs=["Acme"], llm={"why_it_matters_zh": "简短"}),
+             published_doi="10.1038/x", matched_orgs=["Acme", "Genentech/Roche"], llm={"why_it_matters_zh": "简短"}),
         _rec(sources=["bogus"]),
         _rec(llm={"why_it_matters_zh": long_en}),
         _rec(weights_url="ftp://x"),
         _rec(published_doi="notadoi"),
-        _rec(matched_orgs=["a/b"]),
+        _rec(matched_orgs=["/tmp/local"]),
     ]
     _w(tmp_path / "papers/2026-10.jsonl", "\n".join(lines) + "\n")
     issues = pc.check_data(tmp_path, ALLOWED)

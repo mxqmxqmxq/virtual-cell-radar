@@ -9,7 +9,7 @@ from typing import Any, Callable
 import httpx
 
 from ..models import Paper, make_paper_id
-from ..textutil import biorxiv_id_from_doi, normalize_doi
+from ..textutil import biorxiv_id_from_doi, is_valid_doi, normalize_doi
 from .base import FetchError, build_client, get_with_retry
 from .links import extract_links
 
@@ -50,7 +50,8 @@ def result_to_paper(r: dict, today: date) -> Paper | None:
     pmid = str(r.get("pmid") or "").strip() or None
     pmcid = str(r.get("pmcid") or "").strip() or None
     doi_raw = (r.get("doi") or "").strip()
-    doi = normalize_doi(doi_raw) if doi_raw else None
+    doi_norm = normalize_doi(doi_raw) if doi_raw else None
+    doi = doi_norm if is_valid_doi(doi_norm) else None
     abstract = _clean_text(r.get("abstractText")) or None
 
     authors_raw = _as_list((r.get("authorList") or {}).get("author"))

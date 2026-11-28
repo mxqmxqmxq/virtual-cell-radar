@@ -11,6 +11,7 @@
   function num(v) { return typeof v === "number" && isFinite(v) ? v : 0; }
   function arr(v) { return Array.isArray(v) ? v : []; }
   function str(v) { return v == null ? "" : String(v); }
+  function srcLabel(id) { try { var P = window.AIVCPapersData; if (P && typeof P.sourceLabel === "function") return P.sourceLabel(id) || str(id); } catch (e) { /* ignore */ } return str(id); }
   function sv(node, name, val) { node.style.setProperty(name, String(val)); return node; }
 
   function ctx(api) {
@@ -62,7 +63,7 @@
     }
     if (!papers.length && !dg) {
       papers = arr(D.papers).slice().sort(function (a, b) {
-        function s(p) { return p.scored && typeof p.final_score === "number" ? 1000 + p.final_score : num(p.keyword_score); }
+        function s(p) { return p.scored && Number.isFinite(p.final_score) ? 1000 + p.final_score : num(p.keyword_score); }
         return s(b) - s(a);
       }).slice(0, 12);
     }
@@ -116,11 +117,13 @@
 
     function paperRow(p, i) {
       var hits = hitsOf(p);
-      var sc = p.scored && typeof p.final_score === "number" ? api.fmtScore(p.final_score) : "—";
+      var sc = p.scored && Number.isFinite(p.final_score) ? api.fmtScore(p.final_score) : "—";
       var title = el("button", { class: "dg-title", type: "button", text: str(p.title) });
       title.addEventListener("click", function () { drawer(p, title); });
-      var sub = str(p.novelty_zh) || ([str(p.source), str(p.date || p.published)].filter(Boolean).join(" · "));
+      var sub = str(p.novelty_zh) || str(p.why_it_matters_zh) || [srcLabel(p.source), str(p.date || p.published)].filter(Boolean).join(" · ");
       var tags = hits.slice(0, 2).map(function (h) { return el("span", { class: "tag tag-hl", text: "课题 · " + str(h.name) }); });
+      var pv = str(p.published_venue).trim();
+      if (pv) tags.push(el("span", { class: "tag tag-good", text: "已发表 · " + pv }));
       var row = el("li", { class: "dg-row mo-reveal" }, [
         el("span", { class: "dg-rank mono", text: (i < 9 ? "0" : "") + (i + 1) }),
         el("div", { class: "dg-main" }, [

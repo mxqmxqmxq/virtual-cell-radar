@@ -137,8 +137,8 @@ class HFPapersFetcher:
                     log.info("hf_papers %s 无数据，已跳过 (%s)", day, e)
                     continue
                 if "HTTP 400" in str(e):
-                    if day > today:
-                        log.info("hf_papers %s 为未来 UTC 日期，已跳过 (%s)", day, e)
+                    if day > today or (day >= today - timedelta(days=2) and day.weekday() >= 5):
+                        log.info("hf_papers %s 为未来 UTC 日期或周末未发布，已跳过 (%s)", day, e)
                         continue
                     raise FetchError(f"hf_papers {day}: {e}") from e
                 raise

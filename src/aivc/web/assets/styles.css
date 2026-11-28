@@ -10,7 +10,7 @@
   --accent: #1f4fff;
   --accent-ink: #ffffff;
   --accent-soft: #e6ecff;
-  --good: #0f8a4f;
+  --good: #09733f;
   --good-soft: #e3f6ec;
   --warn: #a35b00;
   --warn-soft: #fdf0dc;
@@ -181,6 +181,15 @@ main { display: block; outline: none; }
 .score { font-family: var(--mono); font-size: 12px; padding: 3px 9px; border-radius: 999px; background: var(--text); color: var(--bg); }
 .score.must { background: var(--accent); color: var(--accent-ink); }
 .score.un { background: transparent; color: var(--text-2); border: 1px dashed var(--text-3); }
+.pcard-meta .pcard-multi { font-size: 10px; padding: 1px 6px; border: 1px solid var(--border); border-radius: 999px; color: var(--text-2); }
+.pcard-meta .pcard-pub { flex: 1 0 100%; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--good); text-transform: none; letter-spacing: 0; }
+.pcard-rubric { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; font-family: var(--mono); font-size: 11px; color: var(--text-2); margin: 0; min-width: 0; }
+.pcard-rubric-i { padding: 2px 8px; border-radius: 999px; background: var(--surface-2); }
+.pcard-rubric-sep { color: var(--text-3); }
+.pcard-signals { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.sig { display: inline-block; font-family: var(--mono); font-size: 11px; letter-spacing: .02em; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-2); background: var(--surface); white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.sig-org { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.sig-more { color: var(--text-2); }
 
 /* ---- 论文流 ---- */
 .filters { margin-top: 28px; display: grid; gap: 12px; padding: 20px; }
@@ -189,7 +198,7 @@ main { display: block; outline: none; }
 .filters { background: linear-gradient(var(--surface), var(--surface)) padding-box; }
 .fgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.field label { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--text-3); }
+.field label { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--text-2); }
 .field select, .field input[type=date] { width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); font-size: 13.5px; min-width: 0; }
 .checks { display: flex; flex-wrap: wrap; gap: 8px; }
 .chk { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 12px; padding: 7px 12px; border: 1px solid var(--border); border-radius: 999px; cursor: pointer; user-select: none; background: var(--bg); outline: 2px solid transparent; outline-offset: 2px; transition: background-color .15s var(--mo-ease-std), border-color .15s var(--mo-ease-std), color .15s var(--mo-ease-std), scale .15s var(--mo-ease-std), outline-color .15s var(--mo-ease-std); }
@@ -221,6 +230,22 @@ dialog.drawer[open].closing::backdrop { animation: drawer-fade-out .2s ease both
 .drawer p { color: var(--text-2); overflow-wrap: anywhere; white-space: pre-wrap; }
 .links { display: flex; flex-wrap: wrap; gap: 8px; }
 .kv { font-family: var(--mono); font-size: 12px; color: var(--text-2); overflow-wrap: anywhere; }
+.drawer-pub { overflow-wrap: anywhere; color: var(--good); text-transform: none; letter-spacing: 0; }
+.rubric-card { margin-top: 14px; padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); display: grid; gap: 10px; min-width: 0; }
+.rubric-row { display: grid; grid-template-columns: 5em minmax(0, 1fr) 5.5em; gap: 10px; align-items: center; font-size: 12.5px; }
+.rubric-label { color: var(--text-2); white-space: nowrap; }
+.rubric-track { height: 6px; border-radius: 999px; background: var(--border); overflow: hidden; min-width: 0; }
+.rubric-fill { height: 100%; border-radius: inherit; background: var(--accent); transition: width .4s var(--mo-ease-std); }
+.rubric-val { text-align: right; font-size: 12px; color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.metric-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.metric { display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); min-width: 0; }
+.metric-l { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--text-2); }
+.metric-v { font-size: 14px; color: var(--text); }
+.drawer .drawer-callout { color: var(--text); background: var(--accent-soft); border-left: 3px solid var(--accent); padding: 10px 14px; border-radius: 0 10px 10px 0; }
+.drawer .drawer-caveat { color: var(--text); background: var(--warn-soft); border-left: 3px solid var(--warn); padding: 10px 14px; border-radius: 0 10px 10px 0; }
+a.tag-org { color: var(--text); background: var(--surface); border-color: var(--border); text-decoration: none; cursor: pointer; outline: 2px solid transparent; outline-offset: 2px; transition: border-color .15s var(--mo-ease-std), background-color .15s var(--mo-ease-std), outline-color .15s var(--mo-ease-std); }
+a.tag-org:hover { border-color: var(--text-3); background: var(--surface-2); }
+a.tag-org:focus-visible { outline-color: var(--accent); }
 
 /* ---- 范式地图 ---- */
 .maptools { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; margin: 24px 0 16px; }
@@ -311,6 +336,8 @@ html.motion .reveal.in.reveal-skip { animation: none; }
   .fgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 760px) {
+  .rubric-row { grid-template-columns: 4.5em minmax(0, 1fr) 5em; gap: 8px; font-size: 12px; }
+  .metric { flex: 1 1 calc(50% - 4px); }
   :root { --gutter: 16px; --radius: 16px; }
   .brand-sub { display: none; }
   .topbar { top: 8px; margin-top: 8px; border-radius: 6px; }

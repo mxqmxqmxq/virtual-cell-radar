@@ -5,6 +5,7 @@ import re
 import unicodedata
 
 _BIORXIV_RE = re.compile(r"^10\.(1101|64898)/(\d{4}\.\d{2}\.\d{2}\.\d{6,})")
+_VALID_DOI_RE = re.compile(r"^10\.\d+/\S+$")
 _VERSION_RE = re.compile(r"v\d+$", re.IGNORECASE)
 
 
@@ -21,6 +22,10 @@ def normalize_doi(s: str) -> str:
     s = re.sub(r"^doi:\s*", "", s, flags=re.IGNORECASE)
     s = s.strip().lower()
     return _VERSION_RE.sub("", s)
+
+
+def is_valid_doi(s: str | None) -> bool:
+    return bool(s and _VALID_DOI_RE.match(normalize_doi(s)))
 
 
 def strip_arxiv_version(s: str) -> str:

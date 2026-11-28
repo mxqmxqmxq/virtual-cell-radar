@@ -55,7 +55,9 @@ def _check_paper_new_fields(d: dict, path: str, line: int, pid, llm_obj) -> list
     orgs = d.get("matched_orgs")
     if isinstance(orgs, list):
         for o in orgs:
-            if isinstance(o, str) and ("/" in o or len(o) > 120):
+            if isinstance(o, str) and (
+                ABS_PATH_RE.search(o) or o.startswith("/") or "://" in o or len(o) > 120
+            ):
                 issues.append(Issue(path, line, f"matched_orgs 含异常值（{pid}）"))
                 break
     srcs = d.get("sources")
