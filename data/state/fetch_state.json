@@ -1,0 +1,64 @@
+{
+  "runs": [
+    {
+      "fetch_errors": {
+        "hf_papers": "FetchError: hf_papers 2026-11-28: GET https://huggingface.co/api/daily_papers failed: HTTP 400"
+      },
+      "fetched": {
+        "arxiv": 0,
+        "biorxiv": 108,
+        "europepmc": 6,
+        "hf_papers": 0,
+        "openalex": 11
+      },
+      "incomplete": {},
+      "kept_after_filter": 24,
+      "llm_api_calls": 40,
+      "llm_errors": 0,
+      "n_duplicates": 4,
+      "n_new": 20,
+      "n_updated": 3,
+      "run_at": "2026-11-28T01:03:22.371831+00:00",
+      "since": "2026-11-26",
+      "until": "2026-11-28"
+    }
+  ],
+  "sources": {
+    "arxiv": {
+      "consecutive_failures": 0,
+      "last_error": null,
+      "last_fetched": 0,
+      "last_run_at": "2026-11-28T01:03:22.371831+00:00",
+      "last_success_date": "2026-11-28"
+    },
+    "biorxiv": {
+      "consecutive_failures": 0,
+      "last_error": null,
+      "last_fetched": 108,
+      "last_run_at": "2026-11-28T01:03:22.371831+00:00",
+      "last_success_date": "2026-11-28"
+    },
+    "europepmc": {
+      "consecutive_failures": 0,
+      "last_error": null,
+      "last_fetched": 6,
+      "last_run_at": "2026-11-28T01:03:22.371831+00:00",
+      "last_success_date": "2026-11-28"
+    },
+    "hf_papers": {
+      "consecutive_failures": 1,
+      "last_error": "FetchError: hf_papers 2026-11-28: GET https://huggingface.co/api/daily_papers failed: HTTP 400",
+      "last_fetched": 0,
+      "last_run_at": "2026-11-28T01:03:22.371831+00:00",
+      "last_success_date": null
+    },
+    "openalex": {
+      "consecutive_failures": 0,
+      "last_error": null,
+      "last_fetched": 11,
+      "last_run_at": "2026-11-28T01:03:22.371831+00:00",
+      "last_success_date": "2026-11-28"
+    }
+  },
+  "version": 1
+}
